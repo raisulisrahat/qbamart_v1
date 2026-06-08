@@ -1,0 +1,47 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15-alpine
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    environment:
+      - POSTGRES_DB=qbamart_db
+      - POSTGRES_USER=qbamart_user
+      - POSTGRES_PASSWORD=qbamart_password
+
+  backend:
+    build: ./backend
+    command: >
+      sh -c "python manage.py migrate &&
+             python manage.py collectstatic --no-input &&
+             gunicorn --bind 0.0.0.0:8000 core.wsgi:application"
+    volumes:
+      - ./backend:/app
+      - static_volume:/app/staticfiles
+      - media_volume:/app/media
+    environment:
+      - DEBUG=False
+      - DB_ENGINE=django.db.backends.postgresql
+      - DB_NAME=qbamart_db
+      - DB_USER=qbamart_user
+      - DB_PASSWORD=qbamart_password
+      - DB_HOST=db
+      - DB_PORT=5432
+    depends_on:
+      - db
+
+  frontend:
+    build: ./web
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    volumes:
+      - static_volume:/app/backend/staticfiles
+      - media_volume:/app/backend/media
+
+volumes:
+  postgres_data:
+  static_volume:
+  media_volume:
