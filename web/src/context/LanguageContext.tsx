@@ -79,7 +79,8 @@ export const LanguageProvider = ({ children }: { children: ReactNode }) => {
             real_customer_reviews: 'Real Customer Reviews',
             customer_review: 'Customer Review',
             fill_out_form_to_order: 'Fill out the form below to order',
-            fill_form_to_order: 'Fill out the form to order'
+            fill_form_to_order: 'Fill out the form to order',
+            no_products_found: 'No products found'
         },
         bn: {
             cash_on_delivery: 'ক্যাশ অন ডেলিভারি',
@@ -117,7 +118,8 @@ export const LanguageProvider = ({ children }: { children: ReactNode }) => {
             real_customer_reviews: 'আমাদের কাস্টমারদের বাস্তব রিভিউজ',
             customer_review: 'কাস্টমার রিভিউ',
             fill_out_form_to_order: 'অর্ডার করতে নিচের ফর্মটি সঠিক ভাবে পূরণ করুন',
-            fill_form_to_order: 'অর্ডার করতে ফর্মটি পূরণ করুন'
+            fill_form_to_order: 'অর্ডার করতে ফর্মটি পূরণ করুন',
+            no_products_found: 'কোনো পণ্য পাওয়া যায়নি'
         }
     };
 
