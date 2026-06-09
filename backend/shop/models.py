@@ -143,7 +143,13 @@ def compress_image(image_field, max_width=1200):
             
         img = PilImage.open(image_field)
         
-        if img.mode != 'RGB':
+        # Convert transparent background to white background for PNG/WebP images
+        if img.mode in ('RGBA', 'LA') or (img.mode == 'P' and 'transparency' in img.info):
+            alpha = img.convert('RGBA').split()[-1]
+            bg = PilImage.new("RGBA", img.size, (255, 255, 255, 255))
+            bg.paste(img, mask=alpha)
+            img = bg.convert('RGB')
+        elif img.mode != 'RGB':
             img = img.convert('RGB')
 
         # Resize if too large
@@ -272,6 +278,10 @@ class Order(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     shipping_cost = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     total_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    
+    # Payment Tracking
+    payment_gateway_id = models.CharField(max_length=255, blank=True, null=True, help_text="Transaction or payment gateway ID")
+    is_paid = models.BooleanField(default=False)
     
     ip_address = models.GenericIPAddressField(null=True, blank=True)
     user_agent = models.TextField(null=True, blank=True)
@@ -563,6 +573,13 @@ class SiteSettings(models.Model):
     sms_sender_id = models.CharField(max_length=50, blank=True, null=True, help_text="Approved Sender ID")
     otp_format = models.CharField(max_length=255, default="{site_title}-এর জন্য আপনার ওটিপি (OTP) হলো {otp}", help_text="Format for OTP SMS. Use {site_title} and {otp} placeholders.")
     enable_order_confirmation_sms = models.BooleanField(default=False, help_text="Send SMS to customer when order is placed")
+
+    # bKash Integration
+    bkash_base_url = models.URLField(max_length=500, default='https://tokenized.sandbox.bka.sh/v1.2.0-beta', help_text="bKash API URL")
+    bkash_app_key = models.CharField(max_length=255, blank=True, null=True, help_text="bKash App Key")
+    bkash_app_secret = models.CharField(max_length=255, blank=True, null=True, help_text="bKash App Secret")
+    bkash_username = models.CharField(max_length=255, blank=True, null=True, help_text="bKash Username")
+    bkash_password = models.CharField(max_length=255, blank=True, null=True, help_text="bKash Password")
 
     def __str__(self):
         return self.site_title

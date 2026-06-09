@@ -1,11 +1,13 @@
 import React from 'react';
 import SEO from '../components/SEO';
 import { motion } from 'framer-motion';
+import { useSettings } from '../context/SettingsContext';
 
 const PrivacyPolicy = () => {
+  const { siteTitle } = useSettings();
   return (
     <div className="bg-white min-h-screen">
-      <SEO title="Privacy Policy" description="Learn how Qbamart protects your personal data." />
+      <SEO title="Privacy Policy" description={`Learn how ${siteTitle} protects your personal data.`} />
       
       <div className="bg-neutral-50 py-20 border-b border-neutral-100">
         <div className="max-w-[1200px] mx-auto px-6 text-center">
@@ -28,10 +30,10 @@ const PrivacyPolicy = () => {
         <section className="mb-12">
           <h2 className="text-2xl font-black text-neutral-900 mb-6 uppercase tracking-tight">WHO WE ARE</h2>
           <p className="text-neutral-600 leading-relaxed mb-4">
-            Our website address is: https://Qbamart.com.
+            Our website address is: {window.location.origin}.
           </p>
           <p className="text-neutral-600 leading-relaxed">
-            At Qbamart, we are committed to redefining the way you shop online. As one of the most reliable and fast-growing e-commerce platforms in the country, we take pride in offering a seamless, secure, and satisfying shopping experience for all our customers, no matter where you are in Bangladesh.
+            At {siteTitle}, we are committed to redefining the way you shop online. As one of the most reliable and fast-growing e-commerce platforms in the country, we take pride in offering a seamless, secure, and satisfying shopping experience for all our customers, no matter where you are in Bangladesh.
           </p>
         </section>
 
@@ -82,11 +84,11 @@ const PrivacyPolicy = () => {
           <div className="space-y-4">
             <div className="flex items-center space-x-3 text-sm">
               <span className="text-brand">📧</span>
-              <span>support@Qbamart.com</span>
+              <span>support@{siteTitle.toLowerCase().replace(/\s+/g, '')}.com</span>
             </div>
             <div className="flex items-center space-x-3 text-sm">
               <span className="text-brand">📞</span>
-              <span>01516542909</span>
+              <span>01618-320869</span>
             </div>
           </div>
         </section>

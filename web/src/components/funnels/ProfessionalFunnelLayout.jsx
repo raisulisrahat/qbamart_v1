@@ -349,7 +349,7 @@ const ProfessionalFunnelLayout = ({
                          <span>Privacy</span> <span>Terms</span> <span>Returns</span>
                     </div>
                     <p className="text-slate-600 text-[10px] font-bold tracking-widest uppercase">
-                         © {new Date().getFullYear()} {siteSettings?.site_title || 'Qbamart'} Premium Official Store
+                         © 2026 Qbamart. Powered by <a href="https://ctsolutionbd.com" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">Cyber and Tech Solution</a>.
                     </p>
                 </div>
             </footer>

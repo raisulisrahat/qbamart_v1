@@ -391,7 +391,7 @@ const PremiumFunnelLayout = ({
 
                 {/* Final Trust Signal */}
                 <div className="text-center space-y-6 pt-20">
-                     <p className="text-sm font-bold text-neutral-400 uppercase tracking-widest">© {new Date().getFullYear()} {siteSettings?.site_title || 'Qbamart'} - Premium E-commerce Experience</p>
+                     <p className="text-sm font-bold text-neutral-400 uppercase tracking-widest">© 2026 Qbamart. Powered by <a href="https://ctsolutionbd.com" target="_blank" rel="noopener noreferrer" className="hover:text-black transition-colors">Cyber and Tech Solution</a>.</p>
                      <div className="flex justify-center gap-10 opacity-30 grayscale">
                          <img src="/payment-icons.png" className="h-8 w-auto grayscale" alt="" />
                          <ShieldCheck size={32} />

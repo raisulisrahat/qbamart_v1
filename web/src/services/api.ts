@@ -28,6 +28,7 @@ export const getCategories = () => api.get('categories/');
 export const getBrands = () => api.get('brands/');
 export const getBanners = () => api.get('banners/');
 export const getSiteSettings = () => api.get('site-settings/');
+export const updateSiteSettings = (id: number, data: any) => api.patch(`site-settings/${id}/`, data);
 export const searchProducts = (query: string) => api.get(`products/?search=${query}`);
 export const getDistricts = () => api.get('districts/');
 export const getUpazilas = (districtId?: string) => api.get(`upazilas/${districtId ? `?district=${districtId}` : ''}`);

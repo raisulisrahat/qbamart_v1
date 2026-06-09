@@ -7,8 +7,10 @@ import { Search, ArrowRight, Eye, Calendar, Sparkles, ChevronLeft, ChevronRight 
 import SEO from '../components/SEO';
 import { resolveImageUrl } from '../utils/image';
 import { Link } from 'react-router-dom';
+import { useSettings } from '../context/SettingsContext';
 
 const BlogList = () => {
+  const { siteTitle } = useSettings();
   const [selectedCategory, setSelectedCategory] = React.useState<number | null>(null);
   const [searchQuery, setSearchQuery] = React.useState('');
   const [currentPage, setCurrentPage] = React.useState(1);
@@ -70,7 +72,7 @@ const BlogList = () => {
     <div className="bg-[#FAF9F6] min-h-screen pb-24">
       <SEO 
         title="Journal & Insights" 
-        description="Explore articles on modest lifestyle, fashion trends, styling secrets, and updates directly from the Qbamart editorial team."
+        description={`Explore articles on modest lifestyle, fashion trends, styling secrets, and updates directly from the ${siteTitle} editorial team.`}
       />
 
       {/* Hero Header with Organic Warm Gradient Background */}
@@ -84,7 +86,7 @@ const BlogList = () => {
             className="inline-flex items-center gap-1.5 px-3 py-1 bg-white/70 backdrop-blur-md rounded-full border border-orange-100 shadow-sm mb-6"
           >
             <Sparkles size={10} className="text-[#5173FB] animate-pulse" />
-            <span className="text-[9px] font-black uppercase tracking-widest text-[#5173FB]">Qbamart Journal</span>
+            <span className="text-[9px] font-black uppercase tracking-widest text-[#5173FB]">{siteTitle} Journal</span>
           </motion.div>
           
           <motion.h1 
@@ -102,7 +104,7 @@ const BlogList = () => {
             transition={{ delay: 0.2, duration: 0.5 }}
             className="text-[12px] md:text-sm text-neutral-500 max-w-xl mx-auto font-medium leading-relaxed opacity-90"
           >
-            Explore articles on modest lifestyle, fashion trends, styling guides, and updates directly from the Qbamart editorial team.
+            Explore articles on modest lifestyle, fashion trends, styling guides, and updates directly from the {siteTitle} editorial team.
           </motion.p>
         </div>
       </div>

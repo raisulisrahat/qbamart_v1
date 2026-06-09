@@ -158,7 +158,11 @@ const Navbar = () => {
           {/* Desktop Only: Logo */}
           <div className="hidden md:flex flex-shrink-0 items-center">
             <Link to="/" className="flex items-center">
-              <img src={siteLogo} alt={siteTitle} className="h-8 w-auto" />
+              {siteLogo ? (
+                <img src={siteLogo} alt={siteTitle} className="h-8 w-auto" />
+              ) : (
+                <span className="text-xl font-black tracking-tighter text-neutral-900">{siteTitle}</span>
+              )}
             </Link>
           </div>
 
@@ -175,7 +179,11 @@ const Navbar = () => {
           {/* Mobile Only: Center Logo */}
           <div className="flex md:hidden flex-shrink-0 items-center justify-center w-1/3">
             <Link to="/" className="flex items-center">
-              <img src={siteLogo} alt={siteTitle} className="h-7 w-auto" />
+              {siteLogo ? (
+                <img src={siteLogo} alt={siteTitle} className="h-7 w-auto" />
+              ) : (
+                <span className="text-lg font-black tracking-tighter text-neutral-900">{siteTitle}</span>
+              )}
             </Link>
           </div>
 

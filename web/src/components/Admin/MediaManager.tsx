@@ -3,7 +3,8 @@ import api, { BASE_URL } from '../../services/api';
 import { 
     Image as ImageIcon, Video as VideoIcon, File as FileIcon, Trash2, 
     Copy, ExternalLink, Plus, Search, Grid, List, Upload, X, Check, 
-    RefreshCw, AlertCircle, Filter, HardDrive, Calendar, ArrowUpRight
+    RefreshCw, AlertCircle, Filter, HardDrive, Calendar, ArrowUpRight,
+    Download
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
@@ -24,6 +25,7 @@ interface MediaManagerProps {
 const MediaManager = ({ onSelect, selectMode = false }: MediaManagerProps = {}) => {
     const { token } = useAuth();
     const [media, setMedia] = useState<MediaFile[]>([]);
+    const [selectedPaths, setSelectedPaths] = useState<string[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [activeType, setActiveType] = useState<'all' | 'image' | 'video' | 'other'>('all');
@@ -140,6 +142,56 @@ const MediaManager = ({ onSelect, selectMode = false }: MediaManagerProps = {}) 
         return matchesSearch && matchesType;
     });
 
+    const toggleSelect = (path: string, e?: React.MouseEvent) => {
+        if (e) e.stopPropagation();
+        setSelectedPaths(prev => 
+            prev.includes(path) ? prev.filter(p => p !== path) : [...prev, path]
+        );
+    };
+
+    const toggleSelectAll = () => {
+        if (selectedPaths.length === filteredMedia.length) {
+            setSelectedPaths([]);
+        } else {
+            setSelectedPaths(filteredMedia.map(file => file.path));
+        }
+    };
+
+    const handleBulkDownload = async () => {
+        const selectedFiles = media.filter(item => selectedPaths.includes(item.path));
+        for (const file of selectedFiles) {
+            const fullUrl = file.url.startsWith('http') ? file.url : `${BASE_URL}${file.url}`;
+            try {
+                const response = await fetch(fullUrl);
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = file.name;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+            } catch (error) {
+                console.error("Failed to download file:", file.name, error);
+                window.open(fullUrl, '_blank');
+            }
+        }
+    };
+
+    const handleBulkDelete = async () => {
+        if (window.confirm(`Are you sure you want to permanently delete these ${selectedPaths.length} selected files? This cannot be undone.`)) {
+            try {
+                await api.delete('media-manager/', { data: { paths: selectedPaths } });
+                setMedia(prev => prev.filter(item => !selectedPaths.includes(item.path)));
+                setSelectedPaths([]);
+            } catch (error) {
+                console.error("Bulk delete error:", error);
+                alert("Failed to delete all selected files.");
+            }
+        }
+    };
+
     const totalStorageBytes = media.reduce((acc, curr) => acc + (curr.size || 0), 0);
 
     return (
@@ -148,7 +200,7 @@ const MediaManager = ({ onSelect, selectMode = false }: MediaManagerProps = {}) 
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-6 rounded-2xl border border-zinc-100 shadow-sm">
                 <div>
                     <h2 className="text-2xl font-bold tracking-tight text-zinc-900">Media <span className="text-[#5173FB]">Manager</span></h2>
-                    <p className="text-xs text-zinc-500 font-medium mt-1">Upload, search, preview, and organize all site assets in one premium command center.</p>
+                    <p className="text-xs text-zinc-500 font-medium mt-1">Upload, search, preview, and organize all site assets in one premium media center.</p>
                 </div>
 
                 <div className="flex flex-wrap items-center gap-3">
@@ -243,6 +295,43 @@ const MediaManager = ({ onSelect, selectMode = false }: MediaManagerProps = {}) 
                 </div>
             </div>
 
+            {/* Bulk Actions Panel */}
+            {selectedPaths.length > 0 && (
+                <div className="flex items-center justify-between bg-zinc-900 text-white px-5 py-3 rounded-xl shadow-lg border border-zinc-800 animate-in slide-in-from-top-4 duration-300">
+                    <div className="flex items-center gap-3">
+                        <input 
+                            type="checkbox" 
+                            checked={selectedPaths.length === filteredMedia.length}
+                            onChange={toggleSelectAll}
+                            className="w-4 h-4 rounded text-[#5173FB] border-zinc-750 bg-zinc-800 focus:ring-0 focus:ring-offset-0 cursor-pointer"
+                        />
+                        <span className="text-xs font-bold uppercase tracking-wider">{selectedPaths.length} items selected</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <button 
+                            onClick={handleBulkDownload}
+                            className="flex items-center gap-1.5 px-4 py-2 bg-zinc-850 hover:bg-zinc-800 border border-zinc-700 rounded-lg text-xs font-bold uppercase tracking-wider transition-all active:scale-95 cursor-pointer"
+                        >
+                            <Download size={14} />
+                            <span>Download</span>
+                        </button>
+                        <button 
+                            onClick={handleBulkDelete}
+                            className="flex items-center gap-1.5 px-4 py-2 bg-rose-600 hover:bg-rose-700 rounded-lg text-xs font-bold uppercase tracking-wider transition-all active:scale-95 cursor-pointer"
+                        >
+                            <Trash2 size={14} />
+                            <span>Delete</span>
+                        </button>
+                        <button 
+                            onClick={() => setSelectedPaths([])}
+                            className="p-2 text-zinc-400 hover:text-white rounded-lg transition-colors cursor-pointer"
+                        >
+                            <X size={16} />
+                        </button>
+                    </div>
+                </div>
+            )}
+
             {/* Media Content Grid/List */}
             {loading ? (
                 <div className="flex flex-col justify-center items-center py-24 bg-white rounded-2xl border border-zinc-100 shadow-sm">
@@ -273,8 +362,21 @@ const MediaManager = ({ onSelect, selectMode = false }: MediaManagerProps = {}) 
                                         setPreviewFile(file);
                                     }
                                 }}
-                                className="group relative bg-white border border-zinc-200 rounded-xl overflow-hidden shadow-sm hover:border-[#5173FB] hover:shadow-md transition-all duration-300 cursor-pointer flex flex-col"
+                                className={`group relative bg-white border rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer flex flex-col ${selectedPaths.includes(file.path) ? 'border-[#5173FB] ring-2 ring-[#5173FB]/10' : 'border-zinc-200 hover:border-[#5173FB]'}`}
                             >
+                                {/* Checkbox Overlay */}
+                                <div 
+                                    className={`absolute top-2.5 left-2.5 z-20 transition-opacity duration-200 ${selectedPaths.length > 0 ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}
+                                    onClick={e => e.stopPropagation()}
+                                >
+                                    <input 
+                                        type="checkbox"
+                                        checked={selectedPaths.includes(file.path)}
+                                        onChange={() => toggleSelect(file.path)}
+                                        className="w-4 h-4 rounded text-[#5173FB] border-zinc-300 focus:ring-0 focus:ring-offset-0 cursor-pointer shadow-md bg-white"
+                                    />
+                                </div>
+
                                 {/* Media Container */}
                                 <div className="aspect-square w-full bg-zinc-50 relative flex items-center justify-center overflow-hidden border-b border-zinc-100">
                                     {file.type === 'image' ? (
@@ -363,6 +465,14 @@ const MediaManager = ({ onSelect, selectMode = false }: MediaManagerProps = {}) 
                     <table className="w-full">
                         <thead className="text-left text-[10px] font-bold text-zinc-400 uppercase tracking-widest bg-zinc-50/50 border-b border-zinc-100">
                             <tr>
+                                <th className="px-6 py-3.5 w-12 text-center">
+                                    <input 
+                                        type="checkbox" 
+                                        checked={filteredMedia.length > 0 && selectedPaths.length === filteredMedia.length}
+                                        onChange={toggleSelectAll}
+                                        className="w-4 h-4 rounded text-[#5173FB] border-zinc-300 bg-white focus:ring-0 focus:ring-offset-0 cursor-pointer"
+                                    />
+                                </th>
                                 <th className="px-6 py-3.5">Asset</th>
                                 <th className="px-6 py-3.5">Directory</th>
                                 <th className="px-6 py-3.5 text-center">Type</th>
@@ -385,8 +495,16 @@ const MediaManager = ({ onSelect, selectMode = false }: MediaManagerProps = {}) 
                                                 setPreviewFile(file);
                                             }
                                         }}
-                                        className="hover:bg-zinc-50/50 transition-colors cursor-pointer group"
+                                        className={`hover:bg-zinc-50/50 transition-colors cursor-pointer group ${selectedPaths.includes(file.path) ? 'bg-[#5173FB]/5 hover:bg-[#5173FB]/10' : ''}`}
                                     >
+                                        <td className="px-6 py-3 w-12 text-center" onClick={e => e.stopPropagation()}>
+                                            <input 
+                                                type="checkbox" 
+                                                checked={selectedPaths.includes(file.path)}
+                                                onChange={() => toggleSelect(file.path)}
+                                                className="w-4 h-4 rounded text-[#5173FB] border-zinc-300 bg-white focus:ring-0 focus:ring-offset-0 cursor-pointer"
+                                            />
+                                        </td>
                                         <td className="px-6 py-3 flex items-center gap-3">
                                             <div className="w-10 h-10 rounded-lg bg-zinc-50 border border-zinc-100 flex items-center justify-center overflow-hidden flex-shrink-0">
                                                 {file.type === 'image' ? (

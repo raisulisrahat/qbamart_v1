@@ -5,9 +5,11 @@ import { motion } from 'framer-motion';
 import { Tag, Sparkles, ChevronRight, ShoppingBag, Loader2, Percent, ArrowLeft } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import SEO from '../components/SEO';
+import { useSettings } from '../context/SettingsContext';
 
 const Offers = () => {
     const { language } = useLanguage();
+    const { siteTitle } = useSettings();
 
     const { data: funnels, isLoading, error } = useQuery({
         queryKey: ['active-funnels'],
@@ -73,7 +75,7 @@ const Offers = () => {
     return (
         <div className="min-h-screen bg-[#F8F9FA] py-12">
             <SEO
-                title={language === 'bn' ? 'স্পেশাল অফার সমূহ - Qbamart' : 'Special Offers - Qbamart'}
+                title={language === 'bn' ? `স্পেশাল অফার সমূহ - ${siteTitle}` : `Special Offers - ${siteTitle}`}
                 description="Explore our exclusive discount bundles and high-value promo offers in Bangladesh."
             />
 

@@ -5,11 +5,18 @@ import { Phone, Mail, MapPin, Clock, Facebook } from 'lucide-react';
 import { useSettings } from '../context/SettingsContext';
 
 const ContactUs = () => {
-  const { settings } = useSettings();
+  const { settings, siteTitle } = useSettings();
+
+  const formattedSiteTitle = siteTitle.toLowerCase().replace(/\s+/g, '');
+  const siteEmail = `support@${formattedSiteTitle}.com`;
+  const contactPhone = settings?.support_phone || "01618-320869";
+  const whatsappNumber = settings?.whatsapp_number || "01618-320869";
+  const facebookLink = settings?.facebook_url || "https://www.facebook.com/qbamart";
+  const messengerLink = settings?.messenger_url || "https://m.me/qbamart";
 
   return (
     <div className="bg-white min-h-screen">
-      <SEO title="Contact Us" description="Get in touch with Qbamart support team." />
+      <SEO title="Contact Us" description={`Get in touch with ${siteTitle} support team.`} />
       
       <div className="bg-neutral-50 py-12 md:py-16 border-b border-neutral-100">
         <div className="max-w-[1200px] mx-auto px-6 text-center">
@@ -59,12 +66,10 @@ const ContactUs = () => {
           {/* Contact Info */}
           <div className="space-y-10">
             <div>
-              <h2 className="text-xl font-black text-neutral-900 mb-6 uppercase tracking-tight">Our Sub-Brands</h2>
+              <h2 className="text-xl font-black text-neutral-900 mb-6 uppercase tracking-tight">Our Brand</h2>
               <div className="space-y-4">
                 {[
-                  { name: "Qbamart", desc: "One of the most trusted online shopping platforms in Bangladesh! 🇧🇩", link: "https://www.facebook.com/qbamart24" },
-                  { name: "Time Space", desc: "A premium brand for elegant watches, stylish sunglasses, and refined wallets.", link: "https://www.facebook.com/TimeSpace24" },
-                  { name: "Bunon Space", desc: "A stylish clothing brand for women, men, and kids, blending fashion with comfort.", link: "https://www.facebook.com/BunonSpace24" }
+                  { name: siteTitle, desc: "One of the most trusted online shopping platforms in Bangladesh! 🇧🇩", link: facebookLink },
                 ].map((brand, i) => (
                   <div key={i} className="bg-neutral-50 p-5 rounded-xl border border-neutral-100 relative group overflow-hidden">
                     <div className="absolute left-0 top-0 bottom-0 w-1 bg-brand opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -82,10 +87,10 @@ const ContactUs = () => {
                     <p className="text-neutral-600 text-xs leading-relaxed mb-3 opacity-80">{brand.desc}</p>
                     <div className="flex flex-wrap gap-4 text-xs font-black uppercase tracking-widest text-neutral-400">
                       <span className="flex items-center gap-1.5">
-                        <Phone className="w-3 h-3 text-brand/60" /> 01516-542909
+                        <Phone className="w-3 h-3 text-brand/60" /> {contactPhone}
                       </span>
                       <span className="flex items-center gap-1.5">
-                        <Mail className="w-3 h-3 text-brand/60" /> support@qbamart.com
+                        <Mail className="w-3 h-3 text-brand/60" /> {siteEmail}
                       </span>
                       <a href={brand.link} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 hover:text-brand transition-all group/link">
                         <Facebook className="w-3 h-3 text-brand/60 group-hover/link:text-brand" /> Facebook
@@ -102,10 +107,10 @@ const ContactUs = () => {
               
               <div className="grid grid-cols-2 gap-3">
                 {[
-                  { label: "Phone", value: "+8801516542909", icon: "📞" },
-                  { label: "WhatsApp", value: "01516542909", icon: "💬" },
-                  { label: "Messenger", value: "qbamart", icon: "👤" },
-                  { label: "Email", value: "support@qbamart.com", icon: "📧" }
+                  { label: "Phone", value: contactPhone, icon: "📞" },
+                  { label: "WhatsApp", value: whatsappNumber, icon: "💬" },
+                  { label: "Messenger", value: siteTitle, icon: "👤" },
+                  { label: "Email", value: siteEmail, icon: "📧" }
                 ].map((item, i) => (
                   <div key={i} className="border border-neutral-100 p-3.5 rounded-xl hover:border-brand transition-colors cursor-pointer group bg-white shadow-sm">
                     <div className='flex items-center gap-2 mb-2'><span className="text-sm mb-1.5 block">{item.icon}</span>

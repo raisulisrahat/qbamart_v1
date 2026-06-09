@@ -6,10 +6,12 @@ import { Link } from 'react-router-dom';
 import { BASE_URL } from '../services/api';
 import { useCart } from '../context/CartContext';
 import SEO from '../components/SEO';
+import { useSettings } from '../context/SettingsContext';
 
 const Wishlist = () => {
   const { wishlist, removeFromWishlist, loading } = useWishlist();
   const { addToCart } = useCart();
+  const { siteTitle } = useSettings();
 
   if (loading && wishlist.length === 0) {
     return (
@@ -22,7 +24,7 @@ const Wishlist = () => {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      <SEO title="My Wishlist" description="Items you've saved to your wishlist at Qbamart." />
+      <SEO title="My Wishlist" description={`Items you've saved to your wishlist at ${siteTitle}.`} />
       <div className="flex items-center justify-between mb-10">
         <div>
           <h1 className="text-3xl font-extrabold text-neutral-900 tracking-tight">Your Wishlist</h1>

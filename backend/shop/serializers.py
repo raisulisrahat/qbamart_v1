@@ -489,6 +489,13 @@ class OrderSerializer(serializers.ModelSerializer):
         request = self.context.get('request')
         items_data = request.data.get('items', [])
         
+        # Ensure default payment method is COD if not specified
+        if not validated_data.get('payment_method'):
+            from .models import PaymentMethod
+            cod_method = PaymentMethod.objects.filter(provider='cod').first()
+            if cod_method:
+                validated_data['payment_method'] = cod_method
+                
         # Create the order
         order = Order.objects.create(**validated_data)
         
@@ -599,10 +606,14 @@ class ProfileSerializer(serializers.ModelSerializer):
                 import io
                 import base64
                 
+                from .models import SiteSettings
+                settings = SiteSettings.objects.first()
+                site_title = settings.site_title if settings else "Qbamart"
+                
                 totp = pyotp.TOTP(obj.two_factor_secret)
                 provisioning_uri = totp.provisioning_uri(
                     name=obj.user.username,
-                    issuer_name="Qbamart"
+                    issuer_name=site_title
                 )
                 
                 qr = qrcode.QRCode(version=1, box_size=10, border=4)

@@ -72,7 +72,7 @@ const Signup = () => {
         className="max-w-md w-full"
       >
         <div className="bg-white p-8 rounded-2xl shadow-xl border border-neutral-100">
-          <SEO title="Create Account" description="Join Qbamart for a premium shopping experience in Bangladesh." />
+          <SEO title="Create Account" description={`Join ${siteTitle} for a premium shopping experience in Bangladesh.`} />
           <div className="text-center mb-8">
             <img src={siteLogo} alt={siteTitle} className="h-16 mx-auto mb-4 object-contain" />
             <h1 className="text-2xl font-bold text-neutral-900">Create Account</h1>

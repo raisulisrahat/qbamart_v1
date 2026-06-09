@@ -1,11 +1,13 @@
 import React from 'react';
 import SEO from '../components/SEO';
 import { motion } from 'framer-motion';
+import { useSettings } from '../context/SettingsContext';
 
 const ShippingPolicy = () => {
+  const { siteTitle } = useSettings();
   return (
     <div className="bg-white min-h-screen">
-      <SEO title="Shipping Policy" description="Read about Qbamart's shipping and delivery policies." />
+      <SEO title="Shipping Policy" description={`Read about ${siteTitle}'s shipping and delivery policies.`} />
       
       <div className="bg-neutral-50 py-20 border-b border-neutral-100">
         <div className="max-w-[1200px] mx-auto px-6 text-center">
@@ -25,7 +27,7 @@ const ShippingPolicy = () => {
       <div className="max-w-[800px] mx-auto px-6 py-20 prose prose-neutral prose-brand">
         <section className="mb-12">
           <p className="text-neutral-600 leading-relaxed mb-6 font-medium text-lg">
-            প্রিয় ক্রেতা, QBAMART-এ আমরা প্রতিটি অর্ডার অত্যন্ত যত্ন ও গুরুত্বের সঙ্গে প্রক্রিয়াজাত করি যেন আপনি পান দ্রুত, নিরাপদ এবং নির্ভরযোগ্য সার্ভিস।
+            প্রিয় ক্রেতা, {siteTitle}-এ আমরা প্রতিটি অর্ডার অত্যন্ত যত্ন ও গুরুত্বের সঙ্গে প্রক্রিয়াজাত করি যেন আপনি পান দ্রুত, নিরাপদ এবং নির্ভরযোগ্য সার্ভিস।
           </p>
           
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-12">

@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import api, { getMediaUrl, BASE_URL } from '../../utils/api';
-import { X, Upload, Save, Image as ImageIcon, CheckCircle, Info, RefreshCw } from 'lucide-react';
+import { X, Upload, Save, Image as ImageIcon, CheckCircle, Info, RefreshCw, ShoppingBag, BookOpen } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import MediaManager from './MediaManager';
 
@@ -23,6 +23,14 @@ const BannerForm = ({ banner, onSave, onCancel }) => {
     const [mediaModalOpen, setMediaModalOpen] = useState(false);
     const [activeModalTab, setActiveModalTab] = useState<'upload' | 'library'>('upload');
     const [uploadingImage, setUploadingImage] = useState(false);
+
+    // Auto-suggestion state
+    const [products, setProducts] = useState<any[]>([]);
+    const [blogs, setBlogs] = useState<any[]>([]);
+    const [loadingSuggestions, setLoadingSuggestions] = useState(false);
+    const [showSuggestions, setShowSuggestions] = useState(false);
+    const [selectedIndex, setSelectedIndex] = useState(-1);
+    const suggestionsRef = useRef<HTMLDivElement>(null);
 
     const handleGallerySelect = (url: string) => {
         setImage(url);
@@ -68,6 +76,127 @@ const BannerForm = ({ banner, onSave, onCancel }) => {
             setPreview(getMediaUrl(banner.image));
         }
     }, [banner]);
+
+    // Fetch products and blogs on mount for redirection url suggestions
+    useEffect(() => {
+        const fetchSuggestionsData = async () => {
+            setLoadingSuggestions(true);
+            try {
+                const productsRes = await api.get('products/', { params: { limit: 100 } });
+                const blogsRes = await api.get('blog-posts/');
+                
+                const pData = productsRes.data.results || productsRes.data || [];
+                const bData = blogsRes.data.results || blogsRes.data || [];
+                
+                setProducts(Array.isArray(pData) ? pData : []);
+                setBlogs(Array.isArray(bData) ? bData : []);
+            } catch (error) {
+                console.error("Error fetching suggestion data:", error);
+            } finally {
+                setLoadingSuggestions(false);
+            }
+        };
+        fetchSuggestionsData();
+    }, []);
+
+    // Handle clicks outside of suggestion dropdown to close it
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (suggestionsRef.current && !suggestionsRef.current.contains(event.target as Node)) {
+                setShowSuggestions(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, []);
+
+    // Get suggestions filtered by query
+    const getFilteredSuggestions = () => {
+        const query = formData.link.toLowerCase().trim();
+        
+        let targetType: 'all' | 'product' | 'blog' = 'all';
+        let cleanQuery = query;
+        
+        const parsedQuery = query.startsWith('/') ? query.slice(1) : query;
+        
+        if (parsedQuery.startsWith('product/')) {
+            targetType = 'product';
+            cleanQuery = parsedQuery.replace('product/', '');
+        } else if (parsedQuery.startsWith('blog/')) {
+            targetType = 'blog';
+            cleanQuery = parsedQuery.replace('blog/', '');
+        } else if (parsedQuery.startsWith('products/')) {
+            targetType = 'product';
+            cleanQuery = parsedQuery.replace('products/', '');
+        }
+        
+        const matches: any[] = [];
+        
+        if (targetType === 'all' || targetType === 'product') {
+            const filteredProducts = products.filter(p => 
+                p.name.toLowerCase().includes(cleanQuery) || 
+                p.slug.toLowerCase().includes(cleanQuery)
+            ).map(p => ({
+                id: `product-${p.id}`,
+                type: 'product',
+                title: p.name,
+                slug: p.slug,
+                path: `product/${p.slug}`,
+                image: p.image || (p.images && p.images[0]?.image)
+            }));
+            matches.push(...filteredProducts);
+        }
+        
+        if (targetType === 'all' || targetType === 'blog') {
+            const filteredBlogs = blogs.filter(b => 
+                b.title.toLowerCase().includes(cleanQuery) || 
+                b.slug.toLowerCase().includes(cleanQuery)
+            ).map(b => ({
+                id: `blog-${b.id}`,
+                type: 'blog',
+                title: b.title,
+                slug: b.slug,
+                path: `blog/${b.slug}`,
+                image: b.image
+            }));
+            matches.push(...filteredBlogs);
+        }
+        
+        return matches.slice(0, 10);
+    };
+
+    const handleSelectSuggestion = (suggestion: any) => {
+        setFormData(prev => ({
+            ...prev,
+            link: suggestion.path
+        }));
+        setShowSuggestions(false);
+        setSelectedIndex(-1);
+    };
+
+    const filteredSuggestions = getFilteredSuggestions();
+
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (!showSuggestions || filteredSuggestions.length === 0) return;
+
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            setSelectedIndex(prev => (prev + 1) % filteredSuggestions.length);
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            setSelectedIndex(prev => (prev - 1 + filteredSuggestions.length) % filteredSuggestions.length);
+        } else if (e.key === 'Enter') {
+            if (selectedIndex >= 0 && selectedIndex < filteredSuggestions.length) {
+                e.preventDefault();
+                handleSelectSuggestion(filteredSuggestions[selectedIndex]);
+            }
+        } else if (e.key === 'Escape') {
+            setShowSuggestions(false);
+            setSelectedIndex(-1);
+        }
+    };
 
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target;
@@ -144,10 +273,10 @@ const BannerForm = ({ banner, onSave, onCancel }) => {
                     {/* Left Column: Configuration */}
                     <div className="lg:col-span-5 p-8 space-y-8 bg-zinc-50/30">
                         <div className="space-y-6">
-                            {/* Placement Type is hidden as per request, defaults to hero */}
+                            {/* Redirect URL */}
                             <div className="space-y-2">
                                 <label className="text-[11px] font-bold text-zinc-500 uppercase tracking-widest ml-0.5">Redirect URL (Destination)</label>
-                                <div className="relative group">
+                                <div className="relative group" ref={suggestionsRef}>
                                     <div className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 text-xs font-mono">/</div>
                                     <input
                                         type="text"
@@ -155,11 +284,114 @@ const BannerForm = ({ banner, onSave, onCancel }) => {
                                         className="w-full pl-7 pr-4 py-3 bg-white border border-zinc-200 rounded-xl text-sm font-semibold text-zinc-900 focus:ring-4 focus:ring-zinc-900/5 focus:border-zinc-900 transition-all outline-none placeholder:text-zinc-300 shadow-sm"
                                         value={formData.link}
                                         onChange={handleChange}
+                                        onFocus={() => setShowSuggestions(true)}
+                                        onKeyDown={handleKeyDown}
                                         placeholder="products/slug-name"
+                                        autoComplete="off"
                                     />
+                                    
+                                    {showSuggestions && (
+                                        <div className="absolute top-full left-0 w-full mt-2 bg-white border border-zinc-200/80 rounded-2xl shadow-2xl overflow-hidden z-[9999] animate-in fade-in slide-in-from-top-2 duration-200">
+                                            {loadingSuggestions ? (
+                                                <div className="px-4 py-6 text-center text-xs text-zinc-400 font-bold uppercase tracking-widest flex items-center justify-center gap-2">
+                                                    <RefreshCw size={14} className="animate-spin text-[#5173FB]" />
+                                                    <span>Indexing redirect nodes...</span>
+                                                </div>
+                                            ) : filteredSuggestions.length === 0 ? (
+                                                <div className="px-4 py-6 text-center text-xs text-zinc-400 font-bold uppercase tracking-widest">
+                                                    No matching redirect destinations
+                                                </div>
+                                            ) : (
+                                                <div className="max-h-64 overflow-y-auto divide-y divide-zinc-50">
+                                                    <div className="px-3 py-1.5 bg-zinc-50/50 text-[9px] font-bold text-zinc-400 uppercase tracking-widest sticky top-0 backdrop-blur-md">
+                                                        Auto-URL Suggestions ({filteredSuggestions.length})
+                                                    </div>
+                                                    {filteredSuggestions.map((item, index) => (
+                                                        <div
+                                                            key={item.id}
+                                                            onClick={() => handleSelectSuggestion(item)}
+                                                            onMouseEnter={() => setSelectedIndex(index)}
+                                                            className={`flex items-center justify-between px-4 py-3 cursor-pointer transition-all duration-150 ${
+                                                                selectedIndex === index 
+                                                                    ? 'bg-[#5173FB]/5 text-[#5173FB]' 
+                                                                    : 'hover:bg-zinc-50 text-zinc-700'
+                                                            }`}
+                                                        >
+                                                            <div className="flex items-center gap-3 min-w-0">
+                                                                {item.image ? (
+                                                                    <div className="w-8 h-8 rounded-lg overflow-hidden bg-zinc-100 border border-zinc-200 flex-shrink-0">
+                                                                        <img 
+                                                                            src={getMediaUrl(item.image)} 
+                                                                            alt="" 
+                                                                            className="w-full h-full object-cover"
+                                                                            onError={(e) => {
+                                                                                (e.target as HTMLElement).style.display = 'none';
+                                                                            }}
+                                                                        />
+                                                                    </div>
+                                                                ) : (
+                                                                    <div className="w-8 h-8 rounded-lg bg-zinc-100 border border-zinc-200 flex items-center justify-center flex-shrink-0 text-zinc-400">
+                                                                        {item.type === 'product' ? <ShoppingBag size={14} /> : <BookOpen size={14} />}
+                                                                    </div>
+                                                                )}
+                                                                
+                                                                <div className="min-w-0">
+                                                                    <p className="text-xs font-bold truncate leading-snug">{item.title}</p>
+                                                                    <p className="text-[10px] font-mono text-zinc-400 truncate mt-0.5">/{item.path}</p>
+                                                                </div>
+                                                            </div>
+                                                            
+                                                            <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider flex-shrink-0 border ${
+                                                                item.type === 'product' 
+                                                                    ? 'bg-blue-50 text-blue-600 border-blue-100' 
+                                                                    : 'bg-purple-50 text-purple-600 border-purple-100'
+                                                            }`}>
+                                                                {item.type}
+                                                            </span>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
                                 </div>
                                 <p className="text-[9px] text-zinc-400 font-medium px-1 mt-1.5 italic flex items-center gap-1">
                                     <CheckCircle size={10} className="text-zinc-300" /> Target path for user interaction event.
+                                </p>
+                            </div>
+
+                            {/* Banner Type Selection */}
+                            <div className="space-y-2">
+                                <label className="text-[11px] font-bold text-zinc-500 uppercase tracking-widest ml-0.5">Banner Type</label>
+                                <select
+                                    name="type"
+                                    className="w-full px-4 py-3 bg-white border border-zinc-200 rounded-xl text-sm font-semibold text-zinc-900 focus:ring-4 focus:ring-zinc-900/5 focus:border-zinc-900 transition-all outline-none shadow-sm cursor-pointer"
+                                    value={formData.type}
+                                    onChange={handleChange}
+                                >
+                                    <option value="hero">Hero Banner</option>
+                                    <option value="promo">Promo Banner</option>
+                                    <option value="secondary">Secondary Banner</option>
+                                    <option value="footer">Footer Banner</option>
+                                </select>
+                                <p className="text-[9px] text-zinc-400 font-medium px-1 mt-1.5 italic flex items-center gap-1">
+                                    <CheckCircle size={10} className="text-zinc-300" /> Select where the banner will be displayed on the storefront.
+                                </p>
+                            </div>
+
+                            {/* Banner Title */}
+                            <div className="space-y-2">
+                                <label className="text-[11px] font-bold text-zinc-500 uppercase tracking-widest ml-0.5">Banner Title</label>
+                                <input
+                                    type="text"
+                                    name="title"
+                                    className="w-full px-4 py-3 bg-white border border-zinc-200 rounded-xl text-sm font-semibold text-zinc-900 focus:ring-4 focus:ring-zinc-900/5 focus:border-zinc-900 transition-all outline-none shadow-sm"
+                                    value={formData.title}
+                                    onChange={handleChange}
+                                    placeholder="Enter banner title"
+                                />
+                                <p className="text-[9px] text-zinc-400 font-medium px-1 mt-1.5 italic flex items-center gap-1">
+                                    <CheckCircle size={10} className="text-zinc-300" /> Descriptive title for internal reference or overlay text.
                                 </p>
                             </div>
                         </div>

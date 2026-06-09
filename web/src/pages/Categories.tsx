@@ -4,8 +4,10 @@ import { getCategories, BASE_URL } from '../services/api';
 import { LayoutGrid, ArrowRight, Loader2, Sparkles } from 'lucide-react';
 import { motion } from 'framer-motion';
 import SEO from '../components/SEO';
+import { useSettings } from '../context/SettingsContext';
 
 const Categories = () => {
+    const { siteTitle } = useSettings();
     const [categories, setCategories] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
 
@@ -39,7 +41,7 @@ const Categories = () => {
         <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-16 animate-in fade-in slide-in-from-bottom-2 duration-700">
             <SEO 
                 title="Shop by Category" 
-                description="Browse our curated collections of premium gadgets, accessories, and more. Find exactly what you need at qbamart." 
+                description={`Browse our curated collections of premium gadgets, accessories, and more. Find exactly what you need at ${siteTitle}.`}
             />
             {/* Header Section */}
             <div className="max-w-2xl mb-12 sm:mb-20">

@@ -934,10 +934,7 @@ const EzyFunnelLayout = ({
                     {/* Developer Credits */}
                     <div className="space-y-2 text-xs sm:text-sm">
                         <p className="font-bold text-slate-400">
-                            &copy; {new Date().getFullYear()} {siteSettings?.site_title || 'Qbamart'}. All Rights Reserved.
-                        </p>
-                        <p className="text-slate-600 font-medium">
-                            Developed by <a href="https://ctsolutionbd.com" target="_blank" rel="noopener noreferrer" className="hover:text-white underline">Cyber and Tech Solution</a>
+                            © 2026 Qbamart. Powered by <a href="https://ctsolutionbd.com" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">Cyber and Tech Solution</a>.
                         </p>
                     </div>
                 </div>

@@ -36,15 +36,15 @@ const SEO = ({ title, description, image, url, type = 'website', keywords, schem
     };
 
     // 3. SEO Data Derivation
-    const metaDesc = description || settings?.meta_description || 'Qbamart - Premium Shopping in Bangladesh';
-    const metaKeywords = keywords || settings?.meta_keywords || 'ecommerce, bangladesh, shopping, Qbamart';
+    const metaDesc = description || settings?.meta_description || `${baseTitle} - Premium Shopping in Bangladesh`;
+    const metaKeywords = keywords || settings?.meta_keywords || `ecommerce, bangladesh, shopping, ${baseTitle}`;
     const canonicalUrl = url || window.location.href;
     const ogImage = image ? resolveImageUrl(image) : (settings?.site_logo ? resolveImageUrl(settings.site_logo) : '');
 
     // 4. Update Standard Tags
     updateMetaTag('description', metaDesc, true);
     updateMetaTag('keywords', metaKeywords, true);
-    updateMetaTag('author', 'Qbamart', true);
+    updateMetaTag('author', baseTitle, true);
     updateMetaTag('robots', 'index, follow', true);
 
     // 5. Update Open Graph Tags
@@ -89,10 +89,10 @@ const SEO = ({ title, description, image, url, type = 'website', keywords, schem
         "@context": "https://schema.org",
         "@type": "WebSite",
         "name": baseTitle,
-        "url": "https://Qbamart.com",
+        "url": window.location.origin,
         "potentialAction": {
           "@type": "SearchAction",
-          "target": "https://Qbamart.com/products?search={search_term_string}",
+          "target": `${window.location.origin}/products?search={search_term_string}`,
           "query-input": "required name=search_term_string"
         }
       };

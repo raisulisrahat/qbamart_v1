@@ -913,7 +913,7 @@ const ClassicFunnelLayout = ({
             {/* Footer */}
             <div className="bg-slate-950 text-slate-500 py-10 text-center text-sm">
                 <div className="container mx-auto px-4 max-w-4xl">
-                    <p className="mb-2 font-medium text-white">&copy; {new Date().getFullYear()} Qbamart. All Rights Reserved. Developed by <a href="https://ctsolutionbd.com" target="_blank" className='text-white'>Cyber and Tech Solution</a></p>
+                    <p className="mb-2 font-medium text-white">© 2026 Qbamart. Powered by <a href="https://ctsolutionbd.com" target="_blank" rel="noopener noreferrer" className='text-white hover:text-slate-300 transition-colors'>Cyber and Tech Solution</a>.</p>
                 </div>
             </div>
 

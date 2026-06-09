@@ -153,7 +153,7 @@ const Login = () => {
         className="max-w-md w-full"
       >
         <div className="bg-white p-8 rounded-2xl shadow-xl border border-neutral-100">
-          <SEO title="Sign In" description="Login to your Qbamart account to manage orders and profile." />
+          <SEO title="Sign In" description={`Login to your ${siteTitle} account to manage orders and profile.`} />
           <div className="text-center mb-8">
             <img src={siteLogo} alt={siteTitle} className="w-30 mx-auto mb-4 object-contain" />
             <h1 className="text-2xl font-bold text-neutral-900">Welcome to {siteTitle}</h1>
@@ -413,7 +413,7 @@ const Login = () => {
                     <p className="text-[10px] text-neutral-400">Can't scan? Use the Authenticator app to add a new account and enter code manually if needed.</p>
                   </div>
                 ) : (
-                  <p>Open the Google Authenticator app on your device and enter the 6-digit code for <strong>Qbamart</strong>.</p>
+                  <p>Open the Google Authenticator app on your device and enter the 6-digit code for <strong>{siteTitle}</strong>.</p>
                 )}
               </div>
 

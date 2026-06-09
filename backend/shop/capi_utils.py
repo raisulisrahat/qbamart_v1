@@ -31,7 +31,7 @@ def clean_phone_number(phone):
         digits = '88' + digits
     return digits
 
-def _async_send_capi_event(url, payload):
+def _async_send_capi_event(url, payload, headers):
     """
     Asynchronous executor running in a background thread to make the HTTP POST request.
     """
@@ -40,10 +40,7 @@ def _async_send_capi_event(url, payload):
         req = urllib.request.Request(
             url,
             data=data,
-            headers={
-                'Content-Type': 'application/json',
-                'User-Agent': 'Qbamart/1.0 ServerSide CAPI Trigger'
-            },
+            headers=headers,
             method='POST'
         )
         with urllib.request.urlopen(req, timeout=8) as response:
@@ -108,11 +105,14 @@ def send_fb_capi_purchase(order):
         event_time = int(timezone.now().timestamp())
         event_id = f"order_{order.id}" # Matches client-side eventID perfectly for deduplication!
 
+        site_title = settings.site_title if settings else "Qbamart"
+        site_title_clean = ''.join(c for c in site_title if c.isalnum()) or "Qbamart"
+
         event_data = {
             'event_name': 'Purchase',
             'event_time': event_time,
             'event_id': event_id,
-            'event_source_url': f"https://Qbamart.com/checkout", # standard fallback url
+            'event_source_url': f"https://{site_title_clean.lower()}.com/checkout", # standard fallback url
             'action_source': 'website',
             'user_data': user_data,
             'custom_data': {
@@ -133,8 +133,13 @@ def send_fb_capi_purchase(order):
         # Build Graph URL
         url = f"https://graph.facebook.com/{api_version}/{pixel_id}/events?access_token={capi_token}"
 
+        headers = {
+            'Content-Type': 'application/json',
+            'User-Agent': f'{site_title_clean}/1.0 ServerSide CAPI Trigger'
+        }
+
         # Spin off background execution thread so customer is never kept waiting
-        thread = threading.Thread(target=_async_send_capi_event, args=(url, payload))
+        thread = threading.Thread(target=_async_send_capi_event, args=(url, payload, headers))
         thread.daemon = True
         thread.start()
 

@@ -4,6 +4,9 @@ import { useSettings } from '../context/SettingsContext';
 
 const Footer = () => {
   const { footerLogo, siteTitle, settings } = useSettings();
+  const formattedSiteTitle = (siteTitle || 'Qbamart').toLowerCase().replace(/\s+/g, '');
+  const siteEmail = `support@${formattedSiteTitle}.com`;
+
   return (
     <footer className="bg-white text-neutral-600 pt-16 pb-8 border-t border-neutral-100">
       <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
@@ -13,17 +16,17 @@ const Footer = () => {
           {[
             { 
               name: "Time Space", 
-              desc: "Time Space by Qbamart - A premium brand for elegant watches, stylish sunglasses, and refined wallets.",
+              desc: `Time Space by ${siteTitle || 'Qbamart'} - A premium brand for elegant watches, stylish sunglasses, and refined wallets.`,
               link: "https://www.facebook.com/TimeSpace24"
             },
             { 
               name: "Bunon Space", 
-              desc: "Bunon Space by Qbamart - A stylish clothing brand for women, men, and kids, blending fashion with comfort.",
+              desc: `Bunon Space by ${siteTitle || 'Qbamart'} - A stylish clothing brand for women, men, and kids, blending fashion with comfort.`,
               link: "https://www.facebook.com/BunonSpace24"
             },
             { 
               name: "Qbamart", 
-              desc: "Qbamart - one of the most trusted online shopping platforms in Bangladesh! 🇧🇩",
+              desc: `${siteTitle || 'Qbamart'} - one of the most trusted online shopping platforms in Bangladesh! 🇧🇩`,
               link: "https://www.facebook.com/Qbamart24"
             }
           ].map((brand, i) => (
@@ -53,10 +56,10 @@ const Footer = () => {
           {/* Brand Col */}
           <div className="space-y-6">
             <Link to="/" className="flex items-center">
-              <img src={footerLogo} alt={siteTitle} className="h-8 md:h-10 w-auto" />
+              <img src={footerLogo} alt={siteTitle || 'Qbamart'} className="h-8 md:h-10 w-auto" />
             </Link>
             <p className="text-[13px] leading-relaxed max-w-xs font-medium text-neutral-500">
-              Qbamart is Bangladesh's most reliable and trusted e-commerce destination.
+              {siteTitle || 'Qbamart'} is Bangladesh's most reliable and trusted e-commerce destination.
             </p>
             <div className="space-y-3">
               <h4 className="text-neutral-900 font-bold text-base">Subscribe us</h4>
@@ -90,8 +93,6 @@ const Footer = () => {
               <li><Link to="/contact-us" className="hover:text-[#5173FB] transition-colors">Contact Us</Link></li>
               <li><Link to="/shipping-policy" className="hover:text-[#5173FB] transition-colors">Shipping Policy</Link></li>
               <li><Link to="/return-replacement-policy" className="hover:text-[#5173FB] transition-colors">Return & Replacement Policy</Link></li>
-              <li><Link to="/privacy-policy" className="hover:text-[#5173FB] transition-colors">Privacy Policy</Link></li>
-              <li><Link to="/terms-conditions" className="hover:text-[#5173FB] transition-colors">Terms & Conditions</Link></li>
               <li><Link to="/blogs" className="hover:text-[#5173FB] transition-colors">Blog</Link></li>
             </ul>
           </div>
@@ -103,13 +104,13 @@ const Footer = () => {
               <li className="flex items-start space-x-3 group">
                 <div className="w-5 h-5 flex items-center justify-center text-[#5173FB]"><Phone className="w-4 h-4" /></div>
                 <div>
-                  <span className="block font-bold text-neutral-900">Hotline: 01618-320869</span>
+                  <span className="block font-bold text-neutral-900">Hotline: {settings?.support_phone || '01618-320869'}</span>
                 </div>
               </li>
               <li className="flex items-start space-x-3 group">
                 <div className="w-5 h-5 flex items-center justify-center text-[#5173FB]"><Mail className="w-4 h-4" /></div>
                 <div>
-                  <span className="block font-bold text-neutral-900">Email: support@Qbamart.com</span>
+                  <span className="block font-bold text-neutral-900">Email: {siteEmail}</span>
                 </div>
               </li>
               <li className="flex items-start space-x-3 group">
@@ -117,7 +118,7 @@ const Footer = () => {
                 <div>
                   <span className="block font-bold text-neutral-900 mb-1">Address:</span>
                   <p className="leading-relaxed">
-                    Qbamart<br />
+                    {siteTitle || 'Qbamart'}<br />
                     229/A Lalmohon Shah Street, Wari, Dhaka.
                   </p>
                 </div>
@@ -127,7 +128,7 @@ const Footer = () => {
         </div>
 
         <div className="border-t border-neutral-100 pt-8 flex flex-col md:flex-row justify-between items-center text-xs space-y-4 md:space-y-0 text-neutral-400 font-medium">
-          <p>© 2026 Qbamart. All rights reserved. Developed by <a href="https://ctsolutionbd.com" target="_blank" rel="noopener noreferrer" className="hover:text-[#5173FB]">Cyber and Tech Solution</a></p>
+          <p>© 2026 {siteTitle || 'Qbamart'}. Powered by <a href="https://ctsolutionbd.com" target="_blank" rel="noopener noreferrer" className="hover:text-[#5173FB] transition-colors">Cyber and Tech Solution</a>.</p>
           <div className="flex space-x-6 uppercase tracking-widest">
             <Link to="/privacy-policy" className="hover:text-[#5173FB]">Privacy Policy</Link>
             <Link to="/terms-conditions" className="hover:text-[#5173FB]">Terms & Conditions</Link>

@@ -6,10 +6,12 @@ import SEO from '../components/SEO';
 import { useQuery } from '@tanstack/react-query';
 import { getCategories } from '../services/api';
 import illustration from '../assets/404-illustration.png';
+import { useSettings } from '../context/SettingsContext';
 
 const NotFound = () => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
+  const { siteTitle } = useSettings();
   
   // Mouse position for eye-tracking pupils
   const mouseX = useMotionValue(0.5);
@@ -228,7 +230,7 @@ const NotFound = () => {
       <div className="fixed bottom-10 right-10 hidden lg:flex items-center space-x-6 rotate-90 origin-right translate-y-[-50%] pointer-events-none opacity-10">
         <span className="text-sm font-black tracking-[0.5em] uppercase whitespace-nowrap">Protocol ERROR_404</span>
         <div className="w-12 h-px bg-neutral-900" />
-        <span className="text-sm font-black tracking-[0.5em] uppercase whitespace-nowrap text-brand">Qbamart Global Store</span>
+        <span className="text-sm font-black tracking-[0.5em] uppercase whitespace-nowrap text-brand">{siteTitle} Global Store</span>
       </div>
     </div>
   );

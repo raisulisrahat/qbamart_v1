@@ -85,7 +85,7 @@ const ForgotPassword = () => {
         className="max-w-md w-full"
       >
         <div className="bg-white p-8 rounded-2xl shadow-xl border border-neutral-100">
-          <SEO title="Reset Password" description="Securely reset your Qbamart account password." />
+          <SEO title="Reset Password" description={`Securely reset your ${siteTitle} account password.`} />
           <div className="text-center mb-8">
             <Link to="/">
               <img src={siteLogo} alt={siteTitle} className="w-32 mx-auto mb-4 object-contain" />

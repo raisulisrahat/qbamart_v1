@@ -368,7 +368,7 @@ const StepFunnel = () => {
             {/* Main Header */}
             <header className="py-6 border-b border-slate-100 sticky top-0 bg-white/80 backdrop-blur-md z-40">
                 <div className="container mx-auto px-4 flex justify-between items-center max-w-6xl">
-                    <div className="text-2xl font-black tracking-tighter text-[#5173FB]">Qbamart</div>
+                    <div className="text-2xl font-black tracking-tighter text-[#5173FB]">{siteSettings?.site_title || 'Qbamart'}</div>
                     <div className="flex gap-4 md:gap-8 items-center text-[10px] md:text-xs font-bold text-slate-500 uppercase tracking-widest">
                         <span className="flex items-center gap-1.5"><ShieldCheck size={14} className="text-[#5173FB]" /> 100% Secure</span>
                         <span className="flex items-center gap-1.5"><Truck size={14} className="text-[#5173FB]" /> Cash on Delivery</span>
@@ -550,7 +550,7 @@ const StepFunnel = () => {
                                         </button>
                                         
                                         <p className="text-center text-[10px] uppercase tracking-widest text-white/30 font-black">
-                                            100% Secure Checkout | Verified by Qbamart
+                                            100% Secure Checkout | Verified by {siteSettings?.site_title || 'Qbamart'}
                                         </p>
                                     </form>
                                 </div>
@@ -586,8 +586,8 @@ const StepFunnel = () => {
             {/* Footer */}
             <footer className="py-12 bg-slate-50 border-t border-slate-100 text-center">
                 <div className="container mx-auto px-4">
-                    <div className="text-xl font-black text-slate-300 mb-4 tracking-tighter uppercase">Qbamart</div>
-                    <p className="text-slate-400 text-xs font-bold uppercase tracking-widest">&copy; {new Date().getFullYear()} Qbamart | All Rights Reserved</p>
+                    <div className="text-xl font-black text-slate-300 mb-4 tracking-tighter uppercase">{siteSettings?.site_title || 'Qbamart'}</div>
+                    <p className="text-slate-400 text-xs font-bold uppercase tracking-widest">&copy; {new Date().getFullYear()} {siteSettings?.site_title || 'Qbamart'} | All Rights Reserved</p>
                 </div>
             </footer>
             

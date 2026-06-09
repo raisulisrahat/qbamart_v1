@@ -103,30 +103,30 @@ const ReviewSection: React.FC<ReviewSectionProps> = ({ product }) => {
   return (
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-10">
       {/* Summary Section */}
-      <div className="bg-white border border-neutral-100 rounded-3xl p-5 flex flex-col md:flex-row gap-6 items-center">
-        <div className="text-center space-y-1 flex-shrink-0 px-4">
+      <div className="bg-white border border-neutral-100 rounded-3xl p-6 lg:p-8 grid grid-cols-1 md:grid-cols-12 gap-8 items-center">
+        <div className="md:col-span-4 text-center space-y-2 py-2 md:border-r border-neutral-100 flex flex-col items-center justify-center">
           <div className="text-5xl font-black text-neutral-900 leading-none tracking-tighter">
             {(average_rating || 0).toFixed(1)}
           </div>
-          <div className="flex justify-center">
+          <div className="flex justify-center mt-1">
             {[...Array(5)].map((_, i) => (
               <Star 
                 key={i} 
-                className={`w-3.5 h-3.5 ${i < Math.round(average_rating) ? 'fill-[#5173FB] text-[#5173FB]' : 'text-neutral-200'}`} 
+                className={`w-4 h-4 ${i < Math.round(average_rating) ? 'fill-[#5173FB] text-[#5173FB]' : 'text-neutral-200'}`} 
               />
             ))}
           </div>
-          <p className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest">Based on {rating_count} reviews</p>
+          <p className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest mt-1">Based on {rating_count} reviews</p>
         </div>
 
-        <div className="flex-grow space-y-2 w-full max-w-md">
+        <div className="md:col-span-8 space-y-2.5 w-full max-w-lg md:px-6">
           {[5, 4, 3, 2, 1].map((rating) => (
             <div key={rating} className="flex items-center space-x-3">
               <div className="flex space-x-0.5 w-16">
                 {[...Array(5)].map((_, i) => (
                   <Star 
                     key={i} 
-                    className={`w-2 h-2 ${i < rating ? 'fill-neutral-300 text-neutral-300' : 'text-neutral-100'}`} 
+                    className={`w-2.5 h-2.5 ${i < rating ? 'fill-neutral-300 text-neutral-300' : 'text-neutral-100'}`} 
                   />
                 ))}
               </div>
@@ -149,7 +149,7 @@ const ReviewSection: React.FC<ReviewSectionProps> = ({ product }) => {
           user ? (
             <button 
               onClick={() => setShowForm(true)}
-              className="px-3 py-1.5 bg-[#5173FB] text-white rounded-lg text-sm font-bold uppercase tracking-widest hover:bg-black transition-colors"
+              className="px-6 py-3 bg-[#5173FB] hover:bg-black text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all active:scale-95 shadow-md shadow-[#5173FB]/10"
             >
               Write a Review
             </button>
@@ -184,17 +184,6 @@ const ReviewSection: React.FC<ReviewSectionProps> = ({ product }) => {
               </div>
             </div>
             
-            <div>
-              <label className="block text-sm font-bold text-neutral-700 mb-2">Headline (Optional)</label>
-              <input 
-                type="text" 
-                value={headline}
-                onChange={(e) => setHeadline(e.target.value)}
-                placeholder="What's most important to know?"
-                className="w-full px-4 py-3 rounded-xl border border-neutral-200 focus:outline-none focus:ring-2 focus:ring-[#5173FB]/20 transition-all"
-              />
-            </div>
-
             <div>
               <label className="block text-sm font-bold text-neutral-700 mb-2">Your Review</label>
               <textarea 

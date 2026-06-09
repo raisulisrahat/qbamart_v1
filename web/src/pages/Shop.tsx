@@ -120,6 +120,11 @@ const Shop = () => {
   }) || [];
 
   const sortedProducts = [...filteredProducts].sort((a, b) => {
+    const stockA = a.stock && a.stock > 0 ? 1 : 0;
+    const stockB = b.stock && b.stock > 0 ? 1 : 0;
+    if (stockA !== stockB) {
+      return stockB - stockA; // In stock items first
+    }
     const priceA = parseFloat(a.sale_price || a.regular_price);
     const priceB = parseFloat(b.sale_price || b.regular_price);
     if (sortBy === 'low') return priceA - priceB;

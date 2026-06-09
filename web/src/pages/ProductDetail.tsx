@@ -1,13 +1,14 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { ShoppingCart, Heart, Share2, ShieldCheck, Truck, RefreshCcw, Star, ChevronLeft, ChevronRight, Zap, CheckCircle2, ZoomIn, ZoomOut, X } from 'lucide-react';
+import { ShoppingCart, Heart, Share2, ShieldCheck, Truck, RefreshCcw, Star, ChevronLeft, ChevronRight, Zap, CheckCircle2, ZoomIn, ZoomOut, X, Play } from 'lucide-react';
 import { getProductBySlug, getProducts } from '../services/api';
 import ProductCard from '../components/ProductCard';
 import { motion } from 'framer-motion';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
 import { useAuth } from '../context/AuthContext';
+import { useSettings } from '../context/SettingsContext';
 import ReviewSection from '../components/ReviewSection';
 import Breadcrumbs from '../components/Breadcrumbs';
 import { resolveImageUrl } from '../utils/image';
@@ -18,6 +19,7 @@ const ProductDetail = () => {
   const { addToCart, setIsCartOpen } = useCart();
   const { addToWishlist, removeFromWishlist, isInWishlist, wishlist } = useWishlist();
   const { isAuthenticated } = useAuth();
+  const { siteTitle } = useSettings();
   const navigate = useNavigate();
 
   const { slug } = useParams<{ slug: string }>();
@@ -167,7 +169,7 @@ const ProductDetail = () => {
           "description": product.short_description || product.description_html?.replace(/<[^>]*>?/gm, '').slice(0, 160),
           "brand": {
             "@type": "Brand",
-            "name": product.brand?.name || "Qbamart"
+            "name": product.brand?.name || siteTitle
           },
           "offers": {
             "@type": "Offer",
@@ -280,11 +282,19 @@ const ProductDetail = () => {
                     className={`flex-shrink-0 w-16 h-16 lg:w-24 lg:h-24 rounded-xl lg:rounded-2xl overflow-hidden border-2 transition-all snap-start relative ${activeImage === idx ? 'border-brand scale-95 shadow-md' : 'border-transparent opacity-60 hover:opacity-100'}`}
                   >
                     {item.type === 'video' ? (
-                      <div className="w-full h-full bg-neutral-900 flex items-center justify-center">
-                        <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
-                          <Zap className="w-4 h-4 text-white fill-current" />
+                      <div className="w-full h-full bg-neutral-900 flex items-center justify-center relative">
+                        {(product.image || product.images?.[0]?.image) && (
+                          <img
+                            src={resolveImageUrl(product.image || product.images[0].image)}
+                            className="absolute inset-0 w-full h-full object-cover opacity-60"
+                            alt=""
+                          />
+                        )}
+                        <div className="absolute inset-0 bg-black/40 backdrop-blur-[1px]" />
+                        <div className="relative w-8 h-8 rounded-full bg-white/95 text-neutral-900 flex items-center justify-center shadow-lg transition-transform group-hover/thumbs:scale-110">
+                          <Play className="w-4 h-4 fill-current ml-0.5" />
                         </div>
-                        <span className="absolute bottom-1 right-1 text-[8px] font-black bg-red-700 text-white px-1 rounded">VIDEO</span>
+                        <span className="absolute bottom-1 right-1 text-[8px] font-black bg-red-700 text-white px-1.5 py-0.5 rounded shadow">VIDEO</span>
                       </div>
                     ) : (
                       <img src={resolveImageUrl(item.image)} className="w-full h-full object-cover" alt="" />
@@ -646,7 +656,7 @@ const ProductDetail = () => {
         {/* Technical Features & Specifications */}
         <div className="mt-12 lg:mt-20 space-y-6 lg:space-y-8">
           {/* Desktop Tabs */}
-          <div className="hidden lg:flex border-b border-neutral-100 space-x-12 overflow-x-auto scrollbar-hide">
+          <div className="hidden lg:flex justify-center border-b border-neutral-100 space-x-12 overflow-x-auto scrollbar-hide">
             <button
               onClick={() => setActiveTab('description')}
               className={`pb-6 border-b-2 font-bold transition-all whitespace-nowrap ${activeTab === 'description' ? 'border-red-700 text-neutral-900' : 'border-transparent text-neutral-400 hover:text-neutral-900'}`}
@@ -672,7 +682,7 @@ const ProductDetail = () => {
           </div>
 
           {/* Mobile Tab Header */}
-          <div className="lg:hidden flex border-b border-neutral-100 space-x-6 overflow-x-auto scrollbar-hide">
+          <div className="lg:hidden flex justify-center border-b border-neutral-100 space-x-6 overflow-x-auto scrollbar-hide">
             <button
               onClick={() => setActiveTab('description')}
               className={`pb-3 text-sm font-bold transition-all whitespace-nowrap border-b-2 ${activeTab === 'description' ? 'border-brand text-neutral-900' : 'border-transparent text-neutral-400'}`}
@@ -759,7 +769,7 @@ const ProductDetail = () => {
           </div>
         </div>
 
-        <div className="mt-12">
+        <div className="mt-12 max-w-4xl">
           <ReviewSection product={product} />
         </div>
 

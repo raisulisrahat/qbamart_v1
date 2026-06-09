@@ -6,8 +6,10 @@ import { motion } from 'framer-motion';
 import { Calendar, User, Eye, ChevronLeft, Share2, Sparkles, BookOpen } from 'lucide-react';
 import { resolveImageUrl } from '../utils/image';
 import SEO from '../components/SEO';
+import { useSettings } from '../context/SettingsContext';
 
 const BlogDetail = () => {
+  const { siteTitle } = useSettings();
   const { slug } = useParams();
 
   const { data: post, isLoading, error } = useQuery({
@@ -71,7 +73,7 @@ const BlogDetail = () => {
           "datePublished": post.created_at,
           "author": {
             "@type": "Organization",
-            "name": "Qbamart"
+            "name": siteTitle
           },
           "description": post.summary || post.content?.replace(/<[^>]*>?/gm, '').slice(0, 160)
         }}
@@ -171,7 +173,7 @@ const BlogDetail = () => {
             </div>
             <div className="flex flex-col">
               <span className="text-[8px] font-black text-zinc-400 uppercase tracking-widest leading-none mb-1">Published by</span>
-              <span className="text-xs font-black text-zinc-900 leading-none">Qbamart Editorial</span>
+              <span className="text-xs font-black text-zinc-900 leading-none">{siteTitle} Editorial</span>
             </div>
           </div>
         </div>

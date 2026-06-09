@@ -4,8 +4,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { BASE_URL } from '../services/api';
+import { useSettings } from '../context/SettingsContext';
 
 const ProfileSidebar = () => {
+  const { siteTitle } = useSettings();
   const [isOpen, setIsOpen] = useState(false);
   const { user, logout } = useAuth();
   const navigate = useNavigate();
@@ -152,7 +154,7 @@ const ProfileSidebar = () => {
                     <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mb-4 border border-gray-100">
                       <UserCircle size={32} className="text-gray-400" />
                     </div>
-                    <h3 className="font-bold text-gray-900 mb-1">Welcome to Qbamart</h3>
+                    <h3 className="font-bold text-gray-900 mb-1">Welcome to {siteTitle}</h3>
                     <p className="text-sm text-gray-500 mb-6">Log in to manage your account and view orders.</p>
                     <div className="w-full flex flex-col gap-3">
                       <button

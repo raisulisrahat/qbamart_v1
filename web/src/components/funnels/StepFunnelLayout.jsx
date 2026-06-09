@@ -448,7 +448,7 @@ const StepFunnelLayout = ({
             <footer className="py-12 bg-[#080b12] border-t border-white/5 text-center">
                 <div className="container mx-auto px-4">
                     <div className="text-xl font-black text-slate-300 mb-4 tracking-tighter uppercase">Qbamart</div>
-                    <p className="text-slate-400 text-xs font-bold uppercase tracking-widest">&copy; {new Date().getFullYear()} Qbamart | All Rights Reserved</p>
+                    <p className="text-slate-400 text-xs font-bold uppercase tracking-widest">&copy; 2026 Qbamart. Powered by <a href="https://ctsolutionbd.com" target="_blank" rel="noopener noreferrer" className="hover:text-[#5173FB] transition-colors">Cyber and Tech Solution</a>.</p>
                 </div>
             </footer>
             

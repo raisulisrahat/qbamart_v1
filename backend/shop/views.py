@@ -146,10 +146,14 @@ class UserViewSet(viewsets.ModelViewSet):
             import io
             import base64
             
+            from .models import SiteSettings
+            settings = SiteSettings.objects.first()
+            site_title = settings.site_title if settings else "Qbamart"
+            
             totp = pyotp.TOTP(profile.two_factor_secret)
             provisioning_uri = totp.provisioning_uri(
                 name=user.username,
-                issuer_name="Qbamart"
+                issuer_name=site_title
             )
             qr = qrcode.QRCode(version=1, box_size=10, border=4)
             qr.add_data(provisioning_uri)
@@ -292,9 +296,13 @@ class CustomObtainAuthToken(ObtainAuthToken):
                     import io
                     import base64
                     
+                    from .models import SiteSettings
+                    settings = SiteSettings.objects.first()
+                    site_title = settings.site_title if settings else "Qbamart"
+                    
                     provisioning_uri = totp.provisioning_uri(
                         name=user.username,
-                        issuer_name="Qbamart"
+                        issuer_name=site_title
                     )
                     
                     qr = qrcode.QRCode(version=1, box_size=10, border=4)
@@ -526,6 +534,25 @@ class OrderViewSet(viewsets.ModelViewSet):
         if hasattr(self, 'temp_password') and self.temp_password:
             data['temp_password'] = self.temp_password
             
+        order = getattr(self, 'order', None)
+        if order and order.payment_method and order.payment_method.provider == 'bkash':
+            callback_path = '/api/bkash/callback/'
+            callback_url = request.build_absolute_uri(callback_path)
+            
+            from .bkash_utils import create_bkash_payment
+            bkash_res = create_bkash_payment(order, callback_url)
+            if bkash_res and 'bkashURL' in bkash_res:
+                order.payment_gateway_id = bkash_res['paymentID']
+                order.save(update_fields=['payment_gateway_id'])
+                data['bkash_url'] = bkash_res['bkashURL']
+            else:
+                order.status = 'cancelled'
+                order.save(update_fields=['status'])
+                return Response(
+                    {'message': 'Failed to initiate bKash payment. Please check configurations or try again.'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
         headers = self.get_success_headers(data)
         return Response(data, status=status.HTTP_201_CREATED, headers=headers)
 
@@ -589,6 +616,8 @@ class OrderViewSet(viewsets.ModelViewSet):
         else:
             order = serializer.save(ip_address=ip, user_agent=ua, location=loc)
         
+        self.order = order
+        
         # 3. Send Order Confirmation SMS
         settings = SiteSettings.objects.first()
         if settings and settings.enable_order_confirmation_sms and order.phone_number:
@@ -645,7 +674,7 @@ class OrderViewSet(viewsets.ModelViewSet):
             'recipient_phone': order.phone_number,
             'recipient_address': order.address,
             'cod_amount': float(order.total_amount),
-            'note': f"Sync from Qbamart (Order #{order.id})"
+            'note': f"Sync from {settings.site_title or 'Qbamart'} (Order #{order.id})"
         }
         
         try:
@@ -822,9 +851,9 @@ class OrderViewSet(viewsets.ModelViewSet):
         # 5. Build payload and create order
         total_qty = sum(item.quantity for item in order.items.all()) or 1
         desc_parts = [f"{item.product.name} (Qty: {item.quantity})" for item in order.items.all() if item.product]
-        product_desc = ", ".join(desc_parts)[:255] or "Package from Qbamart"
+        product_desc = ", ".join(desc_parts)[:255] or f"Package from {settings.site_title or 'Qbamart'}"
         
-        recipient_address = order.address or "Qbamart Customer Address"
+        recipient_address = order.address or f"{settings.site_title or 'Qbamart'} Customer Address"
         if len(recipient_address) < 10:
             recipient_address = f"{recipient_address}, Bangladesh"
         if len(recipient_address) < 10:
@@ -1315,10 +1344,26 @@ class UpazilaViewSet(viewsets.ReadOnlyModelViewSet):
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ['district']
 
-class PaymentMethodViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = PaymentMethod.objects.filter(is_active=True)
+class PaymentMethodViewSet(viewsets.ModelViewSet):
+    queryset = PaymentMethod.objects.all()
     serializer_class = PaymentMethodSerializer
-    permission_classes = [permissions.AllowAny]
+
+    def get_queryset(self):
+        user = self.request.user
+        if self.action in ['retrieve', 'update', 'partial_update', 'destroy']:
+            if user.is_authenticated and hasattr(user, 'profile') and user.profile.role in ['admin', 'moderator']:
+                return PaymentMethod.objects.all()
+            return PaymentMethod.objects.filter(is_active=True)
+            
+        manage = self.request.query_params.get('manage', 'false') == 'true'
+        if manage and user.is_authenticated and hasattr(user, 'profile') and user.profile.role in ['admin', 'moderator']:
+            return PaymentMethod.objects.all()
+        return PaymentMethod.objects.filter(is_active=True)
+
+    def get_permissions(self):
+        if self.action in ['list', 'retrieve']:
+            return [permissions.AllowAny()]
+        return [IsModeratorOrAdmin()]
 
 class ShippingZoneViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = ShippingZone.objects.all()
@@ -1581,17 +1626,21 @@ class OTPViewSet(viewsets.GenericViewSet):
 class MetaView(View):
     def get(self, request, *args, **kwargs):
         path = request.GET.get('path', '')
-        title = "QBAMART"
-        description = "Premium Gadget & Accessories Shop in Bangladesh"
-        image = "https://Qbamart.com/logo.png" # Fallback
-        url = f"https://Qbamart.com{path}"
+        from .models import SiteSettings
+        settings = SiteSettings.objects.first()
+        site_title = settings.site_title if settings else "Qbamart"
+        
+        title = site_title.upper()
+        description = settings.meta_description if settings and settings.meta_description else "Premium Gadget & Accessories Shop in Bangladesh"
+        image = request.build_absolute_uri(settings.site_logo.url) if settings and settings.site_logo else "https://qbamart.com/logo.png"
+        url = request.build_absolute_uri(path) if path else request.build_absolute_uri('/')
         
         # Determine content type based on path
         if '/product/' in path:
             slug = path.split('/product/')[-1].split('?')[0].strip('/')
             product = Product.objects.filter(slug=slug).first()
             if product:
-                title = f"{product.name} | Qbamart"
+                title = f"{product.name} | {site_title}"
                 description = product.short_description or (product.description_html[:160] if product.description_html else description)
                 if product.image:
                     image = request.build_absolute_uri(product.image.url)
@@ -1600,7 +1649,7 @@ class MetaView(View):
             slug = path.split('/blog/')[-1].split('?')[0].strip('/')
             post = BlogPost.objects.filter(slug=slug).first()
             if post:
-                title = f"{post.title} | Qbamart"
+                title = f"{post.title} | {site_title}"
                 description = post.excerpt or (post.content[:160] if post.content else description)
                 if post.featured_image:
                     image = request.build_absolute_uri(post.featured_image.url)
@@ -1721,24 +1770,37 @@ class MediaManagerView(APIView):
 
     def delete(self, request):
         path = request.data.get('path')
-        if not path:
-            return Response({'error': 'Path is required'}, status=status.HTTP_400_BAD_REQUEST)
+        paths = request.data.get('paths')
+        if not path and not paths:
+            return Response({'error': 'Path or paths is required'}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Security check: prevent directory traversal
         media_root = os.path.abspath(settings.MEDIA_ROOT)
-        target_path = os.path.abspath(os.path.join(media_root, path))
-        
-        if not target_path.startswith(media_root):
-            return Response({'error': 'Access denied'}, status=status.HTTP_403_FORBIDDEN)
+        paths_to_delete = paths if paths else [path]
+        deleted_count = 0
+        errors = []
 
-        if not os.path.exists(target_path):
-            return Response({'error': 'File not found'}, status=status.HTTP_404_NOT_FOUND)
+        for p in paths_to_delete:
+            # Security check: prevent directory traversal
+            target_path = os.path.abspath(os.path.join(media_root, p))
+            if not target_path.startswith(media_root):
+                errors.append({'path': p, 'error': 'Access denied'})
+                continue
+            if not os.path.exists(target_path):
+                errors.append({'path': p, 'error': 'File not found'})
+                continue
+            try:
+                os.remove(target_path)
+                deleted_count += 1
+            except Exception as e:
+                errors.append({'path': p, 'error': str(e)})
 
-        try:
-            os.remove(target_path)
-            return Response({'message': 'File deleted successfully'})
-        except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        if errors and deleted_count == 0:
+            return Response({'errors': errors}, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response({
+            'message': f'{deleted_count} files deleted successfully',
+            'errors': errors if errors else None
+        })
 
 
 class SecurityAuditView(APIView):
@@ -1805,4 +1867,96 @@ class SecurityAuditView(APIView):
             },
             'packages': packages_list
         })
+
+
+# bKash payment gateway callback
+from django.shortcuts import redirect
+from django.views import View
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt
+import urllib.parse
+
+def get_frontend_url(request):
+    referrer = request.META.get('HTTP_REFERER')
+    if referrer:
+        from urllib.parse import urlparse
+        parsed = urlparse(referrer)
+        return f"{parsed.scheme}://{parsed.netloc}"
+        
+    origin = request.META.get('HTTP_ORIGIN')
+    if origin:
+        return origin
+        
+    from django.conf import settings
+    cors_origins = getattr(settings, 'CORS_ALLOWED_ORIGINS', [])
+    if cors_origins:
+        return cors_origins[0]
+    return 'http://localhost:5173'
+
+class BkashCallbackView(View):
+    @method_decorator(csrf_exempt)
+    def dispatch(self, *args, **kwargs):
+        return super().dispatch(*args, **kwargs)
+
+    def get(self, request, *args, **kwargs):
+        payment_id = request.GET.get('paymentID')
+        status_param = request.GET.get('status')
+        
+        frontend_base = get_frontend_url(request)
+        
+        if not payment_id or not status_param:
+            redirect_url = f"{frontend_base}/checkout?status=failure&message=Invalid+callback+parameters"
+            return redirect(redirect_url)
+            
+        from .models import Order, SiteSettings
+        order = Order.objects.filter(payment_gateway_id=payment_id).first()
+        if not order:
+            redirect_url = f"{frontend_base}/checkout?status=failure&message=Order+not+found+for+payment+ID"
+            return redirect(redirect_url)
+            
+        if status_param == 'success':
+            from .bkash_utils import execute_bkash_payment
+            execute_res = execute_bkash_payment(payment_id)
+            
+            if not execute_res:
+                redirect_url = f"{frontend_base}/checkout?status=failure&message=Failed+to+execute+bKash+payment"
+                return redirect(redirect_url)
+                
+            status_str = execute_res.get('transactionStatus') or execute_res.get('status')
+            
+            if status_str in ['Completed', 'Success']:
+                order.is_paid = True
+                order.status = 'processing'
+                order.save(update_fields=['is_paid', 'status'])
+                
+                settings = SiteSettings.objects.first()
+                if settings and settings.enable_order_confirmation_sms and order.phone_number:
+                    from .sms_utils import send_sms
+                    message = f"আপনার অর্ডার #{str(order.id).zfill(8)} সফলভাবে গ্রহণ করা হয়েছে এবং পেমেন্ট সম্পন্ন হয়েছে। {settings.site_title}-এর সাথে কেনাকাটা করার জন্য ধন্যবাদ!"
+                    send_sms(order.phone_number, message)
+                
+                query_params = {
+                    'status': 'success',
+                    'order_id': order.id,
+                    'phone': order.phone_number,
+                    'name': order.customer_name
+                }
+                redirect_url = f"{frontend_base}/checkout?{urllib.parse.urlencode(query_params)}"
+                return redirect(redirect_url)
+            else:
+                error_msg = execute_res.get('statusMessage', 'Execution failed')
+                redirect_url = f"{frontend_base}/checkout?status=failure&message={urllib.parse.quote(error_msg)}"
+                return redirect(redirect_url)
+                
+        elif status_param == 'cancel':
+            order.status = 'cancelled'
+            order.save(update_fields=['status'])
+            redirect_url = f"{frontend_base}/checkout?status=cancel"
+            return redirect(redirect_url)
+            
+        else:
+            order.status = 'cancelled'
+            order.save(update_fields=['status'])
+            redirect_url = f"{frontend_base}/checkout?status=failure&message=Payment+failed"
+            return redirect(redirect_url)
 

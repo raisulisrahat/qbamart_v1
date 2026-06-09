@@ -1,11 +1,13 @@
 import React from 'react';
 import SEO from '../components/SEO';
 import { motion } from 'framer-motion';
+import { useSettings } from '../context/SettingsContext';
 
 const ReturnPolicy = () => {
+  const { siteTitle } = useSettings();
   return (
     <div className="bg-white min-h-screen">
-      <SEO title="Return & Replacement Policy" description="Read about Qbamart's return and replacement policies." />
+      <SEO title="Return & Replacement Policy" description={`Read about ${siteTitle}'s return and replacement policies.`} />
       
       <div className="bg-neutral-50 py-20 border-b border-neutral-100">
         <div className="max-w-[1200px] mx-auto px-6 text-center">
@@ -78,7 +80,7 @@ const ReturnPolicy = () => {
               <div className="w-12 h-12 bg-brand text-white rounded-2xl flex items-center justify-center font-black shrink-0">1</div>
               <div>
                 <h3 className="text-lg font-bold text-neutral-900 mb-2">যোগাযোগ করুন</h3>
-                <p className="text-neutral-500 text-sm">📱 WhatsApp: 01516542909</p>
+                <p className="text-neutral-500 text-sm">📱 WhatsApp: 01618-320869</p>
               </div>
             </div>
             <div className="flex items-start space-x-6">

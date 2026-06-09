@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { CheckCircle, ArrowLeft, CreditCard, ShieldCheck, Mail, Phone, User, MapPin, Lock, ChevronRight } from 'lucide-react';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
+import { CheckCircle, ArrowLeft, CreditCard, ShieldCheck, Mail, Phone, User, MapPin, Lock, ChevronRight, AlertCircle } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { createOrder, getDistricts, getUpazilas, getPaymentMethods, getShippingZones, createDraftOrder, updateDraftOrder, deleteDraftOrder } from '../services/api';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -11,12 +11,14 @@ import SEO from '../components/SEO';
 
 const Checkout = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { cart, cartTotal, clearCart } = useCart();
   const { isAuthenticated, user } = useAuth();
-  const { settings } = useSettings();
+  const { settings, siteTitle } = useSettings();
   
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [paymentError, setPaymentError] = useState<string | null>(null);
   const [tempPassword, setTempPassword] = useState<string | null>(null);
   const [draftOrderId, setDraftOrderId] = useState<number | null>(() => {
     const saved = sessionStorage.getItem('draft_order_id_checkout');
@@ -173,6 +175,25 @@ const Checkout = () => {
     }
   }, [isSuccess]);
 
+  useEffect(() => {
+    const status = searchParams.get('status');
+    const name = searchParams.get('name');
+    const phone = searchParams.get('phone');
+    const message = searchParams.get('message');
+
+    if (status === 'success') {
+      setIsSuccess(true);
+      clearCart();
+      if (name) setFormData(prev => ({ ...prev, name }));
+      if (phone) setFormData(prev => ({ ...prev, phone }));
+      sessionStorage.removeItem('draft_order_id_checkout');
+    } else if (status === 'cancel') {
+      setPaymentError('bKash payment was cancelled. Please select a payment method and try again.');
+    } else if (status === 'failure') {
+      setPaymentError(message || 'bKash payment failed. Please try again.');
+    }
+  }, [searchParams, clearCart]);
+
   // Debounced draft auto-save
   useEffect(() => {
     const hasContact = formData.phone.length >= 3 || formData.name.length >= 3;
@@ -327,18 +348,24 @@ const Checkout = () => {
       };
       
       const res = await createOrder(orderData);
-      if (res.data?.temp_password || res.data?.password || res.data?.guest_password) {
-        setTempPassword(res.data.temp_password || res.data.password || res.data.guest_password);
-      }
       
-      // Cleanup the draft order since the purchase is successful!
+      // Cleanup the draft order since the purchase is initiated/successful!
       if (draftOrderId) {
         try {
           await deleteDraftOrder(draftOrderId);
         } catch (delErr) {
-          console.error("Failed to delete draft order after success:", delErr);
+          console.error("Failed to delete draft order:", delErr);
         }
         setDraftOrderId(null);
+      }
+
+      if (res.data?.bkash_url) {
+        window.location.href = res.data.bkash_url;
+        return;
+      }
+
+      if (res.data?.temp_password || res.data?.password || res.data?.guest_password) {
+        setTempPassword(res.data.temp_password || res.data.password || res.data.guest_password);
       }
 
       setIsSuccess(true);
@@ -435,7 +462,7 @@ const Checkout = () => {
 
   return (
     <div className="bg-[#fafafa] min-h-screen">
-      <SEO title="Checkout" description="Complete your order at qbamart. Secure checkout with multiple payment options." />
+      <SEO title="Checkout" description={`Complete your order at ${siteTitle}. Secure checkout with multiple payment options.`} />
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         {/* Header Area */}
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-6">
@@ -454,6 +481,13 @@ const Checkout = () => {
           <div className="lg:col-span-7 space-y-8">
             <form id="checkout-form" noValidate onSubmit={handleSubmit} className="space-y-8">
               
+              {paymentError && (
+                <div className="bg-red-50 border border-red-200 text-red-700 px-6 py-4 rounded-2xl text-sm font-semibold flex items-center space-x-3">
+                  <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0" />
+                  <span>{paymentError}</span>
+                </div>
+              )}
+
               {/* Delivery Section */}
               <motion.section 
                 initial={{ opacity: 0, y: 20 }}

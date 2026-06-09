@@ -1,11 +1,13 @@
 import React from 'react';
 import SEO from '../components/SEO';
 import { motion } from 'framer-motion';
+import { useSettings } from '../context/SettingsContext';
 
 const AboutUs = () => {
+  const { siteTitle } = useSettings();
   return (
     <div className="bg-white min-h-screen">
-      <SEO title="About Us" description="Learn more about Qbamart - your trusted e-commerce destination in Bangladesh." />
+      <SEO title="About Us" description={`Learn more about ${siteTitle} - your trusted e-commerce destination in Bangladesh.`} />
       
       {/* Hero Section */}
       <div className="bg-neutral-50 py-20 border-b border-neutral-100">
@@ -15,7 +17,7 @@ const AboutUs = () => {
             animate={{ opacity: 1, y: 0 }}
             className="text-4xl md:text-6xl font-black text-neutral-900 tracking-tighter mb-6 uppercase"
           >
-            About <span className="text-brand">Qbamart</span>
+            About <span className="text-brand">{siteTitle}</span>
           </motion.h1>
           <p className="text-lg text-neutral-500 max-w-2xl mx-auto font-medium">
             Building the most reliable and trusted e-commerce destination in Bangladesh.
@@ -26,7 +28,7 @@ const AboutUs = () => {
       <div className="max-w-[800px] mx-auto px-6 py-20 prose prose-neutral prose-brand">
         <section className="mb-12">
           <p className="text-neutral-600 leading-relaxed mb-6 font-medium text-lg">
-            Welcome to Qbamart – one of the most trusted online shopping platforms in Bangladesh! 🇧🇩 We’re proud to be a leading e-commerce destination, offering a smooth, secure, and reliable shopping experience to customers across the country.
+            Welcome to {siteTitle} – one of the most trusted online shopping platforms in Bangladesh! 🇧🇩 We’re proud to be a leading e-commerce destination, offering a smooth, secure, and reliable shopping experience to customers across the country.
           </p>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
@@ -47,7 +49,7 @@ const AboutUs = () => {
           </div>
 
           <p className="text-neutral-600 leading-relaxed mb-12">
-            At Qbamart, we’re here to make your online shopping journey easy, affordable, and enjoyable. Thank you for choosing us—we’re honored to serve you. 🌟
+            At {siteTitle}, we’re here to make your online shopping journey easy, affordable, and enjoyable. Thank you for choosing us—we’re honored to serve you. 🌟
           </p>
         </section>
 
@@ -73,7 +75,7 @@ const AboutUs = () => {
         <section className="mb-12">
           <h2 className="text-2xl font-black text-neutral-900 mb-6 uppercase tracking-tight">Commitment to Quality</h2>
           <p className="text-neutral-600 leading-relaxed">
-            At Qbamart, quality is our top priority. From daily essentials to the latest gadgets, every product is carefully handpicked to meet high standards of:
+            At {siteTitle}, quality is our top priority. From daily essentials to the latest gadgets, every product is carefully handpicked to meet high standards of:
           </p>
           <div className="flex flex-wrap gap-4 mt-4">
             {["✨ Durability", "✨ Functionality", "✨ Style"].map((tag, i) => (
@@ -85,19 +87,19 @@ const AboutUs = () => {
           </p>
         </section>
 
-        <section>
+        {/* <section>
           <h2 className="text-2xl font-black text-neutral-900 mb-6 uppercase tracking-tight">Our Sub-Brands</h2>
           <div className="space-y-6">
             <div className="border-l-4 border-brand pl-6">
               <h3 className="text-xl font-bold text-neutral-900 mb-2">Time Space</h3>
-              <p className="text-neutral-600 text-sm">Time Space by Qbamart – A premium brand for elegant watches, stylish sunglasses, and refined wallets.</p>
+              <p className="text-neutral-600 text-sm">Time Space by {siteTitle} – A premium brand for elegant watches, stylish sunglasses, and refined wallets.</p>
             </div>
             <div className="border-l-4 border-neutral-900 pl-6">
               <h3 className="text-xl font-bold text-neutral-900 mb-2">Bunon Space</h3>
-              <p className="text-neutral-600 text-sm">Bunon Space by Qbamart – A stylish clothing brand for women, men, and kids, blending fashion with comfort.</p>
+              <p className="text-neutral-600 text-sm">Bunon Space by {siteTitle} – A stylish clothing brand for women, men, and kids, blending fashion with comfort.</p>
             </div>
           </div>
-        </section>
+        </section> */}
       </div>
     </div>
   );

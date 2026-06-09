@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import api, { BASE_URL } from '../../services/api';
-import { Settings, Save, AlertCircle, CheckCircle, Upload, Globe, Facebook, Twitter, Instagram, Youtube, MessageSquare, Shield, Link as LinkIcon, Copy, Zap, RefreshCw, PenTool, MessageCircle } from 'lucide-react';
+import { Settings, Save, AlertCircle, CheckCircle, Upload, Globe, Facebook, Twitter, Instagram, Youtube, MessageSquare, Shield, Link as LinkIcon, Copy, Zap, RefreshCw, PenTool, MessageCircle, CreditCard } from 'lucide-react';
 
 const ConfigManager = () => {
     const [config, setConfig] = useState(null);
@@ -13,10 +13,12 @@ const ConfigManager = () => {
     const [faviconPreview, setFaviconPreview] = useState(null);
     const [messengerImagePreview, setMessengerImagePreview] = useState(null);
     const [smsBalance, setSmsBalance] = useState(null);
+    const [paymentMethods, setPaymentMethods] = useState([]);
 
     useEffect(() => {
         fetchConfig();
         fetchSmsBalance();
+        fetchPaymentMethods();
     }, []);
 
     const fetchConfig = async () => {
@@ -46,6 +48,25 @@ const ConfigManager = () => {
             setSmsBalance(response.data.balance);
         } catch (error) {
             console.error('Error fetching SMS balance:', error);
+        }
+    };
+
+    const fetchPaymentMethods = async () => {
+        try {
+            const response = await api.get('payment-methods/', { params: { manage: true } });
+            setPaymentMethods(response.data);
+        } catch (error) {
+            console.error('Error fetching payment methods:', error);
+        }
+    };
+
+    const handlePaymentMethodToggle = async (methodId, checked) => {
+        try {
+            await api.patch(`payment-methods/${methodId}/`, { is_active: checked });
+            setPaymentMethods(prev => prev.map(m => m.id === methodId ? { ...m, is_active: checked } : m));
+        } catch (error) {
+            console.error('Failed to update payment method:', error);
+            alert('Failed to update payment method status.');
         }
     };
 
@@ -591,6 +612,107 @@ const ConfigManager = () => {
                                     />
                                     <p className="text-[10px] text-zinc-400 font-medium">Use {"{site_title}"} and {"{otp}"} as placeholders.</p>
                                 </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Payment Methods Control */}
+                <div className="next-panel p-8">
+                    <div className="flex items-center gap-3 mb-8 border-b border-zinc-100 pb-4">
+                        <div className="p-2 bg-zinc-100 rounded-lg text-zinc-900"><CreditCard size={18} /></div>
+                        <h3 className="text-sm font-bold uppercase tracking-widest text-zinc-900">Payment Methods</h3>
+                    </div>
+
+                    <div className="space-y-4">
+                        {paymentMethods.map((method: any) => (
+                            <div key={method.id} className="flex items-center justify-between p-4 bg-zinc-50 rounded-2xl border border-zinc-200">
+                                <div>
+                                    <span className="text-[10px] font-bold text-zinc-900 uppercase tracking-widest block">{method.name}</span>
+                                    <span className="text-[9px] font-medium text-zinc-400 block mt-0.5">
+                                        Provider: {method.provider} | {method.is_active ? 'Active on Checkout' : 'Disabled'}
+                                    </span>
+                                </div>
+                                <label className="relative inline-flex items-center cursor-pointer">
+                                    <input
+                                        type="checkbox"
+                                        checked={method.is_active || false}
+                                        onChange={(e) => handlePaymentMethodToggle(method.id, e.target.checked)}
+                                        className="sr-only peer"
+                                    />
+                                    <div className="w-10 h-5 bg-zinc-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-zinc-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#5173FB]"></div>
+                                </label>
+                            </div>
+                        ))}
+                        {paymentMethods.length === 0 && (
+                            <p className="text-xs text-zinc-400 italic">No payment methods found.</p>
+                        )}
+                    </div>
+                </div>
+
+                {/* bKash Payment Gateway Integration */}
+                <div className="next-panel p-8">
+                    <div className="flex items-center gap-3 mb-8 border-b border-zinc-100 pb-4">
+                        <div className="p-2 bg-zinc-100 rounded-lg text-zinc-900"><Shield size={18} /></div>
+                        <h3 className="text-sm font-bold uppercase tracking-widest text-zinc-900">bKash Payment Gateway</h3>
+                    </div>
+
+                    <div className="space-y-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="space-y-2 md:col-span-2">
+                                <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest ml-1">bKash API URL</label>
+                                <input 
+                                    type="text" 
+                                    name="bkash_base_url" 
+                                    value={config.bkash_base_url || ''} 
+                                    onChange={handleChange} 
+                                    placeholder="https://checkout.sandbox.bhash.com/v1.2.0-beta" 
+                                    className="w-full bg-zinc-50 border border-zinc-200 p-3 rounded-xl focus:ring-2 focus:ring-[#5173FB]/5 outline-none transition-all font-semibold text-zinc-900 text-sm" 
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest ml-1">bKash App Key</label>
+                                <input 
+                                    type="text" 
+                                    name="bkash_app_key" 
+                                    value={config.bkash_app_key || ''} 
+                                    onChange={handleChange} 
+                                    placeholder="Enter bKash App Key" 
+                                    className="w-full bg-zinc-50 border border-zinc-200 p-3 rounded-xl focus:ring-2 focus:ring-[#5173FB]/5 outline-none transition-all font-semibold text-zinc-900 text-sm" 
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest ml-1">bKash App Secret</label>
+                                <input 
+                                    type="password" 
+                                    name="bkash_app_secret" 
+                                    value={config.bkash_app_secret || ''} 
+                                    onChange={handleChange} 
+                                    placeholder="Enter bKash App Secret" 
+                                    className="w-full bg-zinc-50 border border-zinc-200 p-3 rounded-xl focus:ring-2 focus:ring-[#5173FB]/5 outline-none transition-all font-semibold text-zinc-900 text-sm" 
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest ml-1">bKash Username</label>
+                                <input 
+                                    type="text" 
+                                    name="bkash_username" 
+                                    value={config.bkash_username || ''} 
+                                    onChange={handleChange} 
+                                    placeholder="Enter bKash Username" 
+                                    className="w-full bg-zinc-50 border border-zinc-200 p-3 rounded-xl focus:ring-2 focus:ring-[#5173FB]/5 outline-none transition-all font-semibold text-zinc-900 text-sm" 
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest ml-1">bKash Password</label>
+                                <input 
+                                    type="password" 
+                                    name="bkash_password" 
+                                    value={config.bkash_password || ''} 
+                                    onChange={handleChange} 
+                                    placeholder="Enter bKash Password" 
+                                    className="w-full bg-zinc-50 border border-zinc-200 p-3 rounded-xl focus:ring-2 focus:ring-[#5173FB]/5 outline-none transition-all font-semibold text-zinc-900 text-sm" 
+                                />
                             </div>
                         </div>
                     </div>
