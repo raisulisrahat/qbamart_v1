@@ -1625,65 +1625,78 @@ class OTPViewSet(viewsets.GenericViewSet):
 
 class MetaView(View):
     def get(self, request, *args, **kwargs):
-        path = request.GET.get('path', '')
+        path = request.GET.get('path', '').strip('/')
         from .models import SiteSettings
-        settings = SiteSettings.objects.first()
-        site_title = settings.site_title if settings else "Qbamart"
+        from django.conf import settings as django_settings
+        site_settings = SiteSettings.objects.first()
+        site_title = site_settings.site_title if site_settings else "Qbamart"
         
-        title = site_title.upper()
-        description = settings.meta_description if settings and settings.meta_description else "Premium Gadget & Accessories Shop in Bangladesh"
-        image = request.build_absolute_uri(settings.site_logo.url) if settings and settings.site_logo else "https://qbamart.com/logo.png"
-        url = request.build_absolute_uri(path) if path else request.build_absolute_uri('/')
+        # Default values from site settings
+        title = f"{site_title} | Premium Gadget & Accessories Shop"
+        description = site_settings.meta_description if site_settings and site_settings.meta_description else f"{site_title} - Premium Gadget & Accessories Shop in Bangladesh"
+        image = request.build_absolute_uri(site_settings.site_logo.url) if site_settings and site_settings.site_logo else "https://api.qbamart.com/media/site/Qbamart_logo_black.png"
+        # Always point canonical URL to the frontend domain
+        frontend_url = getattr(django_settings, 'FRONTEND_URL', 'https://qbamart.com/').rstrip('/')
+        canonical_url = f"{frontend_url}/{path}" if path else f"{frontend_url}/"
         
         # Determine content type based on path
-        if '/product/' in path:
-            slug = path.split('/product/')[-1].split('?')[0].strip('/')
+        if 'product/' in path:
+            slug = path.split('product/')[-1].split('?')[0].strip('/')
             product = Product.objects.filter(slug=slug).first()
             if product:
                 title = f"{product.name} | {site_title}"
-                description = product.short_description or (product.description_html[:160] if product.description_html else description)
+                raw_desc = product.short_description or product.description or ''
+                # Strip any HTML tags for clean meta description
+                import re
+                clean_desc = re.sub(r'<[^>]+>', '', str(raw_desc))[:200]
+                description = clean_desc or description
                 if product.image:
                     image = request.build_absolute_uri(product.image.url)
         
-        elif '/blog/' in path:
-            slug = path.split('/blog/')[-1].split('?')[0].strip('/')
+        elif 'blog/' in path:
+            slug = path.split('blog/')[-1].split('?')[0].strip('/')
             post = BlogPost.objects.filter(slug=slug).first()
             if post:
                 title = f"{post.title} | {site_title}"
-                description = post.excerpt or (post.content[:160] if post.content else description)
-                if post.featured_image:
+                raw_desc = getattr(post, 'excerpt', '') or post.content or ''
+                import re
+                clean_desc = re.sub(r'<[^>]+>', '', str(raw_desc))[:200]
+                description = clean_desc or description
+                if hasattr(post, 'featured_image') and post.featured_image:
                     image = request.build_absolute_uri(post.featured_image.url)
         
-        # Build minimal HTML shell
-        html = f"""
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <meta charset="utf-8">
-            <title>{title}</title>
-            <meta name="description" content="{description}">
-            
-            <!-- Open Graph -->
-            <meta property="og:title" content="{title}">
-            <meta property="og:description" content="{description}">
-            <meta property="og:image" content="{image}">
-            <meta property="og:url" content="{url}">
-            <meta property="og:type" content="website">
-            
-            <!-- Twitter -->
-            <meta name="twitter:card" content="summary_large_image">
-            <meta name="twitter:title" content="{title}">
-            <meta name="twitter:description" content="{description}">
-            <meta name="twitter:image" content="{image}">
-        </head>
-        <body>
-            <h1>{title}</h1>
-            <p>{description}</p>
-            <img src="{image}" />
-        </body>
-        </html>
-        """
+        # Build minimal HTML shell with full OG tags
+        html = f"""<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>{title}</title>
+    <meta name="description" content="{description}">
+    
+    <!-- Open Graph -->
+    <meta property="og:site_name" content="{site_title}">
+    <meta property="og:title" content="{title}">
+    <meta property="og:description" content="{description}">
+    <meta property="og:image" content="{image}">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:url" content="{canonical_url}">
+    <meta property="og:type" content="{'product' if 'product/' in path else 'article' if 'blog/' in path else 'website'}">
+    
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{title}">
+    <meta name="twitter:description" content="{description}">
+    <meta name="twitter:image" content="{image}">
+</head>
+<body>
+    <h1>{title}</h1>
+    <p>{description}</p>
+    <img src="{image}" />
+</body>
+</html>"""
         return HttpResponse(html)
+
 
 from rest_framework.views import APIView
 from django.conf import settings

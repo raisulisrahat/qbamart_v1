@@ -1,0 +1,20 @@
+Options -MultiViews
+RewriteEngine On
+
+# ------------------------------------------------------------------
+# Social Media Crawler → Django SEO Proxy
+# When Facebook/WhatsApp/Telegram etc. crawl a product or blog URL,
+# redirect them to the Django backend which renders server-side HTML
+# with the correct og:title, og:description, og:image for that page.
+# ------------------------------------------------------------------
+
+RewriteCond %{HTTP_USER_AGENT} (facebookexternalhit|Facebot|Twitterbot|WhatsApp|TelegramBot|Discordbot|Slackbot|LinkedInBot|googlebot|bingbot|rogerbot|DuckDuckBot|ia_archiver) [NC]
+RewriteCond %{REQUEST_URI} ^/(product|blog)/ [NC]
+RewriteRule ^(.*)$ https://api.qbamart.com/api/seo-proxy/?path=/$1 [L,R=302]
+
+# ------------------------------------------------------------------
+# React SPA fallback — serve index.html for all other routes
+# ------------------------------------------------------------------
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^ index.html [L]

@@ -94,9 +94,8 @@ const Checkout = () => {
         } else if (formData.district) {
             // Outside Dhaka City (other districts or Dhaka district sub-areas) - ৳100
             const zone = shippingZones.find(z =>
-              z.name.toLowerCase().includes('dhaka and other') ||
-              z.name.toLowerCase().includes('outside') ||
-              (z.name.toLowerCase().includes('dhaka') && !z.name.toLowerCase().includes('dhaka city'))
+              z.name.toLowerCase().includes('Outside Dhaka City') ||
+              (z.name.toLowerCase().includes('dhaka') && !z.name.toLowerCase().includes('Inside Dhaka City'))
             );
             if (zone) {
                 setShippingCost(parseFloat(zone.shipping_cost));

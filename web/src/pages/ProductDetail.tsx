@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { ShoppingCart, Heart, Share2, ShieldCheck, Truck, RefreshCcw, Star, ChevronLeft, ChevronRight, Zap, CheckCircle2, ZoomIn, ZoomOut, X, Play } from 'lucide-react';
@@ -24,6 +24,27 @@ const ProductDetail = () => {
 
   const { slug } = useParams<{ slug: string }>();
   const [quantity, setQuantity] = useState(1);
+  const inlineActionsRef = useRef<HTMLDivElement>(null);
+  const [showStickyBar, setShowStickyBar] = useState(true);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setShowStickyBar(!entry.isIntersecting);
+      },
+      { threshold: 0 }
+    );
+
+    if (inlineActionsRef.current) {
+      observer.observe(inlineActionsRef.current);
+    }
+
+    return () => {
+      if (inlineActionsRef.current) {
+        observer.unobserve(inlineActionsRef.current);
+      }
+    };
+  }, []);
   const [activeImage, setActiveImage] = useState(0);
   const [activeTab, setActiveTab] = useState('description');
   const [selectedColor, setSelectedColor] = useState<any>(null);
@@ -562,7 +583,7 @@ const ProductDetail = () => {
             </div>
 
             {/* Inline Action Bar (Mobile Only) */}
-            <div className="lg:hidden block pt-6 border-t border-neutral-100">
+            <div ref={inlineActionsRef} className="lg:hidden block pt-6 border-t border-neutral-100">
               <div className="flex items-center gap-2">
                 <div className="flex border-2 border-neutral-100 rounded-xl overflow-hidden h-12 w-24 bg-neutral-50/50 shrink-0">
                   <button
@@ -769,11 +790,11 @@ const ProductDetail = () => {
           </div>
         </div>
 
-        <div className="mt-12 max-w-4xl">
+        <div className="mt-12 max-w-4xl overflow-hidden">
           <ReviewSection product={product} />
         </div>
 
-        <div className="mt-12 border-t border-neutral-100 pt-10">
+        <div className="mt-12 border-t border-neutral-100 pt-10 overflow-hidden">
           <div className="flex items-center justify-between mb-8">
             <h2 className="text-xl lg:text-2xl font-black text-neutral-900">Related Products</h2>
             {isCarousel && (
@@ -809,7 +830,8 @@ const ProductDetail = () => {
       </div>
 
       {/* Sticky Bottom Bar (Mobile) */}
-      <div className="lg:hidden fixed bottom-[55px] left-0 right-0 z-50 bg-white border-t border-neutral-100 p-1.5 animate-in slide-in-from-bottom-full duration-500">
+      {showStickyBar && (
+        <div className="lg:hidden fixed bottom-[55px] left-0 right-0 z-50 bg-white border-t border-neutral-100 p-1.5 animate-in slide-in-from-bottom-full duration-500">
         <div className="flex items-center gap-1.5">
           {product.stock && product.stock > 0 ? (
             <>
@@ -856,6 +878,7 @@ const ProductDetail = () => {
           )}
         </div>
       </div>
+      )}
 
       {/* Lightbox Modal for Full Image View */}
       {isLightboxOpen && gallery[activeImage] && gallery[activeImage].type === 'image' && (

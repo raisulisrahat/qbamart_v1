@@ -6,6 +6,10 @@
 }
 
 @layer base {
+  html, body {
+    max-width: 100%;
+    overflow-x: hidden;
+  }
   :root {
     --color-brand: #5173FB;
     --color-brand-hover: #3a5bd9;

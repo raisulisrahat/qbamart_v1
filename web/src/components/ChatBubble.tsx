@@ -19,7 +19,7 @@ const ChatBubble: React.FC = () => {
   if (!whatsappUrl && !messengerUrl) return null;
 
   return (
-    <div className="fixed bottom-35 right-6 md:bottom-6 md:right-6 z-[99] flex flex-col items-end gap-4 pointer-events-none">
+    <div className="fixed bottom-[120px] right-6 md:bottom-6 md:right-6 z-[99] flex flex-col items-end gap-4 pointer-events-none">
       <AnimatePresence>
         {isOpen && (
           <motion.div
