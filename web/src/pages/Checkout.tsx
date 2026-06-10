@@ -54,7 +54,7 @@ const Checkout = () => {
   // Set initial default shipping cost from fetched shipping zones
   useEffect(() => {
     if (shippingZones.length > 0 && !formData.district) {
-        const defaultZone = shippingZones.find(z => z.name.toLowerCase().includes('inside')) || shippingZones[0];
+        const defaultZone = shippingZones.find(z => z.name.toLowerCase().includes('dhaka city')) || shippingZones[0];
         if (defaultZone) {
             setShippingCost(parseFloat(defaultZone.shipping_cost));
             setShippingZoneId(defaultZone.id);
@@ -62,39 +62,62 @@ const Checkout = () => {
     }
   }, [shippingZones]);
 
-  // Update shipping cost and zone when district changes (only if district/upazila is enabled)
+  // Dhaka City upazilas (inside city corporation area)
+  const DHAKA_CITY_UPAZILAS = [
+    'Dhaka Sadar', 'Demra', 'Dhanmondi', 'Gulshan', 'Jatrabari',
+    'Khilgaon', 'Khilkhet', 'Kotwali', 'Lalbagh', 'Mirpur',
+    'Mohammadpur', 'Motijheel', 'Pallabi', 'Ramna', 'Rayer Bazar',
+    'Sabujbagh', 'Shah Ali', 'Sher-e-Bangla Nagar', 'Sutrapur',
+    'Tejgaon', 'Turag', 'Uttara', 'Badda', 'Cantonment',
+    'Dakshinkhan', 'Uttarkhan', 'Vatara'
+  ];
+
+  // Update shipping cost and zone when district/upazila changes
   useEffect(() => {
     if (settings?.enable_district_upazila !== false && shippingZones.length > 0) {
-        if (formData.district.includes('Dhaka')) {
-            const zone = shippingZones.find(z => z.name.toLowerCase().includes('inside'));
+        const isDhakaDistrict = formData.district.toLowerCase().includes('dhaka');
+        const isDhakaCity = isDhakaDistrict && (
+          !formData.upazila ||
+          DHAKA_CITY_UPAZILAS.some(u => formData.upazila.toLowerCase().includes(u.toLowerCase()))
+        );
+
+        if (isDhakaCity) {
+            // Dhaka City - ৳50
+            const zone = shippingZones.find(z => z.name.toLowerCase().includes('dhaka city'));
             if (zone) {
                 setShippingCost(parseFloat(zone.shipping_cost));
                 setShippingZoneId(zone.id);
             } else {
                 setShippingCost(50);
-                setShippingZoneId(1); // Inside Dhaka City fallback
+                setShippingZoneId(shippingZones[0]?.id || 1);
             }
         } else if (formData.district) {
-            const zone = shippingZones.find(z => z.name.toLowerCase().includes('outside'));
+            // Outside Dhaka City (other districts or Dhaka district sub-areas) - ৳100
+            const zone = shippingZones.find(z =>
+              z.name.toLowerCase().includes('dhaka and other') ||
+              z.name.toLowerCase().includes('outside') ||
+              (z.name.toLowerCase().includes('dhaka') && !z.name.toLowerCase().includes('dhaka city'))
+            );
             if (zone) {
                 setShippingCost(parseFloat(zone.shipping_cost));
                 setShippingZoneId(zone.id);
             } else {
                 setShippingCost(100);
-                setShippingZoneId(2); // Outside Dhaka City fallback
+                setShippingZoneId(shippingZones[1]?.id || 2);
             }
         } else {
-            const zone = shippingZones.find(z => z.name.toLowerCase().includes('inside'));
+            // No district selected — default to Dhaka City zone
+            const zone = shippingZones.find(z => z.name.toLowerCase().includes('dhaka city'));
             if (zone) {
                 setShippingCost(parseFloat(zone.shipping_cost));
                 setShippingZoneId(zone.id);
             } else {
-                setShippingCost(50); // Default fallback
-                setShippingZoneId(1);
+                setShippingCost(50);
+                setShippingZoneId(shippingZones[0]?.id || 1);
             }
         }
     }
-  }, [formData.district, settings?.enable_district_upazila, shippingZones]);
+  }, [formData.district, formData.upazila, settings?.enable_district_upazila, shippingZones]);
 
   // Fetch Districts on mount
   useEffect(() => {
@@ -707,11 +730,9 @@ const Checkout = () => {
                   <span>সাবটোটাল</span>
                   <span className="text-neutral-900 font-bold">৳{cartTotal.toLocaleString()}</span>
                 </div>
-                 <div className="flex justify-between items-center text-xs font-medium text-neutral-500">
+                  <div className="flex justify-between items-center text-xs font-medium text-neutral-500">
                   <span>ডেলিভারি চার্জ ({
-                      shippingZones.length > 0 
-                      ? (shippingZones.find(z => z.id === shippingZoneId)?.name.toLowerCase().includes('inside') ? 'ঢাকা শহরের ভেতরে' : 'ঢাকা শহরের বাইরে')
-                      : 'ঢাকা শহরের ভেতরে'
+                      shippingZones.find(z => z.id === shippingZoneId)?.name || 'ঢাকা শহরের ভেতরে'
                   })</span>
                   <span className="text-[#5173FB] font-bold">৳{shippingCost}</span>
                 </div>
