@@ -423,6 +423,7 @@ import csv
 from django.http import HttpResponse
 
 class ProductViewSet(viewsets.ModelViewSet):
+    queryset = Product.objects.none()
     serializer_class = ProductSerializer
     lookup_field = 'slug'
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
