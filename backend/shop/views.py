@@ -1625,48 +1625,63 @@ class OTPViewSet(viewsets.GenericViewSet):
 
 class MetaView(View):
     def get(self, request, *args, **kwargs):
-        path = request.GET.get('path', '').strip('/')
-        from .models import SiteSettings
-        from django.conf import settings as django_settings
-        site_settings = SiteSettings.objects.first()
-        site_title = site_settings.site_title if site_settings else "Qbamart"
-        
-        # Default values from site settings
-        title = f"{site_title} | Premium Gadget & Accessories Shop"
-        description = site_settings.meta_description if site_settings and site_settings.meta_description else f"{site_title} - Premium Gadget & Accessories Shop in Bangladesh"
-        image = request.build_absolute_uri(site_settings.site_logo.url) if site_settings and site_settings.site_logo else "https://api.qbamart.com/media/site/Qbamart_logo_black.png"
-        # Always point canonical URL to the frontend domain
-        frontend_url = getattr(django_settings, 'FRONTEND_URL', 'https://qbamart.com/').rstrip('/')
-        canonical_url = f"{frontend_url}/{path}" if path else f"{frontend_url}/"
-        
-        # Determine content type based on path
-        if 'product/' in path:
-            slug = path.split('product/')[-1].split('?')[0].strip('/')
-            product = Product.objects.filter(slug=slug).first()
-            if product:
-                title = f"{product.name} | {site_title}"
-                raw_desc = product.short_description or product.description or ''
-                # Strip any HTML tags for clean meta description
-                import re
-                clean_desc = re.sub(r'<[^>]+>', '', str(raw_desc))[:200]
-                description = clean_desc or description
-                if product.image:
-                    image = request.build_absolute_uri(product.image.url)
-        
-        elif 'blog/' in path:
-            slug = path.split('blog/')[-1].split('?')[0].strip('/')
-            post = BlogPost.objects.filter(slug=slug).first()
-            if post:
-                title = f"{post.title} | {site_title}"
-                raw_desc = getattr(post, 'excerpt', '') or post.content or ''
-                import re
-                clean_desc = re.sub(r'<[^>]+>', '', str(raw_desc))[:200]
-                description = clean_desc or description
-                if hasattr(post, 'featured_image') and post.featured_image:
-                    image = request.build_absolute_uri(post.featured_image.url)
-        
-        # Build minimal HTML shell with full OG tags
-        html = f"""<!DOCTYPE html>
+        try:
+            path = request.GET.get('path', '').strip('/')
+            from .models import SiteSettings
+            from django.conf import settings as django_settings
+            site_settings = SiteSettings.objects.first()
+            site_title = site_settings.site_title if site_settings else "Qbamart"
+            
+            # Default values from site settings
+            title = f"{site_title} | Premium Gadget & Accessories Shop"
+            description = site_settings.meta_description if site_settings and site_settings.meta_description else f"{site_title} - Premium Gadget & Accessories Shop in Bangladesh"
+            
+            # Safe image URL retrieval to avoid ValueErrors on empty fields
+            image = "https://api.qbamart.com/media/site/Qbamart_logo_black.png"
+            if site_settings and site_settings.site_logo:
+                try:
+                    image = request.build_absolute_uri(site_settings.site_logo.url)
+                except ValueError:
+                    pass
+
+            # Always point canonical URL to the frontend domain
+            frontend_url = getattr(django_settings, 'FRONTEND_URL', 'https://qbamart.com/').rstrip('/')
+            canonical_url = f"{frontend_url}/{path}" if path else f"{frontend_url}/"
+            
+            # Determine content type based on path
+            if 'product/' in path:
+                slug = path.split('product/')[-1].split('?')[0].strip('/')
+                product = Product.objects.filter(slug=slug).first()
+                if product:
+                    title = f"{product.name} | {site_title}"
+                    raw_desc = product.short_description or product.description or ''
+                    # Strip any HTML tags for clean meta description
+                    import re
+                    clean_desc = re.sub(r'<[^>]+>', '', str(raw_desc))[:200]
+                    description = clean_desc or description
+                    if product.image:
+                        try:
+                            image = request.build_absolute_uri(product.image.url)
+                        except ValueError:
+                            pass
+            
+            elif 'blog/' in path:
+                slug = path.split('blog/')[-1].split('?')[0].strip('/')
+                post = BlogPost.objects.filter(slug=slug).first()
+                if post:
+                    title = f"{post.title} | {site_title}"
+                    raw_desc = getattr(post, 'excerpt', '') or post.content or ''
+                    import re
+                    clean_desc = re.sub(r'<[^>]+>', '', str(raw_desc))[:200]
+                    description = clean_desc or description
+                    if hasattr(post, 'featured_image') and post.featured_image:
+                        try:
+                            image = request.build_absolute_uri(post.featured_image.url)
+                        except ValueError:
+                            pass
+            
+            # Build minimal HTML shell with full OG tags
+            html = f"""<!DOCTYPE html>
 <html>
 <head>
     <meta charset="utf-8">
@@ -1695,7 +1710,10 @@ class MetaView(View):
     <img src="{image}" />
 </body>
 </html>"""
-        return HttpResponse(html)
+            return HttpResponse(html)
+        except Exception as e:
+            import traceback
+            return HttpResponse(f"Error: {str(e)}<br><pre>{traceback.format_exc()}</pre>", status=500)
 
 
 from rest_framework.views import APIView
