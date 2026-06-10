@@ -183,11 +183,17 @@ class ProductSerializer(serializers.ModelSerializer):
         else:
             from django.utils import timezone
             now = timezone.now()
-            active_flash_item = FlashSaleItem.objects.filter(
-                product=instance,
-                flash_sale__is_active=True,
-                flash_sale__end_time__gte=now
-            ).select_related('flash_sale').first()
+            
+            # Check prefetched items to avoid N+1 queries
+            prefetched_items = getattr(instance, 'active_flash_items', None)
+            if prefetched_items is not None:
+                active_flash_item = prefetched_items[0] if prefetched_items else None
+            else:
+                active_flash_item = FlashSaleItem.objects.filter(
+                    product=instance,
+                    flash_sale__is_active=True,
+                    flash_sale__end_time__gte=now
+                ).select_related('flash_sale').first()
             
             if active_flash_item:
                 discount = active_flash_item.discount_percentage or active_flash_item.flash_sale.discount_percentage
@@ -391,6 +397,12 @@ class ProductSerializer(serializers.ModelSerializer):
                 print(f"Error saving funnel sections: {e}")
             
         return super().update(instance, validated_data)
+
+class ProductListSerializer(ProductSerializer):
+    reviews = serializers.SerializerMethodField()
+
+    def get_reviews(self, obj):
+        return []
 
 class BannerSerializer(serializers.ModelSerializer):
     image = HybridImageField(required=False, allow_null=True)

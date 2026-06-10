@@ -22,7 +22,7 @@ const Home = () => {
   const { t } = useLanguage();
   const { addToCart } = useCart();
 
-  const { data: banners } = useQuery({ queryKey: ['banners'], queryFn: () => getBanners().then(res => res.data) });
+  const { data: banners, isLoading: bannersLoading } = useQuery({ queryKey: ['banners'], queryFn: () => getBanners().then(res => res.data) });
   const { data: products, isLoading: productsLoading } = useQuery({ queryKey: ['products', 'recent'], queryFn: () => getProducts({ ordering: '-updated_at' }).then(res => res.data) });
   const { data: categories, isLoading: categoriesLoading } = useQuery({ queryKey: ['categories'], queryFn: () => getCategories().then(res => res.data) });
   const { data: blogs } = useQuery({ queryKey: ['blogs'], queryFn: () => getBlogPosts().then(res => res.data) });
@@ -259,9 +259,27 @@ const Home = () => {
                     </div>
                   )}
                 </motion.div>
-              ) : (
+              ) : bannersLoading ? (
                 <div className="w-full h-full bg-neutral-200 animate-pulse flex items-center justify-center">
                   <span className="text-neutral-400 font-medium">Loading premium deals...</span>
+                </div>
+              ) : (
+                <div className="w-full h-full bg-gradient-to-r from-[#5173FB] to-[#809BFF] flex flex-col justify-center p-8 md:p-12 text-white space-y-4">
+                  <h2 className="text-3xl md:text-5xl font-extrabold leading-tight max-w-lg">
+                    Premium Gadgets & Accessories
+                  </h2>
+                  <p className="text-xs md:text-sm opacity-90 max-w-md">
+                    Explore the best-curated tech products at unbeatable prices in Bangladesh.
+                  </p>
+                  <div>
+                    <Link 
+                      to="/products"
+                      className="inline-flex items-center space-x-2 bg-white text-neutral-900 font-bold px-5 py-2.5 rounded-xl hover:bg-neutral-100 transition-all shadow-lg text-xs md:text-sm"
+                    >
+                      <span>Explore Shop</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </Link>
+                  </div>
                 </div>
               )}
             </AnimatePresence>

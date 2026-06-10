@@ -423,7 +423,6 @@ import csv
 from django.http import HttpResponse
 
 class ProductViewSet(viewsets.ModelViewSet):
-    queryset = Product.objects.all()
     serializer_class = ProductSerializer
     lookup_field = 'slug'
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
@@ -431,6 +430,28 @@ class ProductViewSet(viewsets.ModelViewSet):
     search_fields = ['name', 'description']
     ordering_fields = ['regular_price', 'created_at', 'updated_at']
     
+    def get_queryset(self):
+        from django.utils import timezone
+        from django.db.models import Prefetch
+        from .models import FlashSaleItem, Product
+        
+        now = timezone.now()
+        active_flash_sales = FlashSaleItem.objects.filter(
+            flash_sale__is_active=True,
+            flash_sale__end_time__gte=now
+        ).select_related('flash_sale')
+        
+        return Product.objects.all().select_related('brand').prefetch_related(
+            'images', 'videos', 'categories', 'colors', 'sizes', 'funnel_sections',
+            Prefetch('flashsaleitem_set', queryset=active_flash_sales, to_attr='active_flash_items')
+        )
+        
+    def get_serializer_class(self):
+        if self.action == 'list':
+            from .serializers import ProductListSerializer
+            return ProductListSerializer
+        return self.serializer_class
+        
     def get_permissions(self):
         if self.action in ['list', 'retrieve']:
             return [permissions.AllowAny()]
