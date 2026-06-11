@@ -78,7 +78,7 @@ const OrderDetails = () => {
         <div className="text-center">
           <AlertCircle className="w-16 h-16 text-brand mx-auto mb-4" />
           <h2 className="text-2xl font-bold text-neutral-900">Order not found</h2>
-          <p className="text-neutral-500 mt-2 mb-6">The order you're looking for doesn't exist or you don't have access.</p>
+          <p className="text-neutral-500 mt-2 mb-6">The order you're looking for doesn't exist.</p>
           <Link to="/account/orders" className="inline-flex items-center space-x-2 bg-[#5173FB] text-white px-6 py-3 rounded-xl font-bold">
             <ArrowLeft className="w-5 h-5" />
             <span>Back to Orders</span>
