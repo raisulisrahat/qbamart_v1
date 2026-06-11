@@ -24,6 +24,7 @@ interface SiteSettings {
   whatsapp_message?: string;
   show_chat_bubble?: boolean;
   facebook_pixel_id?: string;
+  google_tag_id?: string;
   enable_district_upazila?: boolean;
 }
 

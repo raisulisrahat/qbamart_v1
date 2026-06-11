@@ -55,6 +55,7 @@ export const removeFromWishlist = (id: number) => api.delete(`wishlist/${id}/`);
 export const createOrder = (orderData: any) => api.post('orders/', orderData);
 export const getMyOrders = () => api.get('orders/', { params: { mine: true } });
 export const getOrderDetails = (id: number) => api.get(`orders/${id}/`);
+export const requestCancelOrder = (id: number) => api.post(`orders/${id}/request_cancel/`);
 export const createDraftOrder = (orderData: any) => api.post('incomplete-orders/', orderData);
 export const updateDraftOrder = (id: number, orderData: any) => api.patch(`incomplete-orders/${id}/`, orderData);
 export const deleteDraftOrder = (id: number) => api.delete(`incomplete-orders/${id}/`);

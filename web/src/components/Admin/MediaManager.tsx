@@ -8,6 +8,12 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
+interface Connection {
+    type: string;
+    id: number;
+    name: string;
+}
+
 interface MediaFile {
     name: string;
     path: string;
@@ -15,6 +21,7 @@ interface MediaFile {
     size: number;
     modified: number;
     type: 'image' | 'video' | 'other';
+    connections?: Connection[];
 }
 
 interface MediaManagerProps {
@@ -452,7 +459,18 @@ const MediaManager = ({ onSelect, selectMode = false }: MediaManagerProps = {}) 
                                     <p className="text-[10px] font-bold text-zinc-800 truncate" title={file.name}>{file.name}</p>
                                     <div className="flex justify-between items-center mt-2 pt-2 border-t border-zinc-50">
                                         <span className="text-[8px] font-bold text-zinc-400 uppercase tracking-tight">{formatSize(file.size)}</span>
-                                        <span className="text-[8px] font-bold text-zinc-400 uppercase tracking-tight">{file.path.split('/')[0]}</span>
+                                        {file.connections && file.connections.length > 0 ? (
+                                            <span 
+                                                className="px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-600 border border-emerald-100 text-[8px] font-black uppercase tracking-wide cursor-help"
+                                                title={file.connections.map(c => `${c.type}: ${c.name}`).join('\n')}
+                                            >
+                                                Linked ({file.connections.length})
+                                            </span>
+                                        ) : (
+                                            <span className="px-1.5 py-0.5 rounded bg-zinc-100 text-zinc-400 text-[8px] font-black uppercase tracking-wide">
+                                                Unused
+                                            </span>
+                                        )}
                                     </div>
                                 </div>
                             </div>
@@ -477,6 +495,7 @@ const MediaManager = ({ onSelect, selectMode = false }: MediaManagerProps = {}) 
                                 <th className="px-6 py-3.5">Directory</th>
                                 <th className="px-6 py-3.5 text-center">Type</th>
                                 <th className="px-6 py-3.5 text-center">File Size</th>
+                                <th className="px-6 py-3.5 text-center">Usage</th>
                                 <th className="px-6 py-3.5 text-center">Modified</th>
                                 <th className="px-6 py-3.5 text-right">Actions</th>
                             </tr>
@@ -533,6 +552,25 @@ const MediaManager = ({ onSelect, selectMode = false }: MediaManagerProps = {}) 
                                         </td>
                                         <td className="px-6 py-3 text-center font-mono font-bold text-zinc-900">
                                             {formatSize(file.size)}
+                                        </td>
+                                        <td className="px-6 py-3 text-center">
+                                            {file.connections && file.connections.length > 0 ? (
+                                                <div className="flex flex-col items-center gap-0.5">
+                                                    <span className="px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-600 border border-emerald-100 text-[8px] font-black uppercase tracking-wider">
+                                                        Linked ({file.connections.length})
+                                                    </span>
+                                                    <span 
+                                                        className="text-[8px] text-zinc-400 font-semibold max-w-[120px] truncate block"
+                                                        title={file.connections.map(c => `${c.type}: ${c.name}`).join('\n')}
+                                                    >
+                                                        {file.connections.map(c => c.name).join(', ')}
+                                                    </span>
+                                                </div>
+                                            ) : (
+                                                <span className="px-1.5 py-0.5 rounded bg-zinc-100 text-zinc-400 text-[8px] font-black uppercase tracking-wider">
+                                                    Unused
+                                                </span>
+                                            )}
                                         </td>
                                         <td className="px-6 py-3 text-center text-zinc-400 font-semibold">
                                             {formatDate(file.modified)}
@@ -639,6 +677,22 @@ const MediaManager = ({ onSelect, selectMode = false }: MediaManagerProps = {}) 
                                     <div>
                                         <p className="text-[9px] font-black uppercase tracking-widest text-zinc-400">Last Modified</p>
                                         <p className="mt-1 text-zinc-900">{formatDate(previewFile.modified)}</p>
+                                    </div>
+
+                                    <div>
+                                        <p className="text-[9px] font-black uppercase tracking-widest text-zinc-400">Usage Connections</p>
+                                        {previewFile.connections && previewFile.connections.length > 0 ? (
+                                            <div className="mt-1.5 space-y-1 max-h-32 overflow-y-auto pr-1">
+                                                {previewFile.connections.map((c, i) => (
+                                                    <div key={i} className="bg-white border border-zinc-200 p-2 rounded-lg text-[10px] leading-tight">
+                                                        <span className="font-extrabold text-[#5173FB] text-[8px] uppercase tracking-wider block">{c.type}</span>
+                                                        <span className="font-semibold text-zinc-800">{c.name}</span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        ) : (
+                                            <p className="mt-1 text-zinc-400 font-medium italic">Not connected to any page, product, banner, or category.</p>
+                                        )}
                                     </div>
                                 </div>
                             </div>

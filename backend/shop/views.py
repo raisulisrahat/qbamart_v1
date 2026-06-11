@@ -534,7 +534,7 @@ class OrderViewSet(viewsets.ModelViewSet):
     def get_permissions(self):
         if self.action == 'create':
             return [permissions.AllowAny()]
-        if self.action in ['list', 'retrieve']:
+        if self.action in ['list', 'retrieve', 'request_cancel']:
             return [permissions.IsAuthenticated()]
         return [IsModeratorOrAdmin()]
 
@@ -966,6 +966,16 @@ class OrderViewSet(viewsets.ModelViewSet):
                 response_data = response.json()
                 if response.status_code == 200:
                     status_text = response_data.get('delivery_status') or 'unknown'
+                    if str(status_text).lower() == 'unknown':
+                        if order.status != 'cancelled':
+                            order.status = 'cancelled'
+                            order.save()
+                            from .models import OrderNote
+                            OrderNote.objects.create(
+                                order=order,
+                                user=request.user if request.user.is_authenticated else None,
+                                note="Order status automatically set to cancelled because Steadfast courier tracking status is unknown."
+                            )
                     return Response({'delivery_status': status_text})
                 else:
                     return Response({'error': f"Steadfast API error: {response.text}"}, status=status.HTTP_400_BAD_REQUEST)
@@ -995,6 +1005,16 @@ class OrderViewSet(viewsets.ModelViewSet):
                     status_text = order_info.get('status') or order_info.get('delivery_status') or 'unknown'
                     if isinstance(status_text, dict):
                         status_text = status_text.get('name') or status_text.get('title') or str(status_text)
+                    if str(status_text).lower() == 'unknown':
+                        if order.status != 'cancelled':
+                            order.status = 'cancelled'
+                            order.save()
+                            from .models import OrderNote
+                            OrderNote.objects.create(
+                                order=order,
+                                user=request.user if request.user.is_authenticated else None,
+                                note="Order status automatically set to cancelled because Carrybee courier tracking status is unknown."
+                            )
                     return Response({'delivery_status': str(status_text)})
                 else:
                     return Response({'error': f"Carrybee API error: {response.text}"}, status=status.HTTP_400_BAD_REQUEST)
@@ -1002,6 +1022,27 @@ class OrderViewSet(viewsets.ModelViewSet):
                 return Response({'error': f"Failed to connect to Carrybee: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
         return Response({'error': f"Unknown courier provider: {courier}"}, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated])
+    def request_cancel(self, request, pk=None):
+        order = self.get_object()
+        if order.user != request.user:
+            return Response({'error': 'You do not have permission to cancel this order.'}, status=status.HTTP_403_FORBIDDEN)
+        
+        if order.status.lower() != 'pending':
+            return Response({'error': f'Orders in status {order.status} cannot be cancelled.'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        order.status = 'cancelled'
+        order.save(update_fields=['status'])
+        
+        from .models import OrderNote
+        OrderNote.objects.create(
+            order=order,
+            user=request.user,
+            note="Order cancelled by customer request."
+        )
+        
+        return Response({'message': 'Order successfully cancelled.', 'status': order.status})
 
 class IncompleteOrderViewSet(viewsets.ModelViewSet):
     serializer_class = OrderSerializer
@@ -1750,6 +1791,112 @@ class MediaManagerView(APIView):
         if not os.path.exists(media_root):
             return Response([])
 
+        # Collect all referenced paths from the database
+        connections_map = {}
+
+        def add_conn(path_val, model_type, instance_id, display_name):
+            if not path_val:
+                return
+            path_str = str(path_val).replace('\\', '/').strip('/')
+            if not path_str:
+                return
+            if path_str not in connections_map:
+                connections_map[path_str] = []
+            connections_map[path_str].append({
+                'type': model_type,
+                'id': instance_id,
+                'name': display_name
+            })
+
+        # Import models locally to avoid circular dependencies
+        from .models import (
+            Category, Brand, Product, ProductImage, ProductVideo,
+            Banner, Profile, ReviewImage, Notice, BlogPost, SiteSettings,
+            ProductFunnelSection, FunnelReviewImage
+        )
+
+        try:
+            # Category
+            for obj in Category.objects.all():
+                if obj.image:
+                    add_conn(obj.image.name, 'Category', obj.id, obj.name)
+                if obj.mega_menu_banner:
+                    add_conn(obj.mega_menu_banner.name, 'Category Banner', obj.id, obj.name)
+
+            # Brand
+            for obj in Brand.objects.all():
+                if obj.logo:
+                    add_conn(obj.logo.name, 'Brand Logo', obj.id, obj.name)
+
+            # Product
+            for obj in Product.objects.all():
+                if obj.image:
+                    add_conn(obj.image.name, 'Product Image', obj.id, obj.name)
+
+            # ProductImage
+            for obj in ProductImage.objects.select_related('product').all():
+                if obj.image:
+                    add_conn(obj.image.name, 'Product Gallery Image', obj.id, obj.product.name if obj.product else f"Image #{obj.id}")
+
+            # ProductVideo
+            for obj in ProductVideo.objects.select_related('product').all():
+                if obj.video:
+                    add_conn(obj.video.name, 'Product Video', obj.id, obj.product.name if obj.product else f"Video #{obj.id}")
+
+            # Banner
+            for obj in Banner.objects.all():
+                if obj.image:
+                    add_conn(obj.image.name, 'Banner Image', obj.id, obj.title or f"Banner #{obj.id}")
+                if obj.video:
+                    add_conn(obj.video.name, 'Banner Video', obj.id, obj.title or f"Banner #{obj.id}")
+
+            # Profile
+            for obj in Profile.objects.select_related('user').all():
+                if obj.profile_picture:
+                    add_conn(obj.profile_picture.name, 'Profile Picture', obj.id, obj.user.username)
+
+            # ReviewImage
+            for obj in ReviewImage.objects.select_related('review', 'review__product').all():
+                if obj.image:
+                    pname = obj.review.product.name if (obj.review and obj.review.product) else f"Review #{obj.id}"
+                    add_conn(obj.image.name, 'Review Image', obj.id, pname)
+
+            # Notice
+            for obj in Notice.objects.all():
+                if obj.image:
+                    add_conn(obj.image.name, 'Notice Image', obj.id, obj.title or obj.text[:30])
+
+            # BlogPost
+            for obj in BlogPost.objects.all():
+                if obj.image:
+                    add_conn(obj.image.name, 'Blog Post Image', obj.id, obj.title)
+
+            # SiteSettings
+            for obj in SiteSettings.objects.all():
+                if obj.site_logo:
+                    add_conn(obj.site_logo.name, 'Site Logo', obj.id, obj.site_title)
+                if obj.site_favicon:
+                    add_conn(obj.site_favicon.name, 'Site Favicon', obj.id, obj.site_title)
+                if obj.footer_logo:
+                    add_conn(obj.footer_logo.name, 'Footer Logo', obj.id, obj.site_title)
+                if obj.messenger_image:
+                    add_conn(obj.messenger_image.name, 'Messenger Image', obj.id, obj.site_title)
+
+            # ProductFunnelSection
+            for obj in ProductFunnelSection.objects.select_related('product').all():
+                if obj.image:
+                    add_conn(obj.image.name, 'Funnel Section Image', obj.id, obj.product.name if obj.product else f"Section #{obj.id}")
+                if obj.video:
+                    add_conn(obj.video.name, 'Funnel Section Video', obj.id, obj.product.name if obj.product else f"Section #{obj.id}")
+
+            # FunnelReviewImage
+            for obj in FunnelReviewImage.objects.select_related('funnel').all():
+                if obj.image:
+                    add_conn(obj.image.name, 'Funnel Review Image', obj.id, f"Funnel {obj.funnel.slug if obj.funnel else obj.id}")
+
+        except Exception as ex:
+            print(f"Error scanning connections in media manager: {ex}")
+
         files_list = []
         for root, dirs, files in os.walk(media_root):
             # Skip hidden folders / cache folders
@@ -1777,13 +1924,17 @@ class MediaManagerView(APIView):
                 elif ext in ['.mp4', '.webm', '.ogg', '.mov']:
                     file_type = 'video'
 
+                norm_path = rel_path.replace('\\', '/').strip('/')
+                connections = connections_map.get(norm_path, [])
+
                 files_list.append({
                     'name': file,
                     'path': rel_path.replace('\\', '/'),
                     'url': url,
                     'size': size,
                     'modified': modified,
-                    'type': file_type
+                    'type': file_type,
+                    'connections': connections
                 })
         
         files_list.sort(key=lambda x: x['modified'], reverse=True)

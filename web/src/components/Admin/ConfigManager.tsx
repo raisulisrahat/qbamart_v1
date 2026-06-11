@@ -357,7 +357,7 @@ const ConfigManager = () => {
                         <h3 className="text-sm font-bold uppercase tracking-widest text-zinc-900">Marketing & Tracking</h3>
                     </div>
 
-                    <div className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                         <div className="space-y-2">
                             <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest ml-1">Facebook Pixel ID</label>
                             <input
@@ -368,7 +368,20 @@ const ConfigManager = () => {
                                 className="w-full bg-zinc-50 border border-zinc-200 p-3 rounded-xl focus:ring-2 focus:ring-[#5173FB]/5 outline-none transition-all font-semibold text-zinc-900 text-sm"
                                 placeholder="2717976234992377"
                             />
-                            <p className="text-[10px] text-zinc-400 font-medium">Site-wide Facebook Pixel ID. This will automatically enable PageView tracking.</p>
+                            <p className="text-[10px] text-zinc-400 font-medium mt-1">Site-wide Facebook Pixel ID. This will automatically enable PageView tracking.</p>
+                        </div>
+
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest ml-1">Google Tag ID (gtag.js)</label>
+                            <input
+                                type="text"
+                                name="google_tag_id"
+                                value={config.google_tag_id || ''}
+                                onChange={handleChange}
+                                className="w-full bg-zinc-50 border border-zinc-200 p-3 rounded-xl focus:ring-2 focus:ring-[#5173FB]/5 outline-none transition-all font-semibold text-zinc-900 text-sm"
+                                placeholder="G-X06QEH8RN6"
+                            />
+                            <p className="text-[10px] text-zinc-400 font-medium mt-1">Google Tag ID for tracking and Google Analytics integration.</p>
                         </div>
                     </div>
                 </div>

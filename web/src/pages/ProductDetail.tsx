@@ -756,7 +756,7 @@ const ProductDetail = () => {
             )}
           </div>
 
-          <div className="hidden lg:block max-w-4xl text-neutral-600 leading-loose prose prose-indigo">
+          <div className="hidden lg:block max-w-4xl mx-auto text-neutral-600 leading-loose prose prose-indigo">
             {activeTab === 'description' && (
               <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
                 <div className="product-description-content" dangerouslySetInnerHTML={{ __html: product.description_html || 'Detailed information coming soon...' }} />

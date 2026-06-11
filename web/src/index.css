@@ -8,7 +8,7 @@
 @layer base {
   html, body {
     max-width: 100%;
-    overflow-x: hidden;
+    overflow-x: clip;
   }
   :root {
     --color-brand: #5173FB;

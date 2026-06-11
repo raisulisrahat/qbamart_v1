@@ -1,7 +1,7 @@
 import React from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
-import { getOrderDetails, BASE_URL } from '../services/api';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { getOrderDetails, requestCancelOrder, BASE_URL } from '../services/api';
 import { motion } from 'framer-motion';
 import { 
   Package, 
@@ -22,12 +22,28 @@ import SEO from '../components/SEO';
 
 const OrderDetails = () => {
   const { id } = useParams<{ id: string }>();
+  const queryClient = useQueryClient();
+  const [isCancelling, setIsCancelling] = React.useState(false);
 
   const { data: order, isLoading, error } = useQuery({
     queryKey: ['order-details', id],
     queryFn: () => getOrderDetails(Number(id)).then(res => res.data),
     enabled: !!id,
   });
+
+  const handleCancelOrder = async () => {
+    if (!window.confirm("Are you sure you want to cancel this order?")) return;
+    setIsCancelling(true);
+    try {
+      await requestCancelOrder(Number(id));
+      queryClient.invalidateQueries({ queryKey: ['order-details', id] });
+      queryClient.invalidateQueries({ queryKey: ['my-orders'] });
+    } catch (err: any) {
+      alert(err.response?.data?.error || "Failed to cancel order");
+    } finally {
+      setIsCancelling(false);
+    }
+  };
 
   const getStatusInfo = (status: string) => {
     switch (status?.toLowerCase()) {
@@ -40,7 +56,7 @@ const OrderDetails = () => {
       case 'delivered':
         return { icon: CheckCircle2, color: 'text-green-600', bg: 'bg-green-50', border: 'border-green-200', label: 'Delivered' };
       case 'cancelled':
-        return { icon: AlertCircle, color: 'text-brand', bg: 'bg-brand/5', border: 'border-red-200', label: 'Cancelled' };
+        return { icon: AlertCircle, color: 'text-rose-600', bg: 'bg-rose-50', border: 'border-rose-200', label: 'Cancelled' };
       default:
         return { icon: Package, color: 'text-neutral-600', bg: 'bg-neutral-50', border: 'border-neutral-200', label: status };
     }
@@ -104,15 +120,40 @@ const OrderDetails = () => {
                 <motion.div 
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className={`${statusInfo.bg} ${statusInfo.border} border p-6 rounded-2xl flex items-center space-x-4`}
+                  className={`${statusInfo.bg} ${statusInfo.border} border p-6 rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-4`}
                 >
-                  <div className={`${statusInfo.color} bg-white p-3 rounded-xl shadow-sm`}>
-                    <statusInfo.icon className="w-6 h-6" />
+                  <div className="flex items-center space-x-4">
+                    <div className={`${statusInfo.color} bg-white p-3 rounded-xl shadow-sm`}>
+                      <statusInfo.icon className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold uppercase tracking-widest text-neutral-500 mb-1">Current Status</p>
+                      <h3 className={`text-lg font-bold ${statusInfo.color}`}>{statusInfo.label}</h3>
+                      {order.courier_tracking_code && (
+                        <div className="mt-1">
+                          <a 
+                            href={order.courier_name === 'carrybee' 
+                              ? `https://merchant.carrybee.com/order-track/${order.courier_consignment_id}` 
+                              : `https://steadfast.com.bd/tl/${order.courier_tracking_code}`} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center text-xs font-bold text-[#5173FB] hover:underline"
+                          >
+                            Track Order ({order.courier_tracking_code})
+                          </a>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-xs font-bold uppercase tracking-widest text-neutral-500 mb-1">Current Status</p>
-                    <h3 className={`text-lg font-bold ${statusInfo.color}`}>{statusInfo.label}</h3>
-                  </div>
+                  {order.status === 'pending' && (
+                    <button
+                      onClick={handleCancelOrder}
+                      disabled={isCancelling}
+                      className="px-4 py-2.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold transition-all shadow-sm active:scale-95 disabled:opacity-50 flex items-center justify-center gap-1.5"
+                    >
+                      {isCancelling ? 'Cancelling...' : 'Cancel Order'}
+                    </button>
+                  )}
                 </motion.div>
 
                 {/* Items List */}
@@ -208,9 +249,6 @@ const OrderDetails = () => {
                       <span className="text-base font-bold text-neutral-900">Total</span>
                       <span className="text-2xl font-black text-[#5173FB]">TK. {order.total_amount}</span>
                     </div>
-                  </div>
-                  <div className="px-6 py-4 bg-neutral-50 text-[10px] font-bold text-neutral-400 text-center uppercase tracking-widest">
-                    Vat Included where applicable
                   </div>
                 </div>
 

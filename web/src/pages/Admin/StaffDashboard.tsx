@@ -384,8 +384,17 @@ const StaffDashboard = ({ role }) => {
                             setCustomEnd={setCustomEnd}
                             activeTab={activeTab}
                         />} />
-                        <Route path="users" element={<UserManager />} />
-                        <Route path="media_manager" element={<MediaManager />} />
+                        {role === 'admin' ? (
+                            <>
+                                <Route path="users" element={<UserManager />} />
+                                <Route path="media_manager" element={<MediaManager />} />
+                            </>
+                        ) : (
+                            <>
+                                <Route path="users" element={<Navigate to={`/staff/${role}`} replace />} />
+                                <Route path="media_manager" element={<Navigate to={`/staff/${role}`} replace />} />
+                            </>
+                        )}
                         <Route path="products/*" element={<ProductManager resetKey={navKey} />} />
                         <Route path="orders" element={<OrderManager />} />
 
@@ -692,8 +701,12 @@ const SidebarContent = ({ activeTab, handleNavigate, role }) => (
             <div className="px-3 pb-2 text-[11px] font-semibold text-zinc-400 uppercase tracking-wider font-sans">General</div>
             <div className="space-y-0.5">
                 <SidebarItem id="dashboard" label="Dashboard" icon={<LayoutDashboard size={18} />} activeTab={activeTab} onClick={() => handleNavigate('dashboard')} />
-                <SidebarItem id="users" label="Users" icon={<Users size={18} />} activeTab={activeTab} onClick={() => handleNavigate('users')} />
-                <SidebarItem id="media_manager" label="Media Manager" icon={<Image size={18} />} activeTab={activeTab} onClick={() => handleNavigate('media_manager')} />
+                {role === 'admin' && (
+                    <>
+                        <SidebarItem id="users" label="Users" icon={<Users size={18} />} activeTab={activeTab} onClick={() => handleNavigate('users')} />
+                        <SidebarItem id="media_manager" label="Media Manager" icon={<Image size={18} />} activeTab={activeTab} onClick={() => handleNavigate('media_manager')} />
+                    </>
+                )}
             </div>
         </div>
 

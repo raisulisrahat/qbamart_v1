@@ -11,6 +11,7 @@ import MobileBottomNav from './components/MobileBottomNav';
 import CartDrawer from './components/CartDrawer';
 import ScrollToTop from './components/ScrollToTop';
 import FacebookPixel from './components/FacebookPixel';
+import GoogleTag from './components/GoogleTag';
 import Home from './pages/Home';
 import ProductDetail from './pages/ProductDetail';
 import Shop from './pages/Shop';
@@ -61,6 +62,7 @@ function App() {
                 <Router>
                 <ScrollToTop />
                 <FacebookPixel />
+                <GoogleTag />
                 <div className="flex flex-col min-h-screen bg-neutral-50 font-sans selection:bg-indigo-100 selection:text-indigo-900">
                   <Routes>
                     {/* User Routes */}

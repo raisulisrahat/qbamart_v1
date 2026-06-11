@@ -181,9 +181,10 @@ const SiteSettingsAdmin = () => {
           <p className="mt-4 text-xs text-neutral-400 italic">Required for automated shipment creation in Carrybee portal.</p>
         </Section>
 
-        <Section title="Marketing Pixels" icon={Target}>
+        <Section title="Marketing Pixels & Tracking" icon={Target}>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
              <InputField label="Facebook Pixel ID" name="facebook_pixel_id" icon={Target} />
+             <InputField label="Google Tag ID (gtag.js)" name="google_tag_id" icon={Target} placeholder="e.g. G-X06QEH8RN6" />
           </div>
         </Section>
       </div>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import api, { BASE_URL } from '../../services/api';
-import { Edit, Trash2, Search, Eye, CheckCircle, XCircle, Download, X, Calendar, Filter, AlertCircle, AlertTriangle, Package, Truck, Bike, PhoneCall, RefreshCw, ShoppingBag, Globe, ChevronLeft, ChevronRight, Copy } from 'lucide-react';
+import { Edit, Trash2, Search, Eye, CheckCircle, XCircle, Download, X, Calendar, Filter, AlertCircle, AlertTriangle, Package, Truck, Bike, PhoneCall, RefreshCw, ShoppingBag, Globe, ChevronLeft, ChevronRight, Copy, MapPin, Compass } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { BarChart, Bar, XAxis, Tooltip, ResponsiveContainer } from 'recharts';
@@ -175,6 +175,15 @@ const OrderManager = () => {
         try {
             const response = await api.get(`courier/${orderId}/check_status/`);
             setTrackingStatus(response.data);
+            if (response.data.delivery_status && response.data.delivery_status.toLowerCase() === 'unknown') {
+                setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: 'cancelled' } : o));
+                try {
+                    const orderRes = await api.get(`orders/${orderId}/`);
+                    setSelectedOrder(orderRes.data);
+                } catch (err) {
+                    setSelectedOrder(prev => prev ? { ...prev, status: 'cancelled' } : null);
+                }
+            }
         } catch (error) {
             console.error("Failed to fetch tracking status:", error);
             setTrackingStatus({ error: "Tracking data unavailable" });
@@ -226,7 +235,11 @@ const OrderManager = () => {
                 quantity: item.quantity,
                 price: item.price,
                 color: item.color,
-                size: item.size
+                size: item.size,
+                name: item.product_details?.name || item.product_name || 'Unknown',
+                image: item.product_details?.thumbnail || item.product_image || null,
+                color_name: item.color_details?.name || item.color_name || 'N/A',
+                size_name: item.size_details?.name || item.size_name || 'N/A'
             })) || []
         });
         setIsEditingDetails(true);
@@ -825,14 +838,29 @@ const OrderManager = () => {
                                     </td>
                                     <td className="px-6 py-4">
                                         {activeView === 'real' ? (
-                                            <div className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full border text-[10px] font-bold uppercase tracking-wider ${getStatusStyle(order.status)}`}>
-                                                <div className={`w-1 h-1 rounded-full ${
-                                                    order.status === 'delivered' ? 'bg-emerald-500' : 
-                                                    order.status === 'partial_delivered' ? 'bg-amber-500' : 
-                                                    order.status === 'cancelled' ? 'bg-rose-500' : 
-                                                    'bg-zinc-500'
-                                                }`} />
-                                                {order.status}
+                                            <div className="flex flex-col gap-1 items-start">
+                                                <div className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full border text-[10px] font-bold uppercase tracking-wider ${getStatusStyle(order.status)}`}>
+                                                    <div className={`w-1 h-1 rounded-full ${
+                                                        order.status === 'delivered' ? 'bg-emerald-500' : 
+                                                        order.status === 'partial_delivered' ? 'bg-amber-500' : 
+                                                        order.status === 'cancelled' ? 'bg-rose-500' : 
+                                                        'bg-zinc-500'
+                                                    }`} />
+                                                    {order.status}
+                                                </div>
+                                                {(() => {
+                                                    const confirmNote = order.notes?.find(n => 
+                                                        n.note && n.note.toLowerCase().includes('confirmed')
+                                                    );
+                                                    if (confirmNote) {
+                                                        return (
+                                                            <span className="text-[9px] font-bold text-zinc-400 uppercase tracking-tighter" title={`Confirmed by ${confirmNote.username}`}>
+                                                                By: {confirmNote.username || 'System'}
+                                                            </span>
+                                                        );
+                                                    }
+                                                    return null;
+                                                })()}
                                             </div>
                                         ) : (
                                             <div className="space-y-0.5 max-w-[180px]">
@@ -867,10 +895,10 @@ const OrderManager = () => {
                                                 <>
                                                     {!order.courier_consignment_id && (
                                                         <>
-                                                            <button onClick={() => handleSendToSteadfast(order)} disabled={isDispatching} className="p-2 text-zinc-400 hover:text-[#5173FB] hover:bg-white border border-transparent hover:border-zinc-200 rounded-lg transition-all" title="Sync with Steadfast">
+                                                            <button onClick={() => handleSendToSteadfast(order)} disabled={isDispatching} className="p-2 text-zinc-400 bg-green-600/30 hover:text-[#5173FB] hover:bg-white border border-transparent hover:border-zinc-200 rounded-lg transition-all" title="Sync with Steadfast">
                                                                 <Truck size={14} />
                                                             </button>
-                                                            <button onClick={() => handleSendToCarrybee(order)} disabled={isDispatching} className="p-2 text-zinc-400 hover:text-purple-600 hover:bg-white border border-transparent hover:border-zinc-200 rounded-lg transition-all" title="Sync with Carrybee">
+                                                            <button onClick={() => handleSendToCarrybee(order)} disabled={isDispatching} className="p-2 text-zinc-400 bg-yellow-400/30 hover:text-purple-600 hover:bg-white border border-transparent hover:border-zinc-200 rounded-lg transition-all" title="Sync with Carrybee">
                                                                 <Truck size={14} />
                                                             </button>
                                                         </>
@@ -1033,6 +1061,65 @@ const OrderManager = () => {
                                 )}
                             </div>
 
+                            {/* Customer Activities & Session Details */}
+                            <div className="space-y-4">
+                                <h4 className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Metadata & Activities</h4>
+                                <div className="p-6 bg-zinc-50 rounded-2xl border border-zinc-100 space-y-4">
+                                    {/* Confirmed by staff info
+                                    {(() => {
+                                        const confirmNote = selectedOrder.notes?.find(n => 
+                                            n.note && n.note.toLowerCase().includes('confirmed')
+                                        );
+                                        if (confirmNote) {
+                                            return (
+                                                <div className="flex items-center gap-3 pb-3 border-b border-zinc-200/50">
+                                                    <div className="p-2 bg-emerald-50 text-emerald-600 rounded-lg">
+                                                        <CheckCircle size={16} />
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest">Confirmed By</p>
+                                                        <p className="text-xs font-bold text-zinc-900 mt-0.5">Staff User: <span className="font-mono">{confirmNote.username || 'System'}</span></p>
+                                                    </div>
+                                                </div>
+                                            );
+                                        }
+                                        return null;
+                                    })()} */}
+
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div className="flex items-start gap-3">
+                                            <div className="p-2 bg-zinc-100 text-zinc-500 rounded-lg mt-0.5">
+                                                <Globe size={14} />
+                                            </div>
+                                            <div className="min-w-0">
+                                                <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest">IP Address</p>
+                                                <p className="text-xs font-bold text-zinc-900 mt-0.5 font-mono truncate">{selectedOrder.ip_address || 'N/A'}</p>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex items-start gap-3">
+                                            <div className="p-2 bg-zinc-100 text-zinc-500 rounded-lg mt-0.5">
+                                                <MapPin size={14} />
+                                            </div>
+                                            <div className="min-w-0">
+                                                <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest">IP Location</p>
+                                                <p className="text-xs font-bold text-zinc-900 mt-0.5 truncate">{selectedOrder.location || 'Unknown'}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex items-start gap-3 pt-3 border-t border-zinc-200/50">
+                                        <div className="p-2 bg-zinc-100 text-zinc-500 rounded-lg mt-0.5">
+                                            <Compass size={14} />
+                                        </div>
+                                        <div className="min-w-0 flex-1">
+                                            <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest">User Device Agent</p>
+                                            <p className="text-xs font-medium text-zinc-600 mt-0.5 break-words leading-relaxed">{selectedOrder.user_agent || 'N/A'}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
                             {/* Logistics Sync */}
                             {selectedOrder.status !== 'draft' && (
                                 <div className="space-y-3">
@@ -1041,14 +1128,14 @@ const OrderManager = () => {
                                             <button 
                                                 onClick={() => handleSendToSteadfast()} 
                                                 disabled={isDispatching || !selectedOrder.items} 
-                                                className="py-3 bg-[#5173FB] text-white rounded-xl text-[10px] font-bold uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-black transition-all disabled:opacity-30"
+                                                className="py-3 bg-green-700/70 text-white rounded-xl text-[10px] font-bold uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-black transition-all disabled:opacity-30"
                                             >
                                                 <Truck size={14} /> Steadfast Sync
                                             </button>
                                             <button 
                                                 onClick={() => handleSendToCarrybee()} 
                                                 disabled={isDispatching || !selectedOrder.items} 
-                                                className="py-3 bg-[#2D1625] text-white rounded-xl text-[10px] font-bold uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-black transition-all disabled:opacity-30"
+                                                className="py-3 bg-yellow-400/80 text-white rounded-xl text-[10px] font-bold uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-black transition-all disabled:opacity-30"
                                             >
                                                 <Truck size={14} /> Carrybee Sync
                                             </button>
@@ -1060,7 +1147,7 @@ const OrderManager = () => {
                                             </div>
                                             {selectedOrder.courier_tracking_code ? (
                                                 <a 
-                                                    href={selectedOrder.courier_name === 'carrybee' ? 'https://carrybee.com' : `https://steadfast.com.bd/tl/${selectedOrder.courier_tracking_code}`} 
+                                                    href={selectedOrder.courier_name === 'carrybee' ? `https://merchant.carrybee.com/order-track/${selectedOrder.courier_consignment_id}` : `https://steadfast.com.bd/tl/${selectedOrder.courier_tracking_code}`} 
                                                     target="_blank" 
                                                     rel="noopener noreferrer"
                                                     className="py-3 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-xl text-[10px] font-bold uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-emerald-100 transition-all"
@@ -1133,46 +1220,129 @@ const OrderManager = () => {
                                             </tr>
                                         </thead>
                                         <tbody className="divide-y divide-zinc-100">
-                                            {(selectedOrder.items || selectedOrder.cart_items)?.map((item, idx) => (
-                                                <tr key={item.id || idx} className="text-xs font-semibold text-zinc-900">
-                                                    <td className="px-5 py-4">
-                                                        <div className="flex items-center gap-3">
-                                                            <div className="w-10 h-10 rounded-lg bg-white border border-zinc-100 p-0.5 overflow-hidden flex-shrink-0">
-                                                                {item.product_details?.thumbnail || item.image ? (
-                                                                    <img 
-                                                                        src={(item.product_details?.thumbnail || item.image).startsWith('http') 
-                                                                            ? (item.product_details?.thumbnail || item.image) 
-                                                                            : `${BASE_URL}${item.product_details?.thumbnail || item.image}`} 
-                                                                        alt="" 
-                                                                        className="w-full h-full object-contain" 
-                                                                    />
-                                                                ) : <Package size={16} className="text-zinc-200 mx-auto mt-2" />}
+                                            {isEditingDetails ? (
+                                                editForm.items?.map((item, idx) => (
+                                                    <tr key={item.id || idx} className="text-xs font-semibold text-zinc-900">
+                                                        <td className="px-5 py-4">
+                                                            <div className="flex items-center gap-3">
+                                                                <div className="w-10 h-10 rounded-lg bg-white border border-zinc-100 p-0.5 overflow-hidden flex-shrink-0">
+                                                                    {item.image ? (
+                                                                        <img 
+                                                                            src={item.image.startsWith('http') 
+                                                                                ? item.image 
+                                                                                : `${BASE_URL}${item.image}`} 
+                                                                            alt="" 
+                                                                            className="w-full h-full object-contain" 
+                                                                        />
+                                                                    ) : <Package size={16} className="text-zinc-200 mx-auto mt-2" />}
+                                                                </div>
+                                                                <div className="min-w-0">
+                                                                    <p className="truncate max-w-[180px]">{item.name || 'Unknown'}</p>
+                                                                    <p className="text-[9px] text-zinc-400 font-bold uppercase tracking-tighter mt-0.5">
+                                                                        {item.color_name || 'N/A'} / {item.size_name || 'N/A'}
+                                                                    </p>
+                                                                </div>
                                                             </div>
-                                                            <div className="min-w-0">
-                                                                <p className="truncate max-w-[180px]">{item.product_details?.name || item.name || 'Unknown'}</p>
-                                                                <p className="text-[9px] text-zinc-400 font-bold uppercase tracking-tighter mt-0.5">
-                                                                    {item.color_details?.name || item.color || 'N/A'} / {item.size_details?.name || item.size || 'N/A'}
-                                                                </p>
+                                                        </td>
+                                                        <td className="px-5 py-4 text-center">
+                                                            <input 
+                                                                type="number" 
+                                                                min="0" 
+                                                                className="w-16 px-2 py-1 bg-white border border-zinc-300 rounded text-center font-bold text-zinc-900 focus:ring-2 focus:ring-[#5173FB]/5 outline-none" 
+                                                                value={item.quantity} 
+                                                                onChange={(e) => handleItemChange(item.id, 'quantity', Number(e.target.value))} 
+                                                            />
+                                                        </td>
+                                                        <td className="px-5 py-4 text-right font-mono">
+                                                            <div className="flex items-center justify-end gap-1">
+                                                                <span className="text-zinc-400">৳</span>
+                                                                <input 
+                                                                    type="number" 
+                                                                    min="0" 
+                                                                    className="w-20 px-2 py-1 bg-white border border-zinc-300 rounded text-right font-bold text-zinc-900 focus:ring-2 focus:ring-[#5173FB]/5 outline-none" 
+                                                                    value={item.price} 
+                                                                    onChange={(e) => handleItemChange(item.id, 'price', Number(e.target.value))} 
+                                                                />
                                                             </div>
-                                                        </div>
-                                                    </td>
-                                                    <td className="px-5 py-4 text-center">{item.quantity}</td>
-                                                    <td className="px-5 py-4 text-right font-mono">৳{(item.price * item.quantity).toLocaleString()}</td>
-                                                </tr>
-                                            ))}
+                                                        </td>
+                                                    </tr>
+                                                ))
+                                            ) : (
+                                                (selectedOrder.items || selectedOrder.cart_items)?.map((item, idx) => (
+                                                    <tr key={item.id || idx} className="text-xs font-semibold text-zinc-900">
+                                                        <td className="px-5 py-4">
+                                                            <div className="flex items-center gap-3">
+                                                                <div className="w-10 h-10 rounded-lg bg-white border border-zinc-100 p-0.5 overflow-hidden flex-shrink-0">
+                                                                    {item.product_details?.thumbnail || item.image ? (
+                                                                        <img 
+                                                                            src={(item.product_details?.thumbnail || item.image).startsWith('http') 
+                                                                                ? (item.product_details?.thumbnail || item.image) 
+                                                                                : `${BASE_URL}${item.product_details?.thumbnail || item.image}`} 
+                                                                            alt="" 
+                                                                            className="w-full h-full object-contain" 
+                                                                        />
+                                                                    ) : <Package size={16} className="text-zinc-200 mx-auto mt-2" />}
+                                                                </div>
+                                                                <div className="min-w-0">
+                                                                    <p className="truncate max-w-[180px]">{item.product_details?.name || item.name || 'Unknown'}</p>
+                                                                    <p className="text-[9px] text-zinc-400 font-bold uppercase tracking-tighter mt-0.5">
+                                                                        {item.color_details?.name || item.color || 'N/A'} / {item.size_details?.name || item.size || 'N/A'}
+                                                                    </p>
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                        <td className="px-5 py-4 text-center">{item.quantity}</td>
+                                                        <td className="px-5 py-4 text-right font-mono">৳{(item.price * item.quantity).toLocaleString()}</td>
+                                                    </tr>
+                                                ))
+                                            )}
                                         </tbody>
                                         <tfoot className="bg-zinc-100/30 border-t border-zinc-100 font-bold text-zinc-900 text-[11px] font-mono">
                                             <tr>
                                                 <td colSpan={2} className="px-5 py-3 text-zinc-400 uppercase tracking-widest text-[9px]">Subtotal</td>
-                                                <td className="px-5 py-3 text-right">৳{((selectedOrder.items || selectedOrder.cart_items)?.reduce((sum, item) => sum + (item.price * item.quantity), 0) || 0).toLocaleString()}</td>
+                                                <td className="px-5 py-3 text-right">
+                                                    ৳{isEditingDetails 
+                                                        ? (editForm.items?.reduce((sum, item) => sum + (Number(item.price) * Number(item.quantity)), 0) || 0).toLocaleString()
+                                                        : ((selectedOrder.items || selectedOrder.cart_items)?.reduce((sum, item) => sum + (item.price * item.quantity), 0) || 0).toLocaleString()}
+                                                </td>
                                             </tr>
                                             <tr>
                                                 <td colSpan={2} className="px-5 py-3 text-zinc-400 uppercase tracking-widest text-[9px]">Shipping</td>
-                                                <td className="px-5 py-3 text-right">৳{(Number(selectedOrder.shipping_cost) || 0).toLocaleString()}</td>
+                                                <td className="px-5 py-3 text-right">
+                                                    {isEditingDetails ? (
+                                                        <div className="flex items-center justify-end gap-1">
+                                                            <span className="text-zinc-400">৳</span>
+                                                            <input 
+                                                                type="number" 
+                                                                min="0" 
+                                                                className="w-20 px-2 py-1 bg-white border border-zinc-300 rounded text-right font-bold text-zinc-900 focus:ring-2 focus:ring-[#5173FB]/5 outline-none" 
+                                                                value={editForm.shipping_cost} 
+                                                                onChange={(e) => handleShippingChange(Number(e.target.value))} 
+                                                            />
+                                                        </div>
+                                                    ) : (
+                                                        `৳${(Number(selectedOrder.shipping_cost) || 0).toLocaleString()}`
+                                                    )}
+                                                </td>
                                             </tr>
                                             <tr className="bg-[#5173FB] text-white font-black">
                                                 <td colSpan={2} className="px-5 py-4 uppercase tracking-widest text-[10px]">Total Amount</td>
-                                                <td className="px-5 py-4 text-right text-base">৳{Number(selectedOrder.total_amount).toLocaleString()}</td>
+                                                <td className="px-5 py-4 text-right text-base">
+                                                    {isEditingDetails ? (
+                                                        <div className="flex items-center justify-end gap-1">
+                                                            <span className="text-white opacity-85">৳</span>
+                                                            <input 
+                                                                type="number" 
+                                                                min="0" 
+                                                                className="w-24 px-2 py-1 bg-[#5173FB] text-white border border-white/30 rounded text-right font-black focus:ring-2 focus:ring-white/20 outline-none font-mono" 
+                                                                value={editForm.total_amount} 
+                                                                onChange={(e) => setEditForm({ ...editForm, total_amount: Number(e.target.value) })} 
+                                                            />
+                                                        </div>
+                                                    ) : (
+                                                        `৳${Number(selectedOrder.total_amount).toLocaleString()}`
+                                                    )}
+                                                </td>
                                             </tr>
                                         </tfoot>
                                     </table>

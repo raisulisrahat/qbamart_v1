@@ -156,6 +156,26 @@ const ProductForm = ({ product, onSave, onCancel }) => {
 
 
 
+    const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
+    const [showSizeDropdown, setShowSizeDropdown] = useState(false);
+    const categoryRef = React.useRef<HTMLDivElement>(null);
+    const sizeRef = React.useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (categoryRef.current && !categoryRef.current.contains(event.target as Node)) {
+                setShowCategoryDropdown(false);
+            }
+            if (sizeRef.current && !sizeRef.current.contains(event.target as Node)) {
+                setShowSizeDropdown(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, []);
+
     const [formData, setFormData] = useState({
 
         name: '',
@@ -249,6 +269,42 @@ const ProductForm = ({ product, onSave, onCancel }) => {
     const [linkedFunnel, setLinkedFunnel] = useState(null);
 
     const [specsList, setSpecsList] = useState([]);
+    const [showBulkInput, setShowBulkInput] = useState(false);
+    const [bulkSpecsText, setBulkSpecsText] = useState('');
+
+    const handleBulkSpecsAdd = () => {
+        if (!bulkSpecsText.trim()) return;
+        const lines = bulkSpecsText.split('\n');
+        const newSpecs: any[] = [];
+        lines.forEach(line => {
+            const trimmed = line.trim();
+            if (!trimmed) return;
+            const colonIndex = trimmed.indexOf(':');
+            if (colonIndex > 0) {
+                const key = trimmed.slice(0, colonIndex).trim();
+                const value = trimmed.slice(colonIndex + 1).trim();
+                if (key) {
+                    newSpecs.push({
+                        id: `spec-${Date.now()}-${Math.random()}`,
+                        key,
+                        value
+                    });
+                }
+            } else {
+                newSpecs.push({
+                    id: `spec-${Date.now()}-${Math.random()}`,
+                    key: trimmed,
+                    value: ''
+                });
+            }
+        });
+
+        if (newSpecs.length > 0) {
+            setSpecsList(prev => [...prev, ...newSpecs]);
+            setBulkSpecsText('');
+            setShowBulkInput(false);
+        }
+    };
 
 
 
@@ -1827,21 +1883,70 @@ const ProductForm = ({ product, onSave, onCancel }) => {
 
                             <h3 className="text-lg font-semibold tracking-tight text-zinc-900">Technical Specifications</h3>
 
-                            <button
+                            <div className="flex items-center gap-2">
+                                <button
+                                    type="button"
+                                    onClick={() => setShowBulkInput(!showBulkInput)}
+                                    className="text-xs text-zinc-900 hover:text-black font-semibold flex items-center gap-1 bg-zinc-100 px-2.5 py-1.5 rounded-xl hover:bg-zinc-200 transition-colors"
+                                >
+                                    {showBulkInput ? 'Hide Bulk Add' : 'Bulk Add'}
+                                </button>
 
-                                type="button"
+                                <button
 
-                                onClick={addSpec}
+                                    type="button"
 
-                                className="text-xs text-zinc-900 hover:text-black font-semibold flex items-center gap-1 bg-zinc-100 px-2 py-1 rounded hover:bg-zinc-200 transition-colors"
+                                    onClick={addSpec}
 
-                            >
+                                    className="text-xs text-zinc-900 hover:text-black font-semibold flex items-center gap-1 bg-zinc-100 px-2.5 py-1.5 rounded-xl hover:bg-zinc-200 transition-colors"
 
-                                <Plus size={14} /> Add Specification
+                                >
 
-                            </button>
+                                    <Plus size={14} /> Add Specification
+
+                                </button>
+                            </div>
 
                         </div>
+
+                        {showBulkInput && (
+                            <div className="mb-6 p-5 bg-zinc-50 rounded-2xl border border-zinc-200 space-y-4">
+                                <div>
+                                    <label className="block text-xs font-bold uppercase tracking-wider text-zinc-500 mb-2">
+                                        Bulk Specifications Input
+                                    </label>
+                                    <textarea
+                                        rows={6}
+                                        value={bulkSpecsText}
+                                        onChange={(e) => setBulkSpecsText(e.target.value)}
+                                        placeholder="Brand: Binbond&#10;Size: 22m&#10;Warrenty: 1 Year"
+                                        className="w-full px-4 py-3 bg-white border border-zinc-200 rounded-xl text-sm focus:ring-2 focus:ring-black/5 focus:border-zinc-400 transition-colors outline-none font-mono resize-y"
+                                    />
+                                    <p className="text-[11px] text-zinc-500 mt-2 leading-relaxed">
+                                        Enter specifications in <strong>Key: Value</strong> format, one per line. Missing values will be left empty.
+                                    </p>
+                                </div>
+                                <div className="flex justify-end gap-2">
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setBulkSpecsText('');
+                                            setShowBulkInput(false);
+                                        }}
+                                        className="text-xs font-semibold px-3 py-2 text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100 rounded-xl transition-colors"
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={handleBulkSpecsAdd}
+                                        className="text-xs font-bold px-4 py-2 bg-[#5173FB] text-white rounded-xl hover:bg-brand-hover transition-colors"
+                                    >
+                                        Apply Specifications
+                                    </button>
+                                </div>
+                            </div>
+                        )}
 
                         <div className="space-y-4">
 
@@ -2770,29 +2875,86 @@ const ProductForm = ({ product, onSave, onCancel }) => {
 
                         <h3 className="text-lg font-semibold tracking-tight text-zinc-900">Organization</h3>
 
-                        <div>
+                        <div ref={categoryRef} className="relative">
 
                             <label className="block text-sm font-medium text-zinc-700 mb-2">Category</label>
 
-                            <select
-
-                                name="categories"
-
-                                multiple
-
-                                className="w-full px-4 py-2 bg-zinc-50 border border-zinc-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-black/5 focus:border-zinc-400 transition-colors outline-none h-64"
-
-                                value={formData.categories}
-
-                                onChange={(e) => handleMultiSelect(e, 'categories')}
-
+                            <button
+                                type="button"
+                                onClick={() => setShowCategoryDropdown(!showCategoryDropdown)}
+                                className="w-full px-4 py-2.5 bg-zinc-50 border border-zinc-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-[#5173FB]/5 outline-none transition-all flex justify-between items-center text-left"
                             >
+                                <span className="truncate text-zinc-700 font-semibold">
+                                    {formData.categories.length > 0
+                                        ? categories.filter((c: any) => formData.categories.includes(c.id)).map((c: any) => c.name).join(', ')
+                                        : 'Select Categories'}
+                                </span>
+                                <ChevronDown size={16} className={`text-zinc-400 transition-transform ${showCategoryDropdown ? 'rotate-180' : ''}`} />
+                            </button>
 
-                                {renderCategoryOptions(categories)}
+                            {showCategoryDropdown && (
+                                <div className="absolute left-0 right-0 z-30 mt-2 p-3 bg-white border border-zinc-200 rounded-2xl shadow-xl max-h-64 overflow-y-auto space-y-2">
+                                    {(() => {
+                                        const categoryMap: any = {};
+                                        const roots: any[] = [];
 
-                            </select>
+                                        categories.forEach((cat: any) => {
+                                            categoryMap[cat.id] = { ...cat, children: [] };
+                                        });
 
-                            <p className="text-xs text-zinc-500 mt-2 font-medium">Hold Ctrl to select multiple</p>
+                                        categories.forEach((cat: any) => {
+                                            if (cat.parent) {
+                                                if (categoryMap[cat.parent]) {
+                                                    categoryMap[cat.parent].children.push(categoryMap[cat.id]);
+                                                }
+                                            } else {
+                                                roots.push(categoryMap[cat.id]);
+                                            }
+                                        });
+
+                                        const flatList: any[] = [];
+                                        const traverse = (nodes: any[], depth = 0) => {
+                                            nodes.forEach(node => {
+                                                flatList.push({
+                                                    id: node.id,
+                                                    name: node.name,
+                                                    depth: depth
+                                                });
+                                                if (node.children && node.children.length > 0) {
+                                                    traverse(node.children, depth + 1);
+                                                }
+                                            });
+                                        };
+                                        traverse(roots);
+
+                                        return flatList.map(cat => {
+                                            const isChecked = formData.categories.includes(cat.id);
+                                            return (
+                                                <label 
+                                                    key={cat.id} 
+                                                    className="flex items-center gap-2 py-1.5 px-2 hover:bg-zinc-100 rounded-lg cursor-pointer transition-colors"
+                                                    style={{ paddingLeft: `${cat.depth * 16 + 8}px` }}
+                                                >
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={isChecked}
+                                                        onChange={() => {
+                                                            const newCats: any = isChecked
+                                                                ? formData.categories.filter((id: any) => id !== cat.id)
+                                                                : [...formData.categories, cat.id];
+                                                            setFormData(prev => ({ ...prev, categories: newCats }));
+                                                        }}
+                                                        className="h-4 w-4 rounded border-zinc-300 text-[#5173FB] focus:ring-[#5173FB]/30"
+                                                    />
+                                                    <span className={`${cat.depth === 0 ? 'font-bold text-zinc-900' : 'text-zinc-600 font-medium'}`}>
+                                                        {cat.name}
+                                                    </span>
+                                                </label>
+                                            );
+                                        });
+                                    })()}
+                                </div>
+                            )}
 
                         </div>
 
@@ -3286,7 +3448,7 @@ const ProductForm = ({ product, onSave, onCancel }) => {
 
                         )}
 
-                        <div>
+                        <div ref={sizeRef} className="relative">
 
                             <div className="flex justify-between items-center mb-2 mt-6 border-t border-zinc-100 pt-6">
 
@@ -3308,23 +3470,48 @@ const ProductForm = ({ product, onSave, onCancel }) => {
 
                             </div>
 
-                            <select
-
-                                name="sizes"
-
-                                multiple
-
-                                className="w-full px-4 py-2 bg-zinc-50 border border-zinc-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-black/5 focus:border-zinc-400 transition-colors outline-none h-32"
-
-                                value={formData.sizes}
-
-                                onChange={(e) => handleMultiSelect(e, 'sizes')}
-
+                            <button
+                                type="button"
+                                onClick={() => setShowSizeDropdown(!showSizeDropdown)}
+                                className="w-full px-4 py-2.5 bg-zinc-50 border border-zinc-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-[#5173FB]/5 outline-none transition-all flex justify-between items-center text-left"
                             >
+                                <span className="truncate text-zinc-700 font-semibold">
+                                    {formData.sizes.length > 0
+                                        ? availableSizes.filter((s: any) => formData.sizes.includes(s.id)).map((s: any) => s.name).join(', ')
+                                        : 'Select Sizes'}
+                                </span>
+                                <ChevronDown size={16} className={`text-zinc-400 transition-transform ${showSizeDropdown ? 'rotate-180' : ''}`} />
+                            </button>
 
-                                {availableSizes.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-
-                            </select>
+                            {showSizeDropdown && (
+                                <div className="absolute left-0 right-0 z-30 mt-2 p-3 bg-white border border-zinc-200 rounded-2xl shadow-xl max-h-48 overflow-y-auto space-y-1">
+                                    {availableSizes.map((s: any) => {
+                                        const isChecked = formData.sizes.includes(s.id);
+                                        return (
+                                            <label 
+                                                key={s.id} 
+                                                className="flex items-center gap-2 py-1.5 px-2 hover:bg-zinc-100 rounded-lg cursor-pointer transition-colors"
+                                            >
+                                                <input
+                                                    type="checkbox"
+                                                    checked={isChecked}
+                                                    onChange={() => {
+                                                        const newSizes: any = isChecked
+                                                            ? formData.sizes.filter((id: any) => id !== s.id)
+                                                            : [...formData.sizes, s.id];
+                                                        setFormData(prev => ({ ...prev, sizes: newSizes }));
+                                                    }}
+                                                    className="h-4 w-4 rounded border-zinc-300 text-[#5173FB] focus:ring-[#5173FB]/30"
+                                                />
+                                                <span className="font-semibold text-zinc-700">{s.name}</span>
+                                            </label>
+                                        );
+                                    })}
+                                    {availableSizes.length === 0 && (
+                                        <p className="text-xs text-zinc-400 p-2">No sizes available.</p>
+                                    )}
+                                </div>
+                            )}
 
                         </div>
 
