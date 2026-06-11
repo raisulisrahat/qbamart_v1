@@ -24,6 +24,7 @@ const Checkout = () => {
     const saved = sessionStorage.getItem('draft_order_id_checkout');
     return saved ? parseInt(saved, 10) : null;
   });
+  const isOrderSubmittedRef = useRef(false);
 
   useEffect(() => {
     if (draftOrderId) {
@@ -222,6 +223,7 @@ const Checkout = () => {
     if (!hasContact || cart.length === 0) return;
 
     const timer = setTimeout(async () => {
+      if (isOrderSubmittedRef.current) return;
       const orderData = {
         customer_name: formData.name || 'Incomplete Customer',
         phone_number: formData.phone,
@@ -261,6 +263,7 @@ const Checkout = () => {
 
   useEffect(() => {
     saveDraftImmediatelyRef.current = () => {
+      if (isOrderSubmittedRef.current) return;
       const hasContact = formData.phone.length >= 3 || formData.name.length >= 3;
       if (!hasContact || cart.length === 0) return;
 
@@ -370,6 +373,9 @@ const Checkout = () => {
       };
       
       const res = await createOrder(orderData);
+      
+      // Mark as submitted to prevent any subsequent draft saves/updates
+      isOrderSubmittedRef.current = true;
       
       // Cleanup the draft order since the purchase is initiated/successful!
       if (draftOrderId) {

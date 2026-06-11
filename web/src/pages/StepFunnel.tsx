@@ -55,6 +55,7 @@ const StepFunnel = () => {
         const saved = sessionStorage.getItem(`draft_order_id_stepfunnel_${slug}`);
         return saved ? parseInt(saved, 10) : null;
     });
+    const isOrderSubmittedRef = useRef(false);
 
     useEffect(() => {
         if (draftOrderId) {
@@ -142,6 +143,7 @@ const StepFunnel = () => {
         if (!hasContact || !product) return;
 
         const timer = setTimeout(async () => {
+            if (isOrderSubmittedRef.current) return;
             const orderData = {
                 customer_name: formData.customer_name || 'Incomplete Customer',
                 phone_number: formData.phone_number,
@@ -179,6 +181,7 @@ const StepFunnel = () => {
 
     useEffect(() => {
         saveDraftImmediatelyRef.current = () => {
+            if (isOrderSubmittedRef.current) return;
             const hasContact = formData.phone_number.length >= 3 || formData.customer_name.length >= 3;
             if (!hasContact || !product) return;
 
@@ -283,6 +286,9 @@ const StepFunnel = () => {
             };
 
             await createOrder(orderData);
+
+            // Mark as submitted to prevent any subsequent draft saves/updates
+            isOrderSubmittedRef.current = true;
 
             if (draftOrderId) {
                 try {

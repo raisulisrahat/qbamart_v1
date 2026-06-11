@@ -40,6 +40,7 @@ const OfferPage = () => {
         const saved = sessionStorage.getItem(`draft_order_id_offerpage_${slug}`);
         return saved ? parseInt(saved, 10) : null;
     });
+    const isOrderSubmittedRef = useRef(false);
 
     useEffect(() => {
         if (draftOrderId) {
@@ -316,6 +317,7 @@ const OfferPage = () => {
         if (!hasContact || !funnelData) return;
 
         const timer = setTimeout(async () => {
+            if (isOrderSubmittedRef.current) return;
             const orderData = {
                 customer_name: formData.customer_name || 'Incomplete Customer',
                 phone_number: formData.phone_number,
@@ -394,6 +396,7 @@ const OfferPage = () => {
 
     useEffect(() => {
         saveDraftImmediatelyRef.current = () => {
+            if (isOrderSubmittedRef.current) return;
             const hasContact = formData.phone_number.length >= 3 || formData.customer_name.length >= 3;
             if (!hasContact || !funnelData) return;
 
@@ -580,6 +583,10 @@ const OfferPage = () => {
             }
 
             const res = await createOrder(orderData);
+            
+            // Mark as submitted to prevent any subsequent draft saves/updates
+            isOrderSubmittedRef.current = true;
+            
             if (res.data?.temp_password || res.data?.password || res.data?.guest_password) {
                 setTempPassword(res.data.temp_password || res.data.password || res.data.guest_password);
             }
