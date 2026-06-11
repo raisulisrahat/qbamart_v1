@@ -28,7 +28,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-a7l$f%@l6f&$ryv!!6q@$gu6cm5$xwl4a5vy&50c@**=iu7u6i')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv('DEBUG', 'True') == 'True'
+DEBUG = True
 
 ALLOWED_HOSTS = [h.strip() for h in os.getenv('ALLOWED_HOSTS', '127.0.0.1,localhost').split(',') if h.strip()]
 for host in ['qbamart.com', 'api.qbamart.com']:
@@ -98,6 +98,19 @@ DATABASES = {
         'PORT': os.getenv('DB_PORT', ''),
     }
 }
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.mysql',
+#         'NAME': 'qbamqxnv_qbamart',
+#         'USER': 'qbamqxnv_admin',
+#         'PASSWORD': 'Lf3zWMZJG@tFbDlC',
+#         'HOST': '127.0.0.1',  # Use 'localhost' or the IP address where mysql is running
+#         'PORT': '3306',
+#         'OPTIONS': {
+#             'charset': 'utf8mb4',
+#         },
+#     }
+# }
 
 
 # Password validation
@@ -124,7 +137,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Dhaka'
 
 USE_I18N = True
 
@@ -134,7 +147,7 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 MEDIA_URL = '/media/'
@@ -155,8 +168,6 @@ for origin in ['https://qbamart.com', 'https://api.qbamart.com']:
 
 CORS_ALLOW_ALL_ORIGINS = os.getenv('CORS_ALLOW_ALL_ORIGINS', 'True') == 'True'
 CORS_ALLOW_CREDENTIALS = True
-
-FRONTEND_URL = os.getenv('FRONTEND_URL', 'https://qbamart.com/')
 
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [

@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowRight, Zap, CreditCard, Truck, Headset, ChevronRight, Plus, ChevronLeft, ShoppingBag } from 'lucide-react';
 import { getBanners, getProducts, getCategories, getBlogPosts, BASE_URL } from '../services/api';
 import ProductCard from '../components/ProductCard';
+import ProductSkeleton from '../components/ProductSkeleton';
 import FlashSaleSection from '../components/FlashSaleSection';
 import BlogCard from '../components/BlogCard';
 import { Link } from 'react-router-dom';
@@ -38,12 +39,8 @@ const Home = () => {
 
   const getFilteredProducts = () => {
     if (!products) return [];
-    const sorted = [...products].sort((a, b) => {
-      const stockA = a.stock && a.stock > 0 ? 1 : 0;
-      const stockB = b.stock && b.stock > 0 ? 1 : 0;
-      return stockB - stockA;
-    });
-    if (activeTab === 'All') return sorted;
+    const inStock = products.filter((product: any) => product.stock !== undefined ? product.stock > 0 : true);
+    if (activeTab === 'All') return inStock;
 
     const activeCategory = categories?.find((c: any) => c.name === activeTab);
     if (!activeCategory) return [];
@@ -53,7 +50,7 @@ const Home = () => {
       ...(categories?.filter((c: any) => c.parent === activeCategory.id).map((c: any) => c.id) || [])
     ];
 
-    return sorted.filter((product: any) => 
+    return inStock.filter((product: any) =>
       product.categories?.some((cat: any) => activeCategoryIds.includes(cat.id))
     );
   };
@@ -82,7 +79,7 @@ const Home = () => {
   useEffect(() => {
     const el = document.getElementById('category-carousel');
     if (!el || !parentCategories || parentCategories.length === 0) return;
-    
+
     const autoScroll = setInterval(() => {
       if (el.scrollLeft + el.offsetWidth >= el.scrollWidth - 10) {
         el.scrollTo({ left: 0, behavior: 'smooth' });
@@ -90,7 +87,7 @@ const Home = () => {
         el.scrollBy({ left: 240, behavior: 'smooth' });
       }
     }, 4000);
-    
+
     return () => clearInterval(autoScroll);
   }, [parentCategories]);
 
@@ -100,7 +97,7 @@ const Home = () => {
       {/* Top Banner & Category Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         {/* Left Sidebar: Parent Categories with Mega Menu Logic */}
-        <aside 
+        <aside
           className="hidden lg:block lg:col-span-1 bg-white rounded-xl border border-neutral-100 shadow-sm relative z-30 h-fit"
           onMouseLeave={() => setActiveCategoryId(null)}
         >
@@ -111,13 +108,12 @@ const Home = () => {
                 onMouseEnter={() => setActiveCategoryId(cat.id)}
                 className="relative"
               >
-                <Link 
+                <Link
                   to={`/products?category=${cat.slug}`}
-                  className={`flex items-center justify-between px-5 py-3 text-sm transition-all group ${
-                    activeCategoryId === cat.id 
-                      ? 'text-brand bg-brand/5' 
+                  className={`flex items-center justify-between px-5 py-3 text-sm transition-all group ${activeCategoryId === cat.id
+                      ? 'text-brand bg-brand/5'
                       : 'text-neutral-600 hover:text-brand hover:bg-neutral-50'
-                  }`}
+                    }`}
                 >
                   <span>{cat.name}</span>
                   <div className="flex items-center space-x-2">
@@ -146,8 +142,8 @@ const Home = () => {
                         <h4 className="text-xs font-bold text-neutral-400 uppercase tracking-widest">Sub Categories</h4>
                         <div className="grid grid-cols-1 gap-2">
                           {subCategoriesMap[cat.id].map((sub: any) => (
-                            <Link 
-                              key={sub.id} 
+                            <Link
+                              key={sub.id}
                               to={`/products?category=${sub.slug}`}
                               className="text-sm text-neutral-600 hover:text-brand hover:translate-x-1 transition-all"
                             >
@@ -156,7 +152,7 @@ const Home = () => {
                           ))}
                         </div>
                       </div>
-                      <div 
+                      <div
                         className={`rounded-xl p-6 flex flex-col justify-end relative overflow-hidden group/banner ${!cat.mega_menu_banner ? 'bg-brand/5' : ''}`}
                         style={cat.mega_menu_banner ? {
                           backgroundImage: `url(${resolveImageUrl(cat.mega_menu_banner)})`,
@@ -168,7 +164,7 @@ const Home = () => {
                         <div className="space-y-4 relative z-10">
                           <h4 className={`font-bold text-lg ${cat.mega_menu_banner ? 'text-white underline decoration-brand decoration-2 underline-offset-4' : 'text-brand'}`}>Top Brands in {cat.name}</h4>
                           <p className={`text-xs capitalize ${cat.mega_menu_banner ? 'text-white/90' : 'text-brand/70'}`}>Curated selection for your premium lifestyle.</p>
-                          <Link 
+                          <Link
                             to={`/products?category=${cat.slug}`}
                             className="inline-block bg-brand text-white text-xs font-bold px-4 py-2 rounded-lg hover:bg-brand-hover transition-all hover:scale-105 active:scale-95 shadow-xl"
                           >
@@ -187,10 +183,10 @@ const Home = () => {
         {/* Middle Column: Main Banners */}
         <div className="lg:col-span-3 relative z-10">
           {/* Banner 1: Hero */}
-          <div className="relative h-[300px] md:h-[450px] rounded-2xl overflow-hidden group shadow-2xl shadow-red-700/10">
+          <div className="relative h-[160px] sm:h-[300px] md:h-[400px] lg:h-[450px] rounded-2xl overflow-hidden group shadow-2xl shadow-red-700/10">
             <AnimatePresence mode="wait">
               {heroBanners.length > 0 ? (
-                <motion.div 
+                <motion.div
                   key={currentSlide}
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
@@ -199,60 +195,60 @@ const Home = () => {
                   className="absolute inset-0 w-full h-full"
                 >
                   {heroBanners[currentSlide].link ? (
-                    <Link 
+                    <Link
                       to={heroBanners[currentSlide].link}
                       className="absolute inset-0 w-full h-full block cursor-pointer"
                     >
-                      <img 
-                        src={resolveImageUrl(heroBanners[currentSlide].image)} 
-                        className="w-full h-full object-fill"
+                      <img
+                        src={resolveImageUrl(heroBanners[currentSlide].image)}
+                        className="w-full h-full object-cover"
                         alt={heroBanners[currentSlide].title}
                       />
                       <div className="absolute inset-0 to-transparent" />
-                      
-                      <motion.div 
-                        initial={{ opacity: 0, y: 30 }}
+
+                      <motion.div
+                        initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.2, duration: 0.5 }}
-                        className="absolute bottom-10 left-10 max-w-lg space-y-6"
+                        className="absolute bottom-4 left-4 md:bottom-10 md:left-10 max-w-[85%] md:max-w-lg space-y-2 md:space-y-6"
                       >
                         {heroBanners[currentSlide].title && (
-                          <h2 className="text-4xl md:text-5xl font-extrabold text-white drop-shadow-2xl leading-tight">
+                          <h2 className="text-lg sm:text-2xl md:text-5xl font-extrabold text-white drop-shadow-2xl leading-tight">
                             {heroBanners[currentSlide].title}
                           </h2>
                         )}
                         {heroBanners[currentSlide].button_text && (
-                          <span className="inline-flex items-center space-x-2 bg-white text-neutral-900 font-bold px-8 py-4 rounded-xl hover:bg-brand hover:text-white transition-all shadow-2xl transform hover:-translate-y-1">
+                          <span className="inline-flex items-center space-x-1.5 md:space-x-2 bg-white text-neutral-900 font-bold px-4 py-2 md:px-8 md:py-4 rounded-lg md:rounded-xl hover:bg-brand hover:text-white transition-all shadow-2xl text-[10px] md:text-sm transform hover:-translate-y-1">
                             <span>{heroBanners[currentSlide].button_text}</span>
-                            <ArrowRight className="w-5 h-5" />
+                            <ArrowRight className="w-3.5 h-3.5 md:w-5 md:h-5" />
                           </span>
                         )}
                       </motion.div>
                     </Link>
                   ) : (
                     <div className="absolute inset-0 w-full h-full">
-                      <img 
-                        src={resolveImageUrl(heroBanners[currentSlide].image)} 
-                        className="w-full h-full object-fill"
+                      <img
+                        src={resolveImageUrl(heroBanners[currentSlide].image)}
+                        className="w-full h-full object-cover"
                         alt={heroBanners[currentSlide].title}
                       />
                       <div className="absolute inset-0 to-transparent" />
-                      
-                      <motion.div 
-                        initial={{ opacity: 0, y: 30 }}
+
+                      <motion.div
+                        initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.2, duration: 0.5 }}
-                        className="absolute bottom-10 left-10 max-w-lg space-y-6"
+                        className="absolute bottom-4 left-4 md:bottom-10 md:left-10 max-w-[85%] md:max-w-lg space-y-2 md:space-y-6"
                       >
                         {heroBanners[currentSlide].title && (
-                          <h2 className="text-4xl md:text-5xl font-extrabold text-white drop-shadow-2xl leading-tight">
+                          <h2 className="text-lg sm:text-2xl md:text-5xl font-extrabold text-white drop-shadow-2xl leading-tight">
                             {heroBanners[currentSlide].title}
                           </h2>
                         )}
                         {heroBanners[currentSlide].button_text && (
-                          <span className="inline-flex items-center space-x-2 bg-white text-neutral-900 font-bold px-8 py-4 rounded-xl hover:bg-brand hover:text-white transition-all shadow-2xl transform hover:-translate-y-1">
+                          <span className="inline-flex items-center space-x-1.5 md:space-x-2 bg-white text-neutral-900 font-bold px-4 py-2 md:px-8 md:py-4 rounded-lg md:rounded-xl hover:bg-brand hover:text-white transition-all shadow-2xl text-[10px] md:text-sm transform hover:-translate-y-1">
                             <span>{heroBanners[currentSlide].button_text}</span>
-                            <ArrowRight className="w-5 h-5" />
+                            <ArrowRight className="w-3.5 h-3.5 md:w-5 md:h-5" />
                           </span>
                         )}
                       </motion.div>
@@ -272,7 +268,7 @@ const Home = () => {
                     Explore the best-curated tech products at unbeatable prices in Bangladesh.
                   </p>
                   <div>
-                    <Link 
+                    <Link
                       to="/products"
                       className="inline-flex items-center space-x-2 bg-white text-neutral-900 font-bold px-5 py-2.5 rounded-xl hover:bg-neutral-100 transition-all shadow-lg text-xs md:text-sm"
                     >
@@ -287,28 +283,27 @@ const Home = () => {
             {/* Carousel Controls */}
             {heroBanners.length > 1 && (
               <>
-                <button 
+                <button
                   onClick={prevSlide}
-                  className="absolute left-4 top-1/2 -translate-y-1/2 p-3 bg-white/20 backdrop-blur-md text-white rounded-full opacity-0 group-hover:opacity-100 transition-all hover:bg-white/40 border border-white/20"
+                  className="absolute left-2 md:left-4 top-1/2 -translate-y-1/2 p-2 md:p-3 bg-white/20 backdrop-blur-md text-white rounded-full md:opacity-0 group-hover:opacity-100 transition-all hover:bg-white/40 border border-white/20"
                 >
-                  <ChevronLeft className="w-6 h-6" />
+                  <ChevronLeft className="w-4 h-4 md:w-6 md:h-6" />
                 </button>
-                <button 
+                <button
                   onClick={nextSlide}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 p-3 bg-white/20 backdrop-blur-md text-white rounded-full opacity-0 group-hover:opacity-100 transition-all hover:bg-white/40 border border-white/20"
+                  className="absolute right-2 md:right-4 top-1/2 -translate-y-1/2 p-2 md:p-3 bg-white/20 backdrop-blur-md text-white rounded-full md:opacity-0 group-hover:opacity-100 transition-all hover:bg-white/40 border border-white/20"
                 >
-                  <ChevronRight className="w-6 h-6" />
+                  <ChevronRight className="w-4 h-4 md:w-6 md:h-6" />
                 </button>
 
                 {/* Pagination Dots */}
-                <div className="absolute bottom-6 right-10 flex space-x-3">
+                <div className="absolute bottom-3 right-4 md:bottom-6 md:right-10 flex space-x-2 md:space-x-3">
                   {heroBanners.map((_, idx) => (
                     <button
                       key={idx}
                       onClick={() => setCurrentSlide(idx)}
-                      className={`h-1.5 transition-all duration-300 rounded-full ${
-                        currentSlide === idx ? 'w-8 bg-white' : 'w-2 bg-white/40'
-                      }`}
+                      className={`h-1.5 transition-all duration-300 rounded-full ${currentSlide === idx ? 'w-8 bg-white' : 'w-2 bg-white/40'
+                        }`}
                     />
                   ))}
                 </div>
@@ -345,10 +340,10 @@ const Home = () => {
             <h2 className="text-xl md:text-2xl font-bold text-neutral-900 uppercase tracking-tight">Popular Categories</h2>
             <p className="text-sm text-neutral-500">Explore items by their specialized usage</p>
           </div>
-          
+
           {/* Navigation Arrows in Header */}
           <div className="flex items-center space-x-2">
-            <button 
+            <button
               onClick={() => {
                 const el = document.getElementById('category-carousel');
                 if (el) el.scrollLeft -= 240;
@@ -357,7 +352,7 @@ const Home = () => {
             >
               <ChevronLeft className="w-5 h-5" />
             </button>
-            <button 
+            <button
               onClick={() => {
                 const el = document.getElementById('category-carousel');
                 if (el) el.scrollLeft += 240;
@@ -368,9 +363,9 @@ const Home = () => {
             </button>
           </div>
         </div>
-        
+
         <div className="relative">
-          <div 
+          <div
             id="category-carousel"
             className="flex overflow-x-auto snap-x snap-mandatory gap-6 pb-2 -mx-2 px-2 scroll-smooth no-scrollbar"
             style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
@@ -381,16 +376,16 @@ const Home = () => {
               }
             `}</style>
             {parentCategories?.map((category: any) => (
-              <Link 
-                key={category.id} 
+              <Link
+                key={category.id}
                 to={`/products?category=${category.slug}`}
                 className="flex-shrink-0 w-28 sm:w-36 md:w-44 snap-start group flex flex-col items-center space-y-4"
               >
                 <div className="w-20 h-20 sm:w-28 sm:h-28 group-hover:scale-105 transition-transform duration-500 flex items-center justify-center bg-neutral-50 rounded-full overflow-hidden p-4">
                   {category.image ? (
-                    <img 
-                      src={resolveImageUrl(category.image)} 
-                      className="w-full h-full object-contain" 
+                    <img
+                      src={resolveImageUrl(category.image)}
+                      className="w-full h-full object-contain"
                       alt={category.name}
                       onError={(e) => {
                         (e.target as HTMLImageElement).src = 'https://api.iconify.design/lucide:shopping-bag.svg?color=%23C0561F';
@@ -410,105 +405,101 @@ const Home = () => {
       {/* Flash Sale Section */}
       <FlashSaleSection />
 
-            {/* Top Trending Section */}
-            <div className="container mx-auto px-4 mb-20">
-                <div className="flex flex-col md:flex-row justify-between items-center mb-8 border-b border-gray-200 pb-4">
-                    <div className="flex flex-col items-center md:items-start mb-6 md:mb-0">
-                        <h2 className="text-base md:text-lg font-black text-gray-900 tracking-tight">Trending Products</h2>
-                        <div className="h-0.5 w-6 bg-brand mt-1 rounded-full"></div>
-                    </div>
-                    <div className="flex flex-wrap gap-2 sm:gap-4 md:gap-5 justify-center md:justify-end">
-                        <button
-                            onClick={() => setActiveTab('All')}
-                            className={`text-[8px] md:text-[8.5px] font-black uppercase tracking-widest transition-all hover:text-brand relative py-2 ${activeTab === 'All' ? 'text-brand' : 'text-gray-400'}`}
-                        >
-                            All
-                            {activeTab === 'All' && <span className="absolute bottom-0 left-0 w-full h-0.5 bg-brand rounded-full"></span>}
-                        </button>
-                        {trendingCategories.map((cat) => (
-                            <button
-                                key={cat.id}
-                                onClick={() => setActiveTab(cat.name)}
-                                className={`text-[8px] md:text-[8.5px] font-black uppercase tracking-widest transition-all hover:text-brand relative py-2 ${activeTab === cat.name ? 'text-brand' : 'text-gray-400'}`}
-                            >
-                                {cat.name}
-                                {activeTab === cat.name && <span className="absolute bottom-0 left-0 w-full h-0.5 bg-brand rounded-full"></span>}
-                            </button>
-                        ))}
-                    </div>
-                </div>
-                <div className="relative">
-                    {loading ? (
-                        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-                            {[1, 2, 3, 4].map((item) => (
-                                <div key={item} className="bg-white p-2 md:p-4 rounded-xl md:rounded-2xl shadow-sm border border-gray-100">
-                                    <div className="h-40 md:h-48 bg-gray-200 rounded-lg md:rounded-xl mb-2 md:mb-4 animate-pulse"></div>
-                                    <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
-                                    <div className="h-4 bg-gray-200 rounded w-1/2"></div>
-                                </div>
-                            ))}
-                        </div>
-                    ) : getFilteredProducts().length > 0 ? (
-                        <Swiper
-                            modules={[Navigation, Pagination, Autoplay]}
-                            spaceBetween={16}
-                            slidesPerView={2}
-                            breakpoints={{
-                                640: { slidesPerView: 2, spaceBetween: 20 },
-                                768: { slidesPerView: 3, spaceBetween: 24 },
-                                1024: { slidesPerView: 4, spaceBetween: 24 },
-                                1280: { slidesPerView: 5, spaceBetween: 28 },
-                            }}
-                            navigation={false}
-                            pagination={{
-                                clickable: true,
-                                renderBullet: function (index, className) {
-                                    return '<span class="' + className + ' custom-number-bullet">' + (index + 1) + '</span>';
-                                },
-                            }}
-                            autoplay={{ delay: 5000, disableOnInteraction: false }}
-                            className="py-4 trending-swiper"
-                        >
-                            {getFilteredProducts().slice(0, 10).map((product: any) => (
-                                <SwiperSlide key={product.id}>
-                                    <ProductCard product={product} />
-                                </SwiperSlide>
-                            ))}
-                        </Swiper>
-                    ) : (
-                        <div className="py-20 text-center bg-white rounded-3xl border-2 border-dashed border-gray-200">
-                            <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4 text-gray-300">
-                                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
-                            </div>
-                            <p className="text-gray-500 font-bold">{t('no_products_found')}</p>
-                        </div>
-                    )}
-                </div>
+      {/* Top Trending Section */}
+      <div className="container mx-auto px-4 mb-20">
+        <div className="flex flex-col md:flex-row justify-between items-center mb-8 border-b border-gray-200 pb-4">
+          <div className="flex flex-col items-center md:items-start mb-6 md:mb-0">
+            <h2 className="text-base md:text-lg font-black text-gray-900 tracking-tight">Trending Products</h2>
+            <div className="h-0.5 w-6 bg-brand mt-1 rounded-full"></div>
+          </div>
+          <div className="flex flex-wrap gap-2 sm:gap-4 md:gap-5 justify-center md:justify-end">
+            <button
+              onClick={() => setActiveTab('All')}
+              className={`text-[8px] md:text-[8.5px] font-black uppercase tracking-widest transition-all hover:text-brand relative py-2 ${activeTab === 'All' ? 'text-brand' : 'text-gray-400'}`}
+            >
+              All
+              {activeTab === 'All' && <span className="absolute bottom-0 left-0 w-full h-0.5 bg-brand rounded-full"></span>}
+            </button>
+            {trendingCategories.map((cat) => (
+              <button
+                key={cat.id}
+                onClick={() => setActiveTab(cat.name)}
+                className={`text-[8px] md:text-[8.5px] font-black uppercase tracking-widest transition-all hover:text-brand relative py-2 ${activeTab === cat.name ? 'text-brand' : 'text-gray-400'}`}
+              >
+                {cat.name}
+                {activeTab === cat.name && <span className="absolute bottom-0 left-0 w-full h-0.5 bg-brand rounded-full"></span>}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div className="relative">
+          {loading ? (
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6">
+              {[1, 2, 3, 4, 5].map((item) => (
+                <ProductSkeleton key={item} />
+              ))}
             </div>
+          ) : getFilteredProducts().length > 0 ? (
+            <Swiper
+              modules={[Navigation, Pagination, Autoplay]}
+              spaceBetween={16}
+              slidesPerView={2}
+              breakpoints={{
+                640: { slidesPerView: 2, spaceBetween: 20 },
+                768: { slidesPerView: 3, spaceBetween: 24 },
+                1024: { slidesPerView: 4, spaceBetween: 24 },
+                1280: { slidesPerView: 5, spaceBetween: 28 },
+              }}
+              navigation={false}
+              pagination={{
+                clickable: true,
+                renderBullet: function (index, className) {
+                  return '<span class="' + className + ' custom-number-bullet">' + (index + 1) + '</span>';
+                },
+              }}
+              autoplay={{ delay: 5000, disableOnInteraction: false }}
+              className="py-4 trending-swiper"
+            >
+              {getFilteredProducts().slice(0, 10).map((product: any) => (
+                <SwiperSlide key={product.id}>
+                  <ProductCard product={product} />
+                </SwiperSlide>
+              ))}
+            </Swiper>
+          ) : (
+            <div className="py-20 text-center bg-white rounded-3xl border-2 border-dashed border-gray-200">
+              <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4 text-gray-300">
+                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
+              </div>
+              <p className="text-gray-500 font-bold">{t('no_products_found')}</p>
+            </div>
+          )}
+        </div>
+      </div>
 
-            
-            {/* Dual Promo Banners */}
-            <div className="container mx-auto px-4 mb-24">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8">
-                    {promoBanners.slice(0, 2).map((banner) => (
-                        <Link to={banner.link || '#'} key={banner.id} className="relative h-[220px] md:h-[300px] lg:h-[350px] rounded-3xl overflow-hidden group shadow-xl block">
-                            {banner.image ? (
-                                <img src={resolveImageUrl(banner.image)} alt={banner.title} className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105" />
-                            ) : (
-                                <div className="w-full h-full bg-gradient-to-br from-gray-800 to-black flex items-center justify-center text-gray-400">No Image</div>
-                            )}
-                            <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent flex flex-col justify-center p-8 md:p-12">
-                                <h3 className="text-base md:text-xl font-black text-white mb-3 leading-tight max-w-[85%] transform transition-transform group-hover:-translate-y-1 hover:underline">{banner.title}</h3>
-                            </div>
-                        </Link>
-                    ))}
-                    {/* Fallback mockups if less than 2 banners */}
-                    {/* {Array.from({ length: Math.max(0, 2 - promoBanners.length) }).map((_, index) => (
+
+      {/* Dual Promo Banners */}
+      <div className="container mx-auto px-4 mb-24">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8">
+          {promoBanners.slice(0, 2).map((banner) => (
+            <Link to={banner.link || '#'} key={banner.id} className="relative h-[220px] md:h-[300px] lg:h-[350px] rounded-3xl overflow-hidden group shadow-xl block">
+              {banner.image ? (
+                <img src={resolveImageUrl(banner.image)} alt={banner.title} className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105" />
+              ) : (
+                <div className="w-full h-full bg-gradient-to-br from-gray-800 to-black flex items-center justify-center text-gray-400">No Image</div>
+              )}
+              <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent flex flex-col justify-center p-8 md:p-12">
+                <h3 className="text-base md:text-xl font-black text-white mb-3 leading-tight max-w-[85%] transform transition-transform group-hover:-translate-y-1 hover:underline">{banner.title}</h3>
+              </div>
+            </Link>
+          ))}
+          {/* Fallback mockups if less than 2 banners */}
+          {/* {Array.from({ length: Math.max(0, 2 - promoBanners.length) }).map((_, index) => (
                         <div key={`placeholder-${index}`} className={`relative h-[220px] md:h-[300px] lg:h-[350px] rounded-3xl overflow-hidden group shadow-xl flex items-center justify-center text-white p-10 text-center ${index === 0 ? 'bg-gradient-to-br from-indigo-900 to-purple-900' : 'bg-gradient-to-br from-amber-700 to-orange-900'}`}>
                         </div>
                     ))} */}
-                </div>
-            </div>
+        </div>
+      </div>
 
       {/* Featured Products */}
       <section className="space-y-6">
@@ -517,20 +508,25 @@ const Home = () => {
             <h2 className="text-2xl font-bold text-neutral-900">Latest Products</h2>
             <p className="text-sm text-neutral-500">Discover the latest items</p>
           </div>
-           <Link to="/products" className="text-brand font-bold text-sm flex items-center space-x-1 group">
+          <Link to="/products" className="text-brand font-bold text-sm flex items-center space-x-1 group">
             <span>Explore Products</span>
             <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
           </Link>
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-          {products ? [...products].sort((a, b) => {
-            const stockA = a.stock && a.stock > 0 ? 1 : 0;
-            const stockB = b.stock && b.stock > 0 ? 1 : 0;
-            return stockB - stockA;
-          }).slice(0, 25).map((product: any) => (
-            <ProductCard key={product.id} product={product} />
-          )) : null}
+          {productsLoading ? (
+            Array.from({ length: 10 }).map((_, index) => (
+              <ProductSkeleton key={index} />
+            ))
+          ) : products ? (
+            products
+              .filter((product: any) => product.stock !== undefined ? product.stock > 0 : true)
+              .slice(0, 25)
+              .map((product: any) => (
+                <ProductCard key={product.id} product={product} />
+              ))
+          ) : null}
         </div>
       </section>
 
@@ -542,11 +538,11 @@ const Home = () => {
               <h2 className="text-2xl font-bold text-neutral-900 uppercase tracking-tight">Blogs</h2>
               <p className="text-sm text-neutral-500">Our Latest Blogs</p>
             </div>
-            
+
             <div className="flex items-center justify-between sm:justify-end w-full sm:w-auto gap-6">
               {/* Carousel controls */}
               <div className="flex items-center space-x-2">
-                <button 
+                <button
                   onClick={() => {
                     const el = document.getElementById('blog-carousel');
                     if (el) el.scrollBy({ left: -360, behavior: 'smooth' });
@@ -556,7 +552,7 @@ const Home = () => {
                 >
                   <ChevronLeft className="w-5 h-5" />
                 </button>
-                <button 
+                <button
                   onClick={() => {
                     const el = document.getElementById('blog-carousel');
                     if (el) el.scrollBy({ left: 360, behavior: 'smooth' });
@@ -576,7 +572,7 @@ const Home = () => {
           </div>
 
           <div className="relative">
-            <div 
+            <div
               id="blog-carousel"
               className="flex gap-6 overflow-x-auto snap-x snap-mandatory pb-6 scroll-smooth no-scrollbar"
               style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
@@ -587,8 +583,8 @@ const Home = () => {
                 }
               `}</style>
               {blogs.slice(0, 12).map((post: any) => (
-                <div 
-                  key={post.id} 
+                <div
+                  key={post.id}
                   className="w-[85%] sm:w-[calc(50%-12px)] lg:w-[calc(33.333%-16px)] xl:w-[calc(25%-18px)] flex-shrink-0 snap-start"
                 >
                   <BlogCard post={post} />

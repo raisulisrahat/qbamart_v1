@@ -124,7 +124,7 @@ const FlashSaleSection = () => {
               ? "flex overflow-x-auto gap-4 sm:gap-5 pb-4 scrollbar-hide snap-x" 
               : "grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5"}
           >
-            {activeSale.items.map((item: any, idx: number) => {
+            {activeSale.items.filter((item: any) => item.product?.stock !== undefined ? item.product.stock > 0 : true).map((item: any, idx: number) => {
               const product = { ...item.product };
               const discount = item.discount_percentage || activeSale.discount_percentage;
               

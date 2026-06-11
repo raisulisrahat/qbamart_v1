@@ -1737,9 +1737,24 @@ class MetaView(View):
                     import re
                     clean_desc = re.sub(r'<[^>]+>', '', str(raw_desc))[:200]
                     description = clean_desc or description
-                    if hasattr(post, 'featured_image') and post.featured_image:
+                    if hasattr(post, 'image') and post.image:
                         try:
-                            image = request.build_absolute_uri(post.featured_image.url)
+                            image = request.build_absolute_uri(post.image.url)
+                        except ValueError:
+                            pass
+            
+            elif 'offer/' in path or 'step/' in path:
+                slug = (path.split('offer/')[-1] if 'offer/' in path else path.split('step/')[-1]).split('?')[0].strip('/')
+                funnel = Funnel.objects.filter(slug=slug).first()
+                if funnel and funnel.product:
+                    title = f"{funnel.title or funnel.product.name} | {site_title}"
+                    raw_desc = funnel.product.short_description or funnel.product.description or ''
+                    import re
+                    clean_desc = re.sub(r'<[^>]+>', '', str(raw_desc))[:200]
+                    description = clean_desc or description
+                    if funnel.product.image:
+                        try:
+                            image = request.build_absolute_uri(funnel.product.image.url)
                         except ValueError:
                             pass
             
@@ -2163,4 +2178,63 @@ class BkashCallbackView(View):
             order.save(update_fields=['status'])
             redirect_url = f"{frontend_base}/checkout?status=failure&message=Payment+failed"
             return redirect(redirect_url)
+
+
+class SitemapView(View):
+    def get(self, request, *args, **kwargs):
+        from django.conf import settings as django_settings
+        frontend_url = getattr(django_settings, 'FRONTEND_URL', 'https://qbamart.com').rstrip('/')
+        
+        # Build sitemap XML
+        urls = []
+        
+        # 1. Static Pages
+        static_paths = [
+            ('', '1.0', 'daily'),
+            ('/products', '0.9', 'daily'),
+            ('/flash-sale', '0.8', 'daily'),
+            ('/offer', '0.7', 'weekly'),
+            ('/blogs', '0.7', 'weekly'),
+            ('/about-us', '0.5', 'monthly'),
+            ('/contact-us', '0.5', 'monthly'),
+            ('/shipping-policy', '0.3', 'monthly'),
+            ('/return-replacement-policy', '0.3', 'monthly'),
+            ('/privacy-policy', '0.3', 'monthly'),
+            ('/terms-conditions', '0.3', 'monthly'),
+            ('/brands', '0.5', 'monthly'),
+            ('/categories', '0.5', 'monthly'),
+        ]
+        for path_str, priority, changefreq in static_paths:
+            urls.append(f"  <url>\n    <loc>{frontend_url}{path_str}</loc>\n    <changefreq>{changefreq}</changefreq>\n    <priority>{priority}</priority>\n  </url>")
+        
+        # 2. Dynamic Categories
+        categories = Category.objects.all()
+        for cat in categories:
+            urls.append(f"  <url>\n    <loc>{frontend_url}/products?category={cat.slug}</loc>\n    <changefreq>daily</changefreq>\n    <priority>0.8</priority>\n  </url>")
+            
+        # 3. Dynamic Brands
+        brands = Brand.objects.all()
+        for brand in brands:
+            urls.append(f"  <url>\n    <loc>{frontend_url}/products?brand={brand.slug}</loc>\n    <changefreq>weekly</changefreq>\n    <priority>0.6</priority>\n  </url>")
+            
+        # 4. Dynamic Products
+        products = Product.objects.filter(is_active=True)
+        for prod in products:
+            urls.append(f"  <url>\n    <loc>{frontend_url}/product/{prod.slug}</loc>\n    <lastmod>{prod.updated_at.strftime('%Y-%m-%d')}</lastmod>\n    <changefreq>daily</changefreq>\n    <priority>0.8</priority>\n  </url>")
+            
+        # 5. Dynamic Blog Posts
+        posts = BlogPost.objects.filter(is_published=True)
+        for post in posts:
+            urls.append(f"  <url>\n    <loc>{frontend_url}/blog/{post.slug}</loc>\n    <lastmod>{post.created_at.strftime('%Y-%m-%d')}</lastmod>\n    <changefreq>weekly</changefreq>\n    <priority>0.7</priority>\n  </url>")
+            
+        # 6. Dynamic Funnels
+        funnels = Funnel.objects.filter(is_active=True)
+        for funnel in funnels:
+            path_prefix = '/step' if funnel.layout_type == 'bangla' else '/offer'
+            urls.append(f"  <url>\n    <loc>{frontend_url}{path_prefix}/{funnel.slug}</loc>\n    <changefreq>weekly</changefreq>\n    <priority>0.7</priority>\n  </url>")
+            
+        # Combine
+        xml_content = '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' + "\n".join(urls) + '\n</urlset>'
+        return HttpResponse(xml_content, content_type="application/xml")
+
 
