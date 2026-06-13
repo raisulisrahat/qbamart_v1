@@ -263,6 +263,24 @@ class ProductVideo(models.Model):
     def __str__(self):
         return f"Video for {self.product.name}"
 
+    def save(self, *args, **kwargs):
+        import os
+        is_new_video = False
+        if self.video:
+            try:
+                from django.core.files.uploadedfile import UploadedFile
+                if hasattr(self.video, 'file') and isinstance(self.video.file, UploadedFile):
+                    is_new_video = True
+            except Exception:
+                pass
+
+        super().save(*args, **kwargs)
+
+        if is_new_video and self.video and os.path.exists(self.video.path):
+            from .video_compressor import compress_video_file
+            compress_video_file(self.video.path)
+
+
 class Order(models.Model):
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='orders')
     customer_name = models.CharField(max_length=200)
@@ -351,9 +369,25 @@ class Banner(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def save(self, *args, **kwargs):
+        import os
         if self.image and not self.image.name.endswith('.webp'):
             compress_image(self.image)
+
+        is_new_video = False
+        if self.video:
+            try:
+                from django.core.files.uploadedfile import UploadedFile
+                if hasattr(self.video, 'file') and isinstance(self.video.file, UploadedFile):
+                    is_new_video = True
+            except Exception:
+                pass
+
         super().save(*args, **kwargs)
+
+        if is_new_video and self.video and os.path.exists(self.video.path):
+            from .video_compressor import compress_video_file
+            compress_video_file(self.video.path)
+
 
     class Meta:
         ordering = ['order', '-created_at']
@@ -755,9 +789,25 @@ class ProductFunnelSection(models.Model):
         return f"Section for {self.product.name}: {self.title or 'Untitled'}"
 
     def save(self, *args, **kwargs):
+        import os
         if self.image and not self.image.name.endswith('.webp'):
             compress_image(self.image)
+
+        is_new_video = False
+        if self.video:
+            try:
+                from django.core.files.uploadedfile import UploadedFile
+                if hasattr(self.video, 'file') and isinstance(self.video.file, UploadedFile):
+                    is_new_video = True
+            except Exception:
+                pass
+
         super().save(*args, **kwargs)
+
+        if is_new_video and self.video and os.path.exists(self.video.path):
+            from .video_compressor import compress_video_file
+            compress_video_file(self.video.path)
+
 
 
 class FunnelReviewImage(models.Model):

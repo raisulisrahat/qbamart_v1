@@ -9,36 +9,10 @@ interface LanguageContextType {
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
 export const LanguageProvider = ({ children }: { children: ReactNode }) => {
-    const [language, setLanguageState] = useState(() => {
-        try {
-            // 1. Check URL parameters
-            const params = new URLSearchParams(window.location.search);
-            const langParam = params.get('lang');
-            if (langParam === 'bn' || langParam === 'en') {
-                localStorage.setItem('language', langParam);
-                return langParam;
-            }
-            
-            // 2. Check localStorage
-            const storedLang = localStorage.getItem('language');
-            if (storedLang === 'bn' || storedLang === 'en') {
-                return storedLang;
-            }
-        } catch (e) {
-            console.error("Error detecting language preference", e);
-        }
-        
-        // 3. Default to 'bn' (Bangla) since this is a Bangla-centric platform
-        return 'bn';
-    });
+    const [language, setLanguageState] = useState('bn');
 
     const setLanguage = (lang: string) => {
-        try {
-            localStorage.setItem('language', lang);
-        } catch (e) {
-            console.error("Error saving language preference", e);
-        }
-        setLanguageState(lang);
+        setLanguageState('bn');
     };
 
     // Basic translation mapping
@@ -72,7 +46,7 @@ export const LanguageProvider = ({ children }: { children: ReactNode }) => {
             safe_secure_checkout: 'Safe & Secure Checkout',
             complete_order: 'Complete Your Order',
             fill_in_details_desc: 'Please fill in your details below to confirm your order.',
-            write_full_address: 'Write your full address here...',
+            write_full_address: 'District, Upazila, Full Address',
             shipping_method: 'Shipping Method',
             product: 'Product',
             secure_checkout_100: '100% Secure Checkout',
@@ -111,7 +85,7 @@ export const LanguageProvider = ({ children }: { children: ReactNode }) => {
             safe_secure_checkout: 'নিরাপদ চেকআউট',
             complete_order: 'অর্ডার সম্পন্ন করুন',
             fill_in_details_desc: 'অর্ডারটি সম্পন্ন করতে নিচের তথ্যগুলো পূরণ করুন।',
-            write_full_address: 'আপনার বিস্তারিত ঠিকানা এখানে লিখুন...',
+            write_full_address: 'জেলা, উপজেলা, বিস্তারিত ঠিকানা',
             shipping_method: 'শিপিং পদ্ধতি',
             product: 'পণ্য',
             secure_checkout_100: '১০০% নিরাপদ চেকআউট',

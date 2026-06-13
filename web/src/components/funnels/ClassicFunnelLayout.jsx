@@ -184,13 +184,13 @@ const ClassicFunnelLayout = ({
             <div id="order-form" className="py-2 relative overflow-hidden bg-white rounded-3xl">
                 <div className="container mx-auto px-4 max-w-4xl relative z-10">
                     <div className="bg-slate-900 border border-white/20 rounded-[2.5rem] shadow-2xl overflow-hidden relative">
-                        <div className="bg-gradient-to-r from-[#5173FB] to-[#3a5bd9] p-5 text-center shadow-md relative z-10">
+                        <div className="bg-gradient-to-r from-brand to-brand p-5 text-center shadow-md relative z-10">
                             <p className="font-black text-white uppercase tracking-[0.2em] text-xs flex items-center justify-center gap-2">
                                 <Zap size={14} /> {t('cash_on_delivery')} <Zap size={14} />
                             </p>
                         </div>
 
-                        <div className="p-6 md:p-10 relative z-10">
+                        <div className="p-4 sm:p-6 md:p-10 relative z-10">
                             <form onSubmit={handleFormSubmit} className="space-y-6">
                                 {/* Name and Phone */}
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -200,7 +200,7 @@ const ClassicFunnelLayout = ({
                                             type="text"
                                             name="customer_name"
                                             required
-                                            className="w-full px-5 py-4 bg-white/5 border border-white/20 rounded-2xl focus:border-[#5173FB] focus:bg-white/10 text-white placeholder-slate-500 outline-none font-medium transition-all"
+                                            className="w-full px-5 py-4 bg-white/5 border border-white/20 rounded-2xl focus:border-brand focus:bg-white/10 text-white placeholder-slate-500 outline-none font-medium transition-all"
                                             placeholder={t('full_name')}
                                             value={formData.customer_name}
                                             onChange={handleChange}
@@ -212,7 +212,7 @@ const ClassicFunnelLayout = ({
                                             type="tel"
                                             name="phone_number"
                                             required
-                                            className="w-full px-5 py-4 bg-white/5 border border-white/20 rounded-2xl focus:border-[#5173FB] focus:bg-white/10 text-white placeholder-slate-500 outline-none font-medium transition-all"
+                                            className="w-full px-5 py-4 bg-white/5 border border-white/20 rounded-2xl focus:border-brand focus:bg-white/10 text-white placeholder-slate-500 outline-none font-medium transition-all"
                                             placeholder="017XXXXXXXX"
                                             value={formData.phone_number}
                                             onChange={handlePhoneChange}
@@ -229,24 +229,26 @@ const ClassicFunnelLayout = ({
                                                 <div
                                                     key={variant.id}
                                                     onClick={() => handleVariantSelect(variant.id)}
-                                                    className={`cursor-pointer flex items-center justify-between p-3 rounded-2xl border-2 transition-all duration-300 ${variant.quantity > 0 ? 'border-[#5173FB] bg-white/10 shadow-[0_0_15px_rgba(81, 115, 251,0.2)]' : 'border-white/5 bg-black/20 hover:border-white/20'}`}
+                                                    className={`cursor-pointer flex items-center justify-between p-2 sm:p-3 rounded-2xl border-2 transition-all duration-300 ${variant.quantity > 0 ? 'border-brand bg-white/10 shadow-[0_0_15px_rgba(81, 115, 251,0.2)]' : 'border-white/5 bg-black/20 hover:border-white/20'}`}
                                                 >
-                                                   <div className="flex items-center gap-4">
+                                                   <div className="flex items-center gap-2 sm:gap-4 min-w-0 flex-1">
                                                        {/* Radio Bullet Indicator */}
-                                                       <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-all duration-300 ${variant.quantity > 0 ? 'border-[#5173FB] bg-white/10' : 'border-white/20'}`}>
-                                                           <div className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${variant.quantity > 0 ? 'bg-[#5173FB] scale-100' : 'bg-transparent scale-0'}`} />
+                                                       <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-all duration-300 ${variant.quantity > 0 ? 'border-brand bg-white/10' : 'border-white/20'}`}>
+                                                           <div className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${variant.quantity > 0 ? 'bg-brand scale-100' : 'bg-transparent scale-0'}`} />
                                                        </div>
-                                                       <div className="w-16 h-16 rounded-xl overflow-hidden bg-white shrink-0">
+                                                       <div className="w-10 h-10 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-xl overflow-hidden bg-white shrink-0">
                                                            <img src={variant.image} className="w-full h-full object-cover" alt={variant.color?.name} onError={(e) => { e.target.src = product.images?.[0]?.image || ''; }} loading="eager" fetchPriority="high" />
                                                        </div>
-                                                       <span className="text-white font-bold text-sm tracking-tight">{variant.color?.name || variant.size?.name}</span>
+                                                       <div className="flex flex-col items-start text-left min-w-0 flex-1">
+                                                           <span className="text-white font-bold text-xs sm:text-sm tracking-tight truncate w-full block">{variant.color?.name || variant.size?.name || 'Standard'}</span>
+                                                       </div>
                                                    </div>
-                                                   <div className="flex items-center gap-4" onClick={e => e.stopPropagation()}>
-                                                       <span className="text-[#5173FB] font-black">৳{variant.price}</span>
+                                                   <div className="flex items-center gap-1.5 sm:gap-4 shrink-0 ml-2" onClick={e => e.stopPropagation()}>
+                                                       <span className="text-brand font-black text-sm sm:text-base">৳{variant.price}</span>
                                                        <div className="flex items-center bg-black/40 rounded-lg border border-white/10 overflow-hidden">
-                                                            <button type="button" onClick={() => handleVariantQuantityChange(variant.id, -1)} className="px-3 py-1 text-white hover:bg-white/20">-</button>
-                                                            <span className="px-2 text-white font-bold text-xs">{variant.quantity}</span>
-                                                            <button type="button" onClick={() => handleVariantQuantityChange(variant.id, 1)} className="px-3 py-1 text-white hover:bg-white/20">+</button>
+                                                            <button type="button" onClick={() => handleVariantQuantityChange(variant.id, -1)} className="px-2 sm:px-3 py-0.5 sm:py-1 text-white hover:bg-white/20 text-sm sm:text-base">-</button>
+                                                            <span className="px-1.5 sm:px-2 text-white font-bold text-xs sm:text-sm">{variant.quantity}</span>
+                                                            <button type="button" onClick={() => handleVariantQuantityChange(variant.id, 1)} className="px-2 sm:px-3 py-0.5 sm:py-1 text-white hover:bg-white/20 text-sm sm:text-base">+</button>
                                                        </div>
                                                    </div>
                                                 </div>
@@ -299,6 +301,7 @@ const ClassicFunnelLayout = ({
                                         required
                                         rows="2"
                                         className="w-full px-5 py-4 bg-white/5 border border-white/20 rounded-2xl text-white outline-none"
+                                        placeholder={t('write_full_address')}
                                         value={formData.address}
                                         onChange={handleChange}
                                     />
@@ -312,12 +315,12 @@ const ClassicFunnelLayout = ({
                                     </div>
                                     <div className="flex justify-between items-center mb-4">
                                         <span className="text-white/60 text-sm">{t('shipping')}</span>
-                                        <span className="text-[#5173FB] font-bold">৳{shippingCost}</span>
+                                        <span className="text-brand font-bold">৳{shippingCost}</span>
                                     </div>
                                     <div className="h-px bg-white/10 mb-4" />
                                     <div className="flex justify-between items-center">
                                         <span className="text-white font-black text-lg">{t('total_amount')}</span>
-                                        <span className="text-[#5173FB] font-black text-3xl">৳{finalTotal}</span>
+                                        <span className="text-brand font-black text-3xl">৳{finalTotal}</span>
                                     </div>
                                 </div>
 
@@ -325,7 +328,7 @@ const ClassicFunnelLayout = ({
                                     ref={submitBtnRef}
                                     type="submit"
                                     disabled={submitting}
-                                    className="w-full bg-gradient-to-r from-[#5173FB] to-[#3a5bd9] py-6 rounded-2xl text-white font-black text-2xl uppercase tracking-tighter hover:scale-[1.02] active:scale-95 transition-all shadow-xl shadow-[#5173FB]/20 disabled:opacity-50"
+                                    className="w-full bg-gradient-to-r from-brand to-brand py-6 rounded-2xl text-white font-black text-2xl uppercase tracking-tighter hover:scale-[1.02] active:scale-95 transition-all shadow-xl shadow-brand/20 disabled:opacity-50"
                                 >
                                     {submitting ? '...' : t('place_order')}
                                 </button>
@@ -340,7 +343,7 @@ const ClassicFunnelLayout = ({
 
     return (
         <div className="bg-slate-50 min-h-screen font-sans text-slate-800 overflow-x-hidden">
-            <div className="bg-[#5173FB] text-white py-3 px-4 shadow-md relative z-30 border-b border-white/10">
+            <div className="bg-brand text-white py-3 px-4 shadow-md relative z-30 border-b border-white/10">
                 <div className="max-w-xl mx-auto flex items-center gap-4">
                     <Zap size={16} className="text-white fill-white shrink-0 animate-pulse" />
                     <div className="whitespace-pre-line text-center text-xs sm:text-sm font-black leading-relaxed tracking-wide flex-1 uppercase">
@@ -364,7 +367,7 @@ const ClassicFunnelLayout = ({
                         <button onClick={() => document.getElementById('order-form').scrollIntoView({ behavior: 'smooth' })}
                             onMouseEnter={() => setIsHovered(true)}
                             onMouseLeave={() => setIsHovered(false)}
-                            className="group relative hidden lg:inline-flex items-center justify-center bg-[#5173FB] hover:bg-[#3a5bd9] text-white font-black text-xl lg:text-2xl py-5 px-10 rounded-full shadow-[0_0_40px_rgba(81, 115, 251,0.5)] transform transition-all duration-300 hover:scale-105 active:scale-95 w-full sm:w-auto overflow-hidden hero-cta">
+                            className="group relative hidden lg:inline-flex items-center justify-center bg-brand hover:bg-brand text-white font-black text-xl lg:text-2xl py-5 px-10 rounded-full shadow-[0_0_40px_rgba(81, 115, 251,0.5)] transform transition-all duration-300 hover:scale-105 active:scale-95 w-full sm:w-auto overflow-hidden hero-cta">
                             <span className="relative z-10 flex items-center gap-2">
                                 {t('secure_your_order')} <ArrowRight className={`transition-transform duration-300 ${isHovered ? 'translate-x-2' : ''}`} />
                             </span>
@@ -441,7 +444,7 @@ const ClassicFunnelLayout = ({
                         {/* Mobile-only CTA Button below the Hero Image */}
                         <div className="block lg:hidden mt-8 text-center px-4 w-full">
                             <button onClick={() => document.getElementById('order-form').scrollIntoView({ behavior: 'smooth' })}
-                                className="w-full group relative inline-flex items-center justify-center bg-[#5173FB] hover:bg-[#3a5bd9] text-white font-black text-xl py-5 px-10 rounded-full shadow-[0_0_40px_rgba(81, 115, 251,0.5)] transform transition-all duration-300 hover:scale-105 active:scale-95 overflow-hidden">
+                                className="w-full group relative inline-flex items-center justify-center bg-brand hover:bg-brand text-white font-black text-xl py-5 px-10 rounded-full shadow-[0_0_40px_rgba(81, 115, 251,0.5)] transform transition-all duration-300 hover:scale-105 active:scale-95 overflow-hidden">
                                 <span className="relative z-10 flex items-center justify-center gap-2">
                                     {t('secure_your_order')} <ArrowRight className="transition-transform duration-300 group-hover:translate-x-2" />
                                 </span>
@@ -454,7 +457,7 @@ const ClassicFunnelLayout = ({
             {/* Animated Pricing Banners (Only for ClassicFunnelLayout) */}
             <div className="w-full shadow-2xl relative z-20">
                 {/* Orange Strip */}
-                <div className="bg-gradient-to-r from-[#5173FB] via-[#8B5CF6] to-[#BC14CD] py-5 text-center text-white font-black text-2xl md:text-3xl tracking-wide border-b border-black/10 shadow-lg">
+                <div className="bg-gradient-to-r from-brand via-[#8B5CF6] to-[#BC14CD] py-5 text-center text-white font-black text-2xl md:text-3xl tracking-wide border-b border-black/10 shadow-lg">
                     <span className="flex items-center justify-center gap-1 md:gap-3 flex-wrap">
                         {language === 'bn' ? 'রেগুলার প্রাইস আগে ছিলো:' : 'Regular Price Was Before:'}
                         <span className="relative inline-flex items-center justify-center px-4 py-1">
@@ -554,7 +557,7 @@ const ClassicFunnelLayout = ({
                                     {funnel?.top_header_line_2}
                                 </p>
                         </div>        
-                    <div className="text-center mb-12 px-6 py-2 bg-gradient-to-r from-[#5173FB] via-[#8B5CF6] to-[#BC14CD] rounded-[2rem] shadow-xl shadow-brand/10 text-white">
+                    <div className="text-center mb-12 px-6 py-2 bg-gradient-to-r from-brand via-[#8B5CF6] to-[#BC14CD] rounded-[2rem] shadow-xl shadow-brand/10 text-white">
                         <h4 className="text-lg md:text-2xl font-black text-white mb-2">{funnel?.top_header_line_3}</h4>
                         <div className="w-24 h-1.5 bg-yellow-300 mx-auto rounded-full shadow-[0_0_10px_rgba(253,224,71,0.8)]"></div>
                     </div>
@@ -576,7 +579,7 @@ const ClassicFunnelLayout = ({
                     <div className="container mx-auto px-4 max-w-6xl">
                         {/* Section Header */}
                         <div className="text-center mb-16 space-y-4">
-                            <div className="bg-gradient-to-r from-[#5173FB] via-[#8B5CF6] to-[#BC14CD] text-white px-8 py-4 rounded-3xl inline-block shadow-2xl transform -rotate-1">
+                            <div className="bg-gradient-to-r from-brand via-[#8B5CF6] to-[#BC14CD] text-white px-8 py-4 rounded-3xl inline-block shadow-2xl transform -rotate-1">
                                 <h5 className="text-xl md:text-2xl font-black tracking-tight uppercase">
                                     আমাদের কাস্টমার রিভিউ
                                 </h5>
@@ -647,7 +650,7 @@ const ClassicFunnelLayout = ({
                         <div className="mt-10 text-center">
                             <button 
                                 onClick={() => document.getElementById('order-form')?.scrollIntoView({ behavior: 'smooth' })}
-                                className="bg-gradient-to-r from-[#5173FB] via-[#8B5CF6] to-[#BC14CD] text-white px-8 py-5 rounded-full text-md md:text-xl font-black shadow-2xl shadow-brand/30 transform transition-all hover:scale-105 active:scale-95 flex items-center justify-center gap-4 mx-auto uppercase tracking-tighter"
+                                className="bg-gradient-to-r from-brand via-[#8B5CF6] to-[#BC14CD] text-white px-8 py-5 rounded-full text-md md:text-xl font-black shadow-2xl shadow-brand/30 transform transition-all hover:scale-105 active:scale-95 flex items-center justify-center gap-4 mx-auto uppercase tracking-tighter"
                             >
                                 <ShoppingCart size={20} /> অর্ডার করতে ক্লিক করুন
                             </button>
@@ -671,7 +674,7 @@ const ClassicFunnelLayout = ({
                         <div className="bg-gradient-to-r p-3 sm:p-5 text-center shadow-md relative z-10">
                             {/* Variant Selection List */}
                                 {selectedVariants?.length > 0 && selectedVariants[0].id !== 'default' && (
-                                    <div className="bg-white/5 border border-white/10 rounded-2xl p-5 backdrop-blur-sm space-y-4">
+                                    <div className="bg-white/5 border border-white/10 rounded-2xl p-3 sm:p-5 backdrop-blur-sm space-y-4">
                                         <h3 className="text-sm font-bold text-white uppercase tracking-wider mb-2">
                                             {t('select_variant')} <span className="text-red-400">*</span>
                                         </h3>
@@ -680,44 +683,44 @@ const ClassicFunnelLayout = ({
                                                 <div
                                                     key={variant.id}
                                                     onClick={() => handleVariantSelect(variant.id)}
-                                                    className={`cursor-pointer flex items-center justify-between p-3 rounded-xl border-2 transition-all duration-300 ${variant.quantity > 0 ? 'border-[#5173FB] bg-white/10 shadow-[0_0_15px_rgba(81, 115, 251,0.2)]' : 'border-white/10 bg-black/20 hover:border-white/30 hover:bg-white/5'}`}
+                                                    className={`cursor-pointer flex items-center justify-between p-2 sm:p-3.5 rounded-xl border-2 transition-all duration-300 ${variant.quantity > 0 ? 'border-brand bg-white/10 shadow-[0_0_15px_rgba(81, 115, 251,0.2)]' : 'border-white/10 bg-black/20 hover:border-white/30 hover:bg-white/5'}`}
                                                 >
-                                                    <div className="flex items-center gap-4">
+                                                    <div className="flex items-center gap-2 sm:gap-4 min-w-0 flex-1">
                                                         {/* Radio Bullet Indicator */}
                                                         <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-all duration-300 ${variant.quantity > 0 ? 'border-white bg-white/10' : 'border-white/20'}`}>
                                                             <div className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${variant.quantity > 0 ? 'bg-white scale-100' : 'bg-transparent scale-0'}`} />
                                                         </div>
-                                                        <div className="w-16 h-16 rounded-lg overflow-hidden bg-white shrink-0">
+                                                        <div className="w-10 h-10 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-lg overflow-hidden bg-white shrink-0">
                                                             <img src={variant.image} alt={variant.color ? variant.color.name : product.name} className="w-full h-full object-cover" onError={(e) => { e.target.src = product.images?.[0]?.image || ''; }} loading="eager" />
                                                         </div>
-                                                        <div className="flex flex-col items-start text-left">
-                                                            <h4 className="font-bold text-white leading-tight max-w-[150px] md:max-w-[200px] truncate">
+                                                        <div className="flex flex-col items-start text-left min-w-0 flex-1">
+                                                            <h4 className="font-bold text-white leading-tight text-sm sm:text-base truncate w-full">
                                                                 {product.name}
                                                             </h4>
-                                                            <p className="text-sm text-white font-medium">
-                                                                {variant.color?.name || variant.size?.name}
+                                                            <p className="text-[10px] sm:text-xs text-slate-300 font-medium truncate w-full">
+                                                                {variant.color?.name || variant.size?.name || 'Standard'}
                                                             </p>
                                                         </div>
                                                     </div>
 
-                                                    <div className="flex flex-col items-end gap-2 shrink-0">
-                                                        <span className="font-black text-white">৳{Math.floor(variant.price)}</span>
+                                                    <div className="flex flex-col items-end gap-1.5 sm:gap-2 shrink-0 ml-2">
+                                                        <span className="font-black text-white text-sm sm:text-base">৳{Math.floor(variant.price)}</span>
                                                         <div className="flex items-center bg-black/40 rounded-lg border border-white/10 overflow-hidden" onClick={e => e.stopPropagation()}>
                                                             <button
                                                                 type="button"
                                                                 onClick={(e) => { e.stopPropagation(); handleVariantQuantityChange(variant.id, -1); }}
-                                                                className="px-3 py-1 text-white hover:bg-white/20 transition-colors font-bold"
+                                                                className="px-2 sm:px-3 py-0.5 sm:py-1 text-white hover:bg-white/20 transition-colors font-bold text-base sm:text-lg"
                                                             >
                                                                 -
                                                             </button>
-                                                            <span className="px-3 py-1 text-white font-bold min-w-[2.5rem] text-center border-x border-white/10">
+                                                            <span className="px-2 sm:px-3 py-0.5 sm:py-1 text-white font-bold min-w-[1.5rem] sm:min-w-[2.5rem] text-center border-x border-white/10 text-xs sm:text-sm">
                                                                 {variant.quantity}
                                                             </span>
                                                             <button
                                                                 type="button"
                                                                 onClick={(e) => { e.stopPropagation(); handleVariantQuantityChange(variant.id, 1); }}
-                                                                className="px-3 py-1 text-white hover:bg-white/20 transition-colors font-bold"
-                                                            >
+                                                                className="px-2 sm:px-3 py-0.5 sm:py-1 text-white hover:bg-white/20 transition-colors font-bold text-base sm:text-lg"
+                                                             >
                                                                 +
                                                             </button>
                                                         </div>
@@ -740,7 +743,7 @@ const ClassicFunnelLayout = ({
                                                 type="text"
                                                 name="customer_name"
                                                 required
-                                                className="w-full pl-5 pr-5 py-4 bg-white/5 border border-white/20 rounded-2xl focus:border-[#5173FB] focus:bg-white/10 focus:ring-4 focus:ring-[#5173FB]/20 text-white placeholder-slate-400 outline-none font-medium transition-all duration-300"
+                                                className="w-full pl-5 pr-5 py-4 bg-white/5 border border-white/20 rounded-2xl focus:border-brand focus:bg-white/10 focus:ring-4 focus:ring-brand/20 text-white placeholder-slate-400 outline-none font-medium transition-all duration-300"
                                                 placeholder={t('full_name')}
                                                 value={formData.customer_name}
                                                 onChange={handleChange}
@@ -754,12 +757,12 @@ const ClassicFunnelLayout = ({
                                                 type="tel"
                                                 name="phone_number"
                                                 required
-                                                className="w-full pl-5 pr-12 py-4 bg-white/5 border border-white/20 rounded-2xl focus:border-[#5173FB] focus:bg-white/10 focus:ring-4 focus:ring-[#5173FB]/20 text-white placeholder-slate-400 outline-none font-medium transition-all duration-300"
+                                                className="w-full pl-5 pr-12 py-4 bg-white/5 border border-white/20 rounded-2xl focus:border-brand focus:bg-white/10 focus:ring-4 focus:ring-brand/20 text-white placeholder-slate-400 outline-none font-medium transition-all duration-300"
                                                 placeholder="017XXXXXXXX"
                                                 value={formData.phone_number}
                                                 onChange={handlePhoneChange}
                                             />
-                                            <Phone className="absolute right-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#5173FB] transition-colors" size={20} />
+                                            <Phone className="absolute right-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-brand transition-colors" size={20} />
                                         </div>
                                     </div>
                                 </div>
@@ -775,7 +778,7 @@ const ClassicFunnelLayout = ({
                                                 <select
                                                     name="district"
                                                     required
-                                                    className="w-full pl-5 pr-12 py-4 bg-slate-800/50 border border-white/20 rounded-2xl focus:border-[#5173FB] focus:bg-slate-800 text-white outline-none font-medium transition-all duration-300 appearance-none"
+                                                    className="w-full pl-5 pr-12 py-4 bg-slate-800/50 border border-white/20 rounded-2xl focus:border-brand focus:bg-slate-800 text-white outline-none font-medium transition-all duration-300 appearance-none"
                                                     value={formData.district}
                                                     onChange={handleChange}
                                                 >
@@ -787,7 +790,7 @@ const ClassicFunnelLayout = ({
                                                         return <option key={dist.id} value={dist.id} className="bg-slate-800 text-white">{displayYear}</option>
                                                     })}
                                                 </select>
-                                                <MapPin className="absolute right-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#5173FB] transition-colors pointer-events-none" size={20} />
+                                                <MapPin className="absolute right-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-brand transition-colors pointer-events-none" size={20} />
                                             </div>
                                         </div>
                                         <div className="space-y-3">
@@ -796,7 +799,7 @@ const ClassicFunnelLayout = ({
                                                 <select
                                                     name="upazila"
                                                     required
-                                                    className="w-full pl-5 pr-12 py-4 bg-slate-800/50 border border-white/20 rounded-2xl focus:border-[#5173FB] focus:bg-slate-800 text-white outline-none font-medium transition-all duration-300 appearance-none disabled:opacity-50 disabled:cursor-not-allowed"
+                                                    className="w-full pl-5 pr-12 py-4 bg-slate-800/50 border border-white/20 rounded-2xl focus:border-brand focus:bg-slate-800 text-white outline-none font-medium transition-all duration-300 appearance-none disabled:opacity-50 disabled:cursor-not-allowed"
                                                     value={formData.upazila}
                                                     onChange={handleChange}
                                                     disabled={!formData.district}
@@ -809,7 +812,7 @@ const ClassicFunnelLayout = ({
                                                         return <option key={upz.id} value={upz.id} className="bg-slate-800 text-white">{displayYear}</option>
                                                     })}
                                                 </select>
-                                                <MapPin className="absolute right-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#5173FB] transition-colors pointer-events-none" size={20} />
+                                                <MapPin className="absolute right-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-brand transition-colors pointer-events-none" size={20} />
                                             </div>
                                         </div>
                                     </div>
@@ -822,12 +825,12 @@ const ClassicFunnelLayout = ({
                                             name="address"
                                             required
                                             rows="2"
-                                            className="w-full pl-5 pr-12 py-4 bg-white/5 border border-white/20 rounded-2xl focus:border-[#5173FB] focus:bg-white/10 focus:ring-4 focus:ring-[#5173FB]/20 text-white placeholder-slate-400 outline-none font-medium transition-all duration-300 resize-none"
+                                            className="w-full pl-5 pr-12 py-4 bg-white/5 border border-white/20 rounded-2xl focus:border-brand focus:bg-white/10 focus:ring-4 focus:ring-brand/20 text-white placeholder-slate-400 outline-none font-medium transition-all duration-300 resize-none"
                                             placeholder={t('write_full_address')}
                                             value={formData.address}
                                             onChange={handleChange}
                                         ></textarea>
-                                        <MapPin className="absolute right-5 top-6 text-slate-400 group-focus-within:text-[#5173FB] transition-colors pointer-events-none" size={20} />
+                                        <MapPin className="absolute right-5 top-6 text-slate-400 group-focus-within:text-brand transition-colors pointer-events-none" size={20} />
                                     </div>
                                 </div>
 
@@ -895,7 +898,7 @@ const ClassicFunnelLayout = ({
                                     ref={submitBtnRef}
                                     type="submit"
                                     disabled={submitting}
-                                    className="w-full bg-gradient-to-r from-[#5173FB] to-[#3a5bd9] hover:from-[#3a5bd9] hover:to-[#5173FB] text-white font-black text-2xl py-6 rounded-2xl shadow-[0_0_30px_rgba(81, 115, 251,0.3)] hover:shadow-[0_0_50px_rgba(81, 115, 251,0.5)] transform transition-all duration-300 active:scale-95 flex justify-center items-center gap-3 group relative overflow-hidden disabled:opacity-70 disabled:cursor-not-allowed"
+                                    className="w-full bg-gradient-to-r from-brand to-brand hover:from-brand hover:to-brand text-white font-black text-2xl py-6 rounded-2xl shadow-[0_0_30px_rgba(81, 115, 251,0.3)] hover:shadow-[0_0_50px_rgba(81, 115, 251,0.5)] transform transition-all duration-300 active:scale-95 flex justify-center items-center gap-3 group relative overflow-hidden disabled:opacity-70 disabled:cursor-not-allowed"
                                 >
                                     <div className="absolute inset-0 w-[50%] h-full bg-white/30 skew-x-[-20deg] translate-x-[-200%] group-hover:animate-[shimmer_2s_infinite]"></div>
                                     {submitting ? '...' : (
@@ -919,7 +922,7 @@ const ClassicFunnelLayout = ({
 
             {/* Mobile Sticky CTA */}
             <div className={`fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-md p-4 border-t border-slate-200 lg:hidden z-50 transition-transform duration-300 ${showMobileCTA ? 'translate-y-0' : 'translate-y-full'}`}>
-                <a href="#order-form" className="flex items-center justify-center w-full bg-[#5173FB] text-white font-black py-4 rounded-xl text-lg shadow-lg shadow-[#5173FB]/30 animate-pulse hover:bg-[#3a5bd9] active:scale-95 transition-all">
+                <a href="#order-form" className="flex items-center justify-center w-full bg-brand text-white font-black py-4 rounded-xl text-lg shadow-lg shadow-brand/30 animate-pulse hover:bg-brand active:scale-95 transition-all">
                     অর্ডার করুন - ৳{finalTotal}
                 </a>
             </div>

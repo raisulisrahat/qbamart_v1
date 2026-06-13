@@ -1979,6 +1979,10 @@ class MediaManagerView(APIView):
             for chunk in file_obj.chunks():
                 destination.write(chunk)
 
+        if ext.lower() in ['.mp4', '.webm', '.ogg', '.mov']:
+            from .video_compressor import compress_video_file
+            compress_video_file(file_path)
+
         url = settings.MEDIA_URL + 'uploads/' + name
         return Response({
             'name': name,

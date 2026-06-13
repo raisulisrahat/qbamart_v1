@@ -454,7 +454,7 @@ const Home = () => {
               pagination={{
                 clickable: true,
                 renderBullet: function (index, className) {
-                  return '<span class="' + className + ' custom-number-bullet">' + (index + 1) + '</span>';
+                  return '<span class=""></span>';
                 },
               }}
               autoplay={{ delay: 5000, disableOnInteraction: false }}
