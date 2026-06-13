@@ -9,7 +9,7 @@ export const BASE_URL = 'https://qbamart.com';
 // const API_BASE_URL = `${BASE_URL}/api/`;
 
 const api = axios.create({
-  baseURL: API_BASE_URL,
+  baseURL: BASE_URL,
   withCredentials: true,
   xsrfCookieName: 'csrftoken',
   xsrfHeaderName: 'X-CSRFToken',
