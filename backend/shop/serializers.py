@@ -412,10 +412,13 @@ class BannerSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class OrderNoteSerializer(serializers.ModelSerializer):
-    username = serializers.CharField(source='user.username', read_only=True)
+    username = serializers.SerializerMethodField()
     class Meta:
         model = OrderNote
         fields = ['id', 'username', 'note', 'created_at']
+
+    def get_username(self, obj):
+        return obj.user.username if obj.user else 'System'
 
 class OrderItemSerializer(serializers.ModelSerializer):
     product_details = serializers.SerializerMethodField()
@@ -537,6 +540,8 @@ class OrderSerializer(serializers.ModelSerializer):
         request = self.context.get('request')
         items_data = request.data.get('items', [])
 
+        old_total = instance.total_amount
+
         # Update order fields
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
@@ -563,6 +568,33 @@ class OrderSerializer(serializers.ModelSerializer):
                         )
                     except Product.DoesNotExist:
                         pass
+
+        # Check if total amount changed and log note
+        from decimal import Decimal
+        try:
+            old_total_dec = Decimal(str(old_total))
+        except Exception:
+            old_total_dec = Decimal('0.00')
+
+        try:
+            new_total_dec = Decimal(str(instance.total_amount))
+        except Exception:
+            new_total_dec = Decimal('0.00')
+
+        if old_total_dec != new_total_dec:
+            staff_user = request.user if request and request.user.is_authenticated else None
+            staff_name = (staff_user.get_full_name() or staff_user.username) if staff_user else "System"
+            # Format values cleanly (e.g. 1450 instead of 1450.00)
+            old_str = f"{old_total_dec:f}".rstrip('0').rstrip('.') if '.' in f"{old_total_dec:f}" else f"{old_total_dec:f}"
+            new_str = f"{new_total_dec:f}".rstrip('0').rstrip('.') if '.' in f"{new_total_dec:f}" else f"{new_total_dec:f}"
+            note_content = f"Total amount changed from ৳{old_str} to ৳{new_str} by staff {staff_name}."
+            
+            from .models import OrderNote
+            OrderNote.objects.create(
+                order=instance,
+                user=staff_user,
+                note=note_content
+            )
 
         return instance
 

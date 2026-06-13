@@ -105,10 +105,24 @@ const ProductForm = ({ product, onSave, onCancel }) => {
         if (galleryTarget === 'thumbnail') {
             setThumbnail(url);
             setThumbnailPreview(url);
+            setMediaModalOpen(false);
+            setGalleryTarget(null);
         } else if (galleryTarget === 'gallery_image') {
             setGalleryImagesFromLibrary(prev => [...prev, { url, color: null }]);
+            // Don't close modal — allow further single selections
         } else if (galleryTarget === 'gallery_video') {
             setGalleryVideosFromLibrary(prev => [...prev, url]);
+        }
+    };
+
+    const handleGallerySelectMultiple = (urls: string[]) => {
+        if (galleryTarget === 'thumbnail' && urls.length > 0) {
+            setThumbnail(urls[0]);
+            setThumbnailPreview(urls[0]);
+        } else if (galleryTarget === 'gallery_image') {
+            setGalleryImagesFromLibrary(prev => [...prev, ...urls.map(url => ({ url, color: null }))]);
+        } else if (galleryTarget === 'gallery_video') {
+            setGalleryVideosFromLibrary(prev => [...prev, ...urls]);
         }
         setMediaModalOpen(false);
         setGalleryTarget(null);
@@ -1815,7 +1829,7 @@ const ProductForm = ({ product, onSave, onCancel }) => {
 
                                     onChange={(e) => setIsFlashSale(e.target.checked)}
 
-                                    className="h-4 w-4 text-zinc-900 rounded border-zinc-300 focus:ring-[#5173FB]"
+                                    className="h-4 w-4 text-zinc-900 rounded border-zinc-300 focus:ring-brand"
 
                                 />
 
@@ -1940,7 +1954,7 @@ const ProductForm = ({ product, onSave, onCancel }) => {
                                     <button
                                         type="button"
                                         onClick={handleBulkSpecsAdd}
-                                        className="text-xs font-bold px-4 py-2 bg-[#5173FB] text-white rounded-xl hover:bg-brand-hover transition-colors"
+                                        className="text-xs font-bold px-4 py-2 bg-brand text-white rounded-xl hover:bg-brand-hover transition-colors"
                                     >
                                         Apply Specifications
                                     </button>
@@ -2044,7 +2058,7 @@ const ProductForm = ({ product, onSave, onCancel }) => {
 
                             <div className="flex items-center gap-3 text-white">
 
-                                <div className="p-2 bg-[#5173FB] rounded-lg">
+                                <div className="p-2 bg-brand rounded-lg">
 
                                     <Layout size={20} />
 
@@ -2084,7 +2098,7 @@ const ProductForm = ({ product, onSave, onCancel }) => {
 
                                     onClick={() => bulkImageInputRef.current.click()}
 
-                                    className="flex items-center gap-2 px-4 py-2 bg-[#5173FB] text-white hover:bg-[#3a5bd9] rounded-xl text-xs font-black uppercase tracking-tighter transition-all shadow-sm active:scale-95"
+                                    className="flex items-center gap-2 px-4 py-2 bg-brand text-white hover:bg-[#3a5bd9] rounded-xl text-xs font-black uppercase tracking-tighter transition-all shadow-sm active:scale-95"
 
                                 >
 
@@ -2122,9 +2136,9 @@ const ProductForm = ({ product, onSave, onCancel }) => {
 
                                     <div className="flex items-center gap-2">
 
-                                        <div className="p-1.5 bg-[#5173FB]/10 text-[#5173FB] rounded-lg">
+                                        <div className="p-1.5 bg-brand/10 text-brand rounded-lg">
 
-                                            <Globe size={14} className="text-[#5173FB]" />
+                                            <Globe size={14} className="text-brand" />
 
                                         </div>
 
@@ -2142,7 +2156,7 @@ const ProductForm = ({ product, onSave, onCancel }) => {
 
                                                 type="text"
 
-                                                className="w-full px-4 py-3 bg-white border border-zinc-200 rounded-xl text-sm focus:ring-2 focus:ring-[#5173FB]/5 outline-none transition-all font-semibold"
+                                                className="w-full px-4 py-3 bg-white border border-zinc-200 rounded-xl text-sm focus:ring-2 focus:ring-brand/5 outline-none transition-all font-semibold"
 
                                                 value={linkedFunnel.top_header_line_1 || ''}
 
@@ -2162,7 +2176,7 @@ const ProductForm = ({ product, onSave, onCancel }) => {
 
                                                 type="text"
 
-                                                className="w-full px-4 py-3 bg-white border border-zinc-200 rounded-xl text-sm focus:ring-2 focus:ring-[#5173FB]/5 outline-none transition-all font-semibold"
+                                                className="w-full px-4 py-3 bg-white border border-zinc-200 rounded-xl text-sm focus:ring-2 focus:ring-brand/5 outline-none transition-all font-semibold"
 
                                                 value={linkedFunnel.top_header_line_2 || ''}
 
@@ -2182,7 +2196,7 @@ const ProductForm = ({ product, onSave, onCancel }) => {
 
                                                 type="text"
 
-                                                className="w-full px-4 py-3 bg-white border border-zinc-200 rounded-xl text-sm focus:ring-2 focus:ring-[#5173FB]/5 outline-none transition-all font-semibold"
+                                                className="w-full px-4 py-3 bg-white border border-zinc-200 rounded-xl text-sm focus:ring-2 focus:ring-brand/5 outline-none transition-all font-semibold"
 
                                                 value={linkedFunnel.top_header_line_3 || ''}
 
@@ -2202,7 +2216,7 @@ const ProductForm = ({ product, onSave, onCancel }) => {
 
                                                 type="text"
 
-                                                className="w-full px-4 py-3 bg-white border border-zinc-200 rounded-xl text-sm focus:ring-2 focus:ring-[#5173FB]/5 outline-none transition-all font-semibold"
+                                                className="w-full px-4 py-3 bg-white border border-zinc-200 rounded-xl text-sm focus:ring-2 focus:ring-brand/5 outline-none transition-all font-semibold"
 
                                                 value={linkedFunnel.top_header_line_4 || ''}
 
@@ -2224,7 +2238,7 @@ const ProductForm = ({ product, onSave, onCancel }) => {
 
                                             rows={6}
 
-                                            className="w-full px-4 py-3 bg-white border border-zinc-200 rounded-xl text-sm focus:ring-2 focus:ring-[#5173FB]/5 outline-none transition-all font-medium custom-scrollbar"
+                                            className="w-full px-4 py-3 bg-white border border-zinc-200 rounded-xl text-sm focus:ring-2 focus:ring-brand/5 outline-none transition-all font-medium custom-scrollbar"
 
                                             value={linkedFunnel.features_list || ''}
 
@@ -2402,7 +2416,7 @@ const ProductForm = ({ product, onSave, onCancel }) => {
 
                                             onClick={addFunnelSection}
 
-                                            className="mt-6 inline-flex items-center gap-2 px-6 py-3 bg-[#5173FB] hover:bg-[#3a5bd9] text-white rounded-2xl text-sm font-bold transition-all shadow-lg"
+                                            className="mt-6 inline-flex items-center gap-2 px-6 py-3 bg-brand hover:bg-[#3a5bd9] text-white rounded-2xl text-sm font-bold transition-all shadow-lg"
 
                                         >
 
@@ -2444,7 +2458,7 @@ const ProductForm = ({ product, onSave, onCancel }) => {
 
                                 onChange={handleChange}
 
-                                className="h-5 w-5 text-zinc-900 rounded border-zinc-300 focus:ring-[#5173FB] transition-colors"
+                                className="h-5 w-5 text-zinc-900 rounded border-zinc-300 focus:ring-brand transition-colors"
 
                             />
 
@@ -2464,7 +2478,7 @@ const ProductForm = ({ product, onSave, onCancel }) => {
 
                                 onChange={handleChange}
 
-                                className="h-5 w-5 text-zinc-900 rounded border-zinc-300 focus:ring-[#5173FB] transition-colors"
+                                className="h-5 w-5 text-zinc-900 rounded border-zinc-300 focus:ring-brand transition-colors"
 
                             />
 
@@ -2496,7 +2510,7 @@ const ProductForm = ({ product, onSave, onCancel }) => {
 
                                 }}
 
-                                className="text-[10px] font-bold uppercase tracking-wider text-[#5173FB] hover:text-[#3a5bd9] transition-colors cursor-pointer flex items-center gap-1 font-semibold"
+                                className="text-[10px] font-bold uppercase tracking-wider text-brand hover:text-[#3a5bd9] transition-colors cursor-pointer flex items-center gap-1 font-semibold"
 
                             >
 
@@ -2552,7 +2566,7 @@ const ProductForm = ({ product, onSave, onCancel }) => {
 
                                 }}
 
-                                className="text-[10px] font-bold uppercase tracking-wider text-[#5173FB] hover:text-[#3a5bd9] transition-colors cursor-pointer flex items-center gap-1 font-semibold"
+                                className="text-[10px] font-bold uppercase tracking-wider text-brand hover:text-[#3a5bd9] transition-colors cursor-pointer flex items-center gap-1 font-semibold"
 
                             >
 
@@ -2596,7 +2610,7 @@ const ProductForm = ({ product, onSave, onCancel }) => {
 
                                                     onClick={() => handleRemoveExistingGalleryImage(img.id, i)}
 
-                                                    className="absolute top-1 right-1 bg-brand/90 hover:bg-brand text-white rounded-full p-1 opacity-100 transition-all shadow-sm"
+                                                    className="absolute top-1 right-1 bg-brand/90 hover:bg-brand text-white rounded-full p-1 opacity-100 transition-all shadow-sm z-10"
 
                                                     title="Delete Image"
 
@@ -2647,7 +2661,7 @@ const ProductForm = ({ product, onSave, onCancel }) => {
                                             >
                                                 <X size={14} />
                                             </button>
-                                            <div className="absolute inset-x-0 bottom-0 bg-[#5173FB] text-white text-[9px] text-center p-0.5 opacity-90 uppercase tracking-widest font-black z-10">
+                                            <div className="absolute inset-x-0 bottom-0 bg-brand text-white text-[9px] text-center p-0.5 opacity-90 uppercase tracking-widest font-black z-10">
                                                 Gallery
                                             </div>
                                         </div>
@@ -2680,7 +2694,7 @@ const ProductForm = ({ product, onSave, onCancel }) => {
 
                                                 onClick={() => removeGalleryImage(idx)}
 
-                                                className="absolute top-1 right-1 bg-brand/90 hover:bg-brand text-white rounded-full p-1 opacity-100 transition-all shadow-sm"
+                                                className="absolute top-1 right-1 bg-brand/90 hover:bg-brand text-white rounded-full p-1 opacity-100 transition-all shadow-sm z-10"
 
                                             >
 
@@ -2748,7 +2762,7 @@ const ProductForm = ({ product, onSave, onCancel }) => {
 
                                 }}
 
-                                className="text-[10px] font-bold uppercase tracking-wider text-[#5173FB] hover:text-[#3a5bd9] transition-colors cursor-pointer flex items-center gap-1 font-semibold"
+                                className="text-[10px] font-bold uppercase tracking-wider text-brand hover:text-[#3a5bd9] transition-colors cursor-pointer flex items-center gap-1 font-semibold"
 
                             >
 
@@ -2819,7 +2833,7 @@ const ProductForm = ({ product, onSave, onCancel }) => {
                                             >
                                                 <X size={14} />
                                             </button>
-                                            <div className="absolute inset-x-0 bottom-0 bg-[#5173FB] text-white text-[9px] text-center p-0.5 opacity-90 uppercase tracking-widest font-black z-10">
+                                            <div className="absolute inset-x-0 bottom-0 bg-brand text-white text-[9px] text-center p-0.5 opacity-90 uppercase tracking-widest font-black z-10">
                                                 Gallery
                                             </div>
                                         </div>
@@ -2882,7 +2896,7 @@ const ProductForm = ({ product, onSave, onCancel }) => {
                             <button
                                 type="button"
                                 onClick={() => setShowCategoryDropdown(!showCategoryDropdown)}
-                                className="w-full px-4 py-2.5 bg-zinc-50 border border-zinc-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-[#5173FB]/5 outline-none transition-all flex justify-between items-center text-left"
+                                className="w-full px-4 py-2.5 bg-zinc-50 border border-zinc-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-brand/5 outline-none transition-all flex justify-between items-center text-left"
                             >
                                 <span className="truncate text-zinc-700 font-semibold">
                                     {formData.categories.length > 0
@@ -2944,7 +2958,7 @@ const ProductForm = ({ product, onSave, onCancel }) => {
                                                                 : [...formData.categories, cat.id];
                                                             setFormData(prev => ({ ...prev, categories: newCats }));
                                                         }}
-                                                        className="h-4 w-4 rounded border-zinc-300 text-[#5173FB] focus:ring-[#5173FB]/30"
+                                                        className="h-4 w-4 rounded border-zinc-300 text-brand focus:ring-brand/30"
                                                     />
                                                     <span className={`${cat.depth === 0 ? 'font-bold text-zinc-900' : 'text-zinc-600 font-medium'}`}>
                                                         {cat.name}
@@ -3243,7 +3257,7 @@ const ProductForm = ({ product, onSave, onCancel }) => {
                                             >
                                                 <X size={14} />
                                             </button>
-                                            <div className="absolute inset-x-0 bottom-0 bg-[#5173FB] text-white text-[9px] text-center p-0.5 opacity-90 uppercase tracking-widest font-black z-10">
+                                            <div className="absolute inset-x-0 bottom-0 bg-brand text-white text-[9px] text-center p-0.5 opacity-90 uppercase tracking-widest font-black z-10">
                                                 Gallery
                                             </div>
                                         </div>
@@ -3432,7 +3446,7 @@ const ProductForm = ({ product, onSave, onCancel }) => {
 
                                             onClick={handleCreateColor}
 
-                                            className="flex-1 py-2.5 bg-[#5173FB] text-white rounded-xl hover:bg-black font-semibold shadow-sm transition-colors"
+                                            className="flex-1 py-2.5 bg-brand text-white rounded-xl hover:bg-black font-semibold shadow-sm transition-colors"
 
                                         >
 
@@ -3473,7 +3487,7 @@ const ProductForm = ({ product, onSave, onCancel }) => {
                             <button
                                 type="button"
                                 onClick={() => setShowSizeDropdown(!showSizeDropdown)}
-                                className="w-full px-4 py-2.5 bg-zinc-50 border border-zinc-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-[#5173FB]/5 outline-none transition-all flex justify-between items-center text-left"
+                                className="w-full px-4 py-2.5 bg-zinc-50 border border-zinc-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-brand/5 outline-none transition-all flex justify-between items-center text-left"
                             >
                                 <span className="truncate text-zinc-700 font-semibold">
                                     {formData.sizes.length > 0
@@ -3501,7 +3515,7 @@ const ProductForm = ({ product, onSave, onCancel }) => {
                                                             : [...formData.sizes, s.id];
                                                         setFormData(prev => ({ ...prev, sizes: newSizes }));
                                                     }}
-                                                    className="h-4 w-4 rounded border-zinc-300 text-[#5173FB] focus:ring-[#5173FB]/30"
+                                                    className="h-4 w-4 rounded border-zinc-300 text-brand focus:ring-brand/30"
                                                 />
                                                 <span className="font-semibold text-zinc-700">{s.name}</span>
                                             </label>
@@ -3599,7 +3613,7 @@ const ProductForm = ({ product, onSave, onCancel }) => {
 
                                             onClick={handleCreateSize}
 
-                                            className="flex-1 py-2.5 bg-[#5173FB] text-white rounded-xl hover:bg-black font-semibold shadow-sm transition-colors"
+                                            className="flex-1 py-2.5 bg-brand text-white rounded-xl hover:bg-black font-semibold shadow-sm transition-colors"
 
                                         >
 
@@ -3625,7 +3639,7 @@ const ProductForm = ({ product, onSave, onCancel }) => {
 
                         disabled={loading}
 
-                        className="w-full bg-[#5173FB] hover:bg-[#3a5bd9] text-white font-semibold py-3.5 rounded-xl shadow-md transition-all flex items-center justify-center gap-2"
+                        className="w-full bg-brand hover:bg-[#3a5bd9] text-white font-semibold py-3.5 rounded-xl shadow-md transition-all flex items-center justify-center gap-2"
 
                     >
 
@@ -3653,7 +3667,7 @@ const ProductForm = ({ product, onSave, onCancel }) => {
                         <div className="flex justify-between items-center px-6 py-4 border-b border-zinc-100 bg-zinc-50/50">
                             <div>
                                 <h3 className="text-base font-black text-zinc-950 tracking-tight">
-                                    Choose <span className="text-[#5173FB]">
+                                    Choose <span className="text-brand">
                                         {galleryTarget === 'thumbnail' ? 'Main Image' : galleryTarget === 'gallery_image' ? 'Gallery Image' : 'Gallery Video'}
                                     </span>
                                 </h3>
@@ -3676,7 +3690,7 @@ const ProductForm = ({ product, onSave, onCancel }) => {
                                 type="button"
                                 onClick={() => setActiveModalTab('upload')}
                                 className={`px-4 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all flex items-center gap-2 ${activeModalTab === 'upload' 
-                                    ? 'bg-[#5173FB] text-white shadow-sm' 
+                                    ? 'bg-brand text-white shadow-sm' 
                                     : 'text-zinc-500 hover:text-zinc-900 bg-transparent'}`}
                             >
                                 <Upload size={12} />
@@ -3686,7 +3700,7 @@ const ProductForm = ({ product, onSave, onCancel }) => {
                                 type="button"
                                 onClick={() => setActiveModalTab('library')}
                                 className={`px-4 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all flex items-center gap-2 ${activeModalTab === 'library' 
-                                    ? 'bg-[#5173FB] text-white shadow-sm' 
+                                    ? 'bg-brand text-white shadow-sm' 
                                     : 'text-zinc-500 hover:text-zinc-900 bg-transparent'}`}
                             >
                                 <ImageIcon size={12} />
@@ -3697,8 +3711,8 @@ const ProductForm = ({ product, onSave, onCancel }) => {
                         {/* Modal Body */}
                         <div className="flex-grow overflow-y-auto p-6 min-h-[400px]">
                             {activeModalTab === 'upload' ? (
-                                <div className="flex flex-col items-center justify-center border-2 border-dashed border-zinc-200 hover:border-[#5173FB] rounded-2xl p-12 transition-all min-h-[300px] text-center bg-zinc-50/20 group">
-                                    <div className="p-4 bg-zinc-100 rounded-full group-hover:bg-[#5173FB]/10 transition-colors duration-300 mb-4 text-zinc-400 group-hover:text-[#5173FB]">
+                                <div className="flex flex-col items-center justify-center border-2 border-dashed border-zinc-200 hover:border-brand rounded-2xl p-12 transition-all min-h-[300px] text-center bg-zinc-50/20 group">
+                                    <div className="p-4 bg-zinc-100 rounded-full group-hover:bg-brand/10 transition-colors duration-300 mb-4 text-zinc-400 group-hover:text-brand">
                                         {uploadingImage ? <RefreshCw size={36} className="animate-spin" /> : <Upload size={36} />}
                                     </div>
                                     <h4 className="text-sm font-bold text-zinc-900">
@@ -3719,7 +3733,7 @@ const ProductForm = ({ product, onSave, onCancel }) => {
                                         type="button"
                                         onClick={() => document.getElementById('product-local-image-input')?.click()}
                                         disabled={uploadingImage}
-                                        className="mt-6 flex items-center gap-2 px-5 py-2.5 bg-black hover:bg-[#5173FB] text-white rounded-xl text-[10px] font-black uppercase tracking-widest active:scale-95 transition-all shadow-md cursor-pointer"
+                                        className="mt-6 flex items-center gap-2 px-5 py-2.5 bg-black hover:bg-brand text-white rounded-xl text-[10px] font-black uppercase tracking-widest active:scale-95 transition-all shadow-md cursor-pointer"
                                     >
                                         Browse Files
                                     </button>

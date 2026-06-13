@@ -32,6 +32,7 @@ import Searchbar from './Searchbar';
 import { BASE_URL, getCategories } from '../services/api';
 
 import { useSettings } from '../context/SettingsContext';
+import { formatPhoneNumber, isValidPhoneNumber } from '../utils/phone';
 
 const Navbar = () => {
   const { language } = useLanguage();
@@ -132,6 +133,12 @@ const Navbar = () => {
   const handleContinue = (e: React.FormEvent) => {
     e.preventDefault();
     if (!phone) return;
+    
+    if (!isValidPhoneNumber(phone)) {
+      setLoginError('Please enter a valid 11-digit mobile number starting with 01.');
+      return;
+    }
+    
     setLoginStep('password');
     setLoginError('');
   };
@@ -400,7 +407,8 @@ const Navbar = () => {
                               required
                               type="text" 
                               value={phone}
-                              onChange={(e) => setPhone(e.target.value)}
+                              onChange={(e) => setPhone(formatPhoneNumber(e.target.value))}
+                              maxLength={11}
                               className="w-full px-4 py-3 bg-white border border-neutral-200 rounded-xl text-sm focus:ring-2 focus:ring-[#5173FB]/20 focus:border-[#5173FB] outline-none transition-all"
                               placeholder="e.g. 01700000000"
                             />

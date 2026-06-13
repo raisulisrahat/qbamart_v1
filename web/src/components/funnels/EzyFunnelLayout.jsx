@@ -34,6 +34,8 @@ const EzyFunnelLayout = ({
     const [isHovered, setIsHovered] = useState(false);
     const [shippingError, setShippingError] = useState('');
     const [showMobileCTA, setShowMobileCTA] = useState(true);
+    const [videoRatio, setVideoRatio] = useState(null);
+    const [isPortrait, setIsPortrait] = useState(false);
     const submitBtnRef = useRef(null);
 
     // Active Variant for Summary and display
@@ -226,6 +228,14 @@ const EzyFunnelLayout = ({
         }]
     } : null;
 
+    // For YouTube embeds, use standard 16/9 (can't detect dimensions from iframe)
+    useEffect(() => {
+        if (youtubeEmbedUrl && !activeVideoFile) {
+            setVideoRatio('16/9');
+            setIsPortrait(false);
+        }
+    }, [youtubeEmbedUrl, activeVideoFile]);
+
     // Format prices for displays
     const regPriceStr = language === 'bn' ? toBanglaNumber(Math.floor(product.regular_price)) : Math.floor(product.regular_price);
     const salePriceStr = language === 'bn' ? toBanglaNumber(Math.floor(product.sale_price || product.regular_price)) : Math.floor(product.sale_price || product.regular_price);
@@ -237,8 +247,8 @@ const EzyFunnelLayout = ({
             <style dangerouslySetInnerHTML={{
                 __html: `
                 @keyframes pulse-glow {
-                    0%, 100% { transform: scale(1); box-shadow: 0 0 15px rgba(255, 0, 60, 0.4); }
-                    50% { transform: scale(1.03); box-shadow: 0 0 30px rgba(255, 0, 60, 0.7); }
+                    0%, 100% { transform: scale(1); box-shadow: 0 0 15px rgba(174, 0, 255, 0.4); }
+                    50% { transform: scale(1.03); box-shadow: 0 0 30px rgba(38, 0, 255, 0.7); }
                 }
                 .pulse-btn {
                     animation: pulse-glow 2.5s infinite ease-in-out;
@@ -402,10 +412,30 @@ const EzyFunnelLayout = ({
                     </p>
 
                     {/* Media Container: Responsive YouTube Video, Uploaded Video, or Product Swiper Slider */}
-                    <div className="max-w-3xl mx-auto rounded-2xl overflow-hidden shadow-2xl border-4 border-white/10 bg-slate-900 aspect-video relative group">
+                    <div 
+                        className={`mx-auto rounded-2xl overflow-hidden shadow-2xl border-4 border-white/10 bg-slate-900 relative group transition-all duration-350 ${
+                            isPortrait ? 'max-w-md' : 'max-w-3xl'
+                        }`}
+                        style={{ aspectRatio: videoRatio || '16/9' }}
+                    >
                         {videoOptions ? (
                             <VideoPlayer
                                 options={videoOptions}
+                                onReady={(player) => {
+                                    // Read dimensions once metadata is available — no extra network request,
+                                    // this fires on the same stream the player is already loading
+                                    const readDimensions = () => {
+                                        const w = player.videoWidth();
+                                        const h = player.videoHeight();
+                                        if (w && h) {
+                                            setVideoRatio(`${w}/${h}`);
+                                            setIsPortrait(h > w);
+                                        }
+                                    };
+                                    player.on('loadedmetadata', readDimensions);
+                                    // Also try immediately in case metadata is already available
+                                    readDimensions();
+                                }}
                                 className="w-full h-full"
                             />
                         ) : youtubeEmbedUrl ? (
@@ -430,7 +460,16 @@ const EzyFunnelLayout = ({
                                         <img
                                             src={resolveImageUrl(img.image)}
                                             alt={`${product.name} - ${idx + 1}`}
-                                            className="w-full h-full object-contain"
+                                            className="w-full h-full object-cover"
+                                            onLoad={(e) => {
+                                                if (idx === 0 && !videoRatio) {
+                                                    const { naturalWidth: w, naturalHeight: h } = e.currentTarget;
+                                                    if (w && h) {
+                                                        setVideoRatio(`${w}/${h}`);
+                                                        setIsPortrait(h > w);
+                                                    }
+                                                }
+                                            }}
                                         />
                                     </SwiperSlide>
                                 ))}

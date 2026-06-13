@@ -30,10 +30,7 @@ SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-a7l$f%@l6f&$ryv!!6q@$gu6cm
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = [h.strip() for h in os.getenv('ALLOWED_HOSTS', '127.0.0.1,localhost').split(',') if h.strip()]
-for host in ['qbamart.com', 'api.qbamart.com']:
-    if host not in ALLOWED_HOSTS:
-        ALLOWED_HOSTS.append(host)
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -90,12 +87,8 @@ WSGI_APPLICATION = 'core.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': os.getenv('DB_ENGINE', 'django.db.backends.sqlite3'),
-        'NAME': os.getenv('DB_NAME', BASE_DIR / 'db.sqlite3'),
-        'USER': os.getenv('DB_USER', ''),
-        'PASSWORD': os.getenv('DB_PASSWORD', ''),
-        'HOST': os.getenv('DB_HOST', ''),
-        'PORT': os.getenv('DB_PORT', ''),
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
 # DATABASES = {

@@ -493,11 +493,6 @@ const Home = () => {
               </div>
             </Link>
           ))}
-          {/* Fallback mockups if less than 2 banners */}
-          {/* {Array.from({ length: Math.max(0, 2 - promoBanners.length) }).map((_, index) => (
-                        <div key={`placeholder-${index}`} className={`relative h-[220px] md:h-[300px] lg:h-[350px] rounded-3xl overflow-hidden group shadow-xl flex items-center justify-center text-white p-10 text-center ${index === 0 ? 'bg-gradient-to-br from-indigo-900 to-purple-900' : 'bg-gradient-to-br from-amber-700 to-orange-900'}`}>
-                        </div>
-                    ))} */}
         </div>
       </div>
 
