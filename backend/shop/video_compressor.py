@@ -6,7 +6,7 @@ logger = logging.getLogger(__name__)
 
 def compress_video_file(file_path, max_size_mb=10):
     """
-    Compresses a video file on disk in-place using static-ffmpeg if the size exceeds max_size_mb.
+    Compresses a video file on disk in-place using imageio-ffmpeg if the size exceeds max_size_mb.
     Returns True if successfully compressed, False otherwise.
     """
     if not os.path.exists(file_path):
@@ -23,12 +23,12 @@ def compress_video_file(file_path, max_size_mb=10):
             
         logger.info(f"Compressing video file: {file_path} ({size_mb:.2f} MB)")
         
-        # Import static-ffmpeg and get binary paths
+        # Import imageio-ffmpeg and get binary path
         try:
-            from static_ffmpeg import run
-            ffmpeg_bin, _ = run.get_or_fetch_platform_executables_else_raise()
+            import imageio_ffmpeg
+            ffmpeg_bin = imageio_ffmpeg.get_ffmpeg_exe()
         except Exception as e:
-            logger.error(f"Failed to load static-ffmpeg: {e}. Video compression skipped.")
+            logger.error(f"Failed to load imageio-ffmpeg: {e}. Video compression skipped.")
             return False
             
         dir_name = os.path.dirname(file_path)
