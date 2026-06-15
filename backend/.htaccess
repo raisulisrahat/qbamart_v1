@@ -1,3 +1,24 @@
+# DO NOT REMOVE. CLOUDLINUX PASSENGER CONFIGURATION BEGIN
+PassengerAppRoot "/home/qbamqxnv/api.qbamart.com/backend"
+PassengerBaseURI "/"
+PassengerPython "/home/qbamqxnv/virtualenv/api.qbamart.com/backend/3.12/bin/python"
+# DO NOT REMOVE. CLOUDLINUX PASSENGER CONFIGURATION END
+# Increase LiteSpeed process limits to prevent bottlenecks
+<IfModule Litespeed>
+    SetEnv LSAPI_CHILDREN 20
+    SetEnv LSAPI_MAX_REQUESTS 1000
+</IfModule>
+
+RewriteEngine On
+
+# If the URL starts with /media/
+RewriteCond %{REQUEST_URI} ^/media/ [NC]
+# And the file exists inside the backend directory...
+RewriteCond %{DOCUMENT_ROOT}/backend%{REQUEST_URI} -f
+# Serve the file from the backend directory and bypass Django
+RewriteRule ^media/(.*)$ /backend/media/$1 [L]
+
+
 RewriteEngine On
 RewriteBase /
 
@@ -15,3 +36,4 @@ RewriteCond %{REQUEST_URI} !(.*)/$
 RewriteCond %{REQUEST_URI} !(\.[a-zA-Z0-9]{1,5})$
 # Redirect with a 301 Moved Permanently (preserving query parameters)
 RewriteRule ^(.*)$ /$1/ [L,R=301]
+
