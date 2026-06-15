@@ -8,6 +8,7 @@ interface ConsentSettings {
 }
 
 const CookieConsent = () => {
+    return null;
     const [isVisible, setIsVisible] = useState(false);
     const [showCustomize, setShowCustomize] = useState(false);
     

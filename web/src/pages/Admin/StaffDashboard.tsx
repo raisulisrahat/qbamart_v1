@@ -26,6 +26,7 @@ import ReviewManager from '../../components/Admin/ReviewManager';
 import MetaManager from '../../components/Admin/MetaManager';
 import MediaManager from '../../components/Admin/MediaManager';
 import SecurityManager from '../../components/Admin/SecurityManager';
+import SeoManager from '../../components/Admin/SeoManager';
 
 
 
@@ -419,6 +420,7 @@ const StaffDashboard = ({ role }) => {
                                 <Route path="notices" element={<NoticeManager />} />
                                 <Route path="settings" element={<ConfigManager />} />
                                 <Route path="security" element={<SecurityManager />} />
+                                <Route path="seo_manager" element={<SeoManager />} />
                                 <Route path="*" element={<Navigate to={`/staff/${role}`} replace />} />
                             </>
                         ) : role === 'ads_manager' ? (
@@ -746,6 +748,7 @@ const SidebarContent = ({ activeTab, handleNavigate, role }) => (
                     <div className="space-y-0.5">
                         <SidebarItem id="funnels" label="Sales Funnels" icon={<Ticket size={18} />} activeTab={activeTab} onClick={() => handleNavigate('funnels')} />
                         <SidebarItem id="meta_campaigns" label="Meta Campaigns" icon={<Facebook size={18} />} activeTab={activeTab} onClick={() => handleNavigate('meta_campaigns')} />
+                        <SidebarItem id="seo_manager" label="SEO Manager" icon={<Search size={18} />} activeTab={activeTab} onClick={() => handleNavigate('seo_manager')} />
                         <SidebarItem id="flash_sales" label="Flash Sales" icon={<Zap size={18} />} activeTab={activeTab} onClick={() => handleNavigate('flash_sales')} />
                         <SidebarItem id="banners" label="Banners" icon={<Image size={18} />} activeTab={activeTab} onClick={() => handleNavigate('banners')} />
                         <SidebarItem id="notices" label="Notice" icon={<Bell size={18} />} activeTab={activeTab} onClick={() => handleNavigate('notices')} />

@@ -7,29 +7,12 @@
       function gtag(){window.dataLayer.push(arguments);}
       window.gtag = gtag;
 
-      var consentDefaults = {
-        'ad_storage': 'denied',
-        'analytics_storage': 'denied',
-        'ad_user_data': 'denied',
-        'ad_personalization': 'denied'
-      };
-
-      try {
-        var storedConsent = localStorage.getItem('qbamart_cookie_consent');
-        if (storedConsent) {
-          var parsed = JSON.parse(storedConsent);
-          if (parsed) {
-            consentDefaults.ad_storage = parsed.ad_storage ? 'granted' : 'denied';
-            consentDefaults.analytics_storage = parsed.analytics_storage ? 'granted' : 'denied';
-            consentDefaults.ad_user_data = parsed.ad_user_data ? 'granted' : 'denied';
-            consentDefaults.ad_personalization = parsed.ad_personalization ? 'granted' : 'denied';
-          }
-        }
-      } catch (e) {
-        console.error('Error loading default consent settings', e);
-      }
-
-      gtag('consent', 'default', consentDefaults);
+      gtag('consent', 'default', {
+        'ad_storage': 'granted',
+        'analytics_storage': 'granted',
+        'ad_user_data': 'granted',
+        'ad_personalization': 'granted'
+      });
     </script>
 
     <!-- Google tag (gtag.js) -->
