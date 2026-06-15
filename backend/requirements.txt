@@ -1,4 +1,4 @@
-django>=5.0
+django
 djangorestframework
 django-cors-headers
 django-quill-editor
@@ -12,3 +12,4 @@ requests
 pyotp
 qrcode
 imageio-ffmpeg
+whitenoise
