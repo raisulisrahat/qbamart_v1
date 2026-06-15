@@ -142,7 +142,8 @@ const CategoryManager = () => {
                         identifier = brands.find(b => b.id === id)?.slug;
                     }
                     
-                    const endp = (type === 'category' || type === 'brand') ? `${activeTab}/${identifier}/` : `${activeTab}/${id}/`;
+                    const prefix = (activeTab === 'parents' || activeTab === 'subcategories') ? 'categories' : activeTab;
+                    const endp = (type === 'category' || type === 'brand') ? `${prefix}/${identifier}/` : `${prefix}/${id}/`;
                     return api.delete(endp);
                 }));
                 setSelectedIds([]);
@@ -177,7 +178,8 @@ const CategoryManager = () => {
     const handleDelete = async (item) => {
         const type = activeTab === 'colors' ? 'color' : activeTab === 'sizes' ? 'size' : activeTab === 'brands' ? 'brand' : 'category';
         const identifier = (type === 'category' || type === 'brand') ? item.slug : item.id;
-        const endpoint = (type === 'category' || type === 'brand') ? `${activeTab}/${identifier}/` : `${activeTab}/${identifier}/`;
+        const prefix = (activeTab === 'parents' || activeTab === 'subcategories') ? 'categories' : activeTab;
+        const endpoint = (type === 'category' || type === 'brand') ? `${prefix}/${identifier}/` : `${prefix}/${identifier}/`;
 
         try {
             await api.delete(endpoint);

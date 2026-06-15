@@ -138,6 +138,7 @@ const ProductDetail = () => {
             }
         }
     }, [product, availableColors]);
+
     const { data: relatedProducts } = useQuery({
         queryKey: ['related-products', product?.categories?.[0]?.id],
         queryFn: () => getProducts({ categories: product?.categories?.[0]?.id }).then(res => res.data),
@@ -180,6 +181,23 @@ const ProductDetail = () => {
 
         return items;
     }, [product]);
+
+    useEffect(() => {
+        if (gallery && gallery[activeImage]) {
+            const item = gallery[activeImage];
+            if (item.color) {
+                const matchedColor = availableColors.find(c => c.id === item.color);
+                if (matchedColor && selectedColor?.id !== matchedColor.id) {
+                    setSelectedColor(matchedColor);
+                }
+            } else if (item.color_details) {
+                const matchedColor = availableColors.find(c => c.id === item.color_details.id);
+                if (matchedColor && selectedColor?.id !== matchedColor.id) {
+                    setSelectedColor(matchedColor);
+                }
+            }
+        }
+    }, [activeImage, gallery, availableColors, selectedColor]);
 
     const videoOptions = useMemo(() => {
         const activeItem = gallery[activeImage];
@@ -304,8 +322,8 @@ const ProductDetail = () => {
     }
     if (error || !product) return <div className="p-20 text-center">Product not found. <Link to="/products" className="text-brand font-bold">Return to shop</Link></div>;
 
-    const handleAddToCart = () => {
-        addToCart(product, quantity, selectedColor, selectedSize);
+    const handleAddToCart = (isOrderNow: boolean = false) => {
+        addToCart(product, quantity, selectedColor, selectedSize, isOrderNow);
     };
 
     return (
@@ -674,7 +692,7 @@ const ProductDetail = () => {
                                             <>
                                                 <button
                                                     onClick={() => {
-                                                        addToCart(product, quantity, selectedColor, selectedSize);
+                                                        addToCart(product, quantity, selectedColor, selectedSize, false);
                                                         setIsCartOpen(true);
                                                     }}
                                                     className="flex-grow bg-brand hover:bg-brand-hover text-white font-black h-12 rounded-2xl shadow-xl shadow-brand/10 transition-all flex items-center justify-center space-x-3 active:scale-95"
@@ -685,7 +703,7 @@ const ProductDetail = () => {
 
                                                 <button
                                                     onClick={() => {
-                                                        addToCart(product, quantity, selectedColor, selectedSize);
+                                                        addToCart(product, quantity, selectedColor, selectedSize, true);
                                                         navigate('/checkout');
                                                     }}
                                                     className="flex-grow border-2 border-brand text-brand hover:bg-brand/5 font-black h-12 rounded-2xl transition-all flex items-center justify-center space-x-3 active:scale-95 animate-glow"
@@ -745,7 +763,7 @@ const ProductDetail = () => {
                                     <>
                                         <button
                                             onClick={() => {
-                                                handleAddToCart();
+                                                handleAddToCart(false);
                                                 setIsCartOpen(true);
                                             }}
                                             className="flex-1 bg-white border-2 border-brand text-brand font-black h-12 rounded-xl active:scale-95 transition-all flex items-center justify-center gap-2"
@@ -756,7 +774,7 @@ const ProductDetail = () => {
 
                                         <button
                                             onClick={() => {
-                                                handleAddToCart();
+                                                handleAddToCart(true);
                                                 navigate('/checkout');
                                             }}
                                             className="flex-1 bg-brand text-white font-black h-12 rounded-xl shadow-lg shadow-red-700/10 active:scale-95 transition-all flex items-center justify-center gap-2 animate-glow font-bold"
@@ -875,12 +893,6 @@ const ProductDetail = () => {
                         {activeTab === 'specs' && product.show_specifications !== false && (
                             <div className="animate-in fade-in slide-in-from-bottom-2 duration-300 text-sm">
                                 <div className="grid grid-cols-1 divide-y divide-neutral-100 border border-neutral-100 rounded-xl overflow-hidden">
-                                    {product.weight > 0 && (
-                                        <div className="grid grid-cols-2 p-3">
-                                            <span className="font-bold text-neutral-900">Weight</span>
-                                            <span>{product.weight} kg</span>
-                                        </div>
-                                    )}
                                     {product.specifications && Object.entries(product.specifications).map(([key, value]: [string, any], idx) => (
                                         <div key={key} className={`grid grid-cols-2 p-3 ${idx % 2 === 0 ? 'bg-neutral-50/50' : 'bg-white'}`}>
                                             <span className="font-bold text-neutral-900 capitalize">{key.replace('_', ' ')}</span>
@@ -908,12 +920,6 @@ const ProductDetail = () => {
                         {activeTab === 'specs' && product.show_specifications !== false && (
                             <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-8">
                                 <div className="grid grid-cols-1 border border-neutral-100 rounded-3xl overflow-hidden divide-y divide-neutral-100">
-                                    {product.weight > 0 && (
-                                        <div className="grid grid-cols-3 p-6">
-                                            <span className="font-bold text-neutral-900">Weight</span>
-                                            <span className="col-span-2">{product.weight} kg</span>
-                                        </div>
-                                    )}
                                     {product.specifications && Object.entries(product.specifications).map(([key, value]: [string, any], idx) => (
                                         <div key={key} className={`grid grid-cols-3 p-6 ${idx % 2 === 0 ? 'bg-white' : 'bg-neutral-50/50'}`}>
                                             <span className="font-bold text-neutral-900 capitalize">{key.replace('_', ' ')}</span>
@@ -973,18 +979,7 @@ const ProductDetail = () => {
                             <>
                                 <button
                                     onClick={() => {
-                                        handleAddToCart();
-                                        setIsCartOpen(true);
-                                    }}
-                                    className="flex-1 bg-white border-2 border-brand text-brand font-black h-13 rounded-xl active:scale-95 transition-all flex items-center justify-center gap-2"
-                                >
-                                    <ShoppingCart className="w-4 h-4" />
-                                    <span className="text-[10px] uppercase font-bold">Add to Cart</span>
-                                </button>
-
-                                <button
-                                    onClick={() => {
-                                        handleAddToCart();
+                                        handleAddToCart(true);
                                         navigate('/checkout');
                                     }}
                                     className="flex-1 bg-brand text-white font-black h-13 rounded-xl shadow-lg shadow-red-700/10 active:scale-95 transition-all flex items-center justify-center gap-2 animate-glow"

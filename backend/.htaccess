@@ -1,0 +1,17 @@
+RewriteEngine On
+RewriteBase /
+
+# ------------------------------------------------------------------
+# LiteSpeed/Apache Trailing Slash Redirect for Django Backend
+# Automatically appends a trailing slash to API routes at the server level.
+# This prevents slow Django python boot-up times (1s+) for 301 redirects.
+# ------------------------------------------------------------------
+
+# If the request is not for a physical file
+RewriteCond %{REQUEST_FILENAME} !-f
+# And it doesn't end with a slash
+RewriteCond %{REQUEST_URI} !(.*)/$
+# And it doesn't end with an extension (like .xml, .json, .txt)
+RewriteCond %{REQUEST_URI} !(\.[a-zA-Z0-9]{1,5})$
+# Redirect with a 301 Moved Permanently (preserving query parameters)
+RewriteRule ^(.*)$ /$1/ [L,R=301]

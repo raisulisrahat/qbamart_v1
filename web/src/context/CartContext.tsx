@@ -15,7 +15,7 @@ interface CartItem {
 
 interface CartContextType {
   cart: CartItem[];
-  addToCart: (product: any, quantity: number, color?: any, size?: any) => void;
+  addToCart: (product: any, quantity: number, color?: any, size?: any, isOrderNow?: boolean) => void;
   removeFromCart: (cartKey: string) => void;
   updateQuantity: (cartKey: string, quantity: number) => void;
   clearCart: () => void;
@@ -37,7 +37,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.setItem('cart', JSON.stringify(cart));
   }, [cart]);
 
-  const addToCart = (product: any, quantity: number = 1, color?: any, size?: any) => {
+  const addToCart = (product: any, quantity: number = 1, color?: any, size?: any, isOrderNow: boolean = false) => {
     setCart(prev => {
       const cartKey = `${product.slug}-${color?.id || 'none'}-${size?.id || 'none'}`;
       const existing = prev.find(item => item.cartKey === cartKey);
@@ -65,6 +65,38 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         stock: product.stock
       }];
     });
+
+    if (typeof window !== 'undefined' && (window as any).dataLayer) {
+      const rawPrice = product.sale_price || product.regular_price || "0";
+      const cleanPrice = parseFloat(rawPrice.toString().replace(/[^0-9.]/g, '')) || 0;
+      
+      const itemData: any = {
+        item_name: product.name,
+        item_id: product.id,
+        price: cleanPrice,
+        quantity: quantity
+      };
+
+      if (color) {
+        itemData.item_variant = color.name;
+      }
+      if (size) {
+        if (itemData.item_variant) {
+          itemData.item_variant += ` / ${size.name}`;
+        } else {
+          itemData.item_variant = size.name;
+        }
+      }
+
+      (window as any).dataLayer.push({
+        event: isOrderNow ? 'order_now' : 'add_to_cart',
+        ecommerce: {
+          currency: 'BDT',
+          value: cleanPrice * quantity,
+          items: [itemData]
+        }
+      });
+    }
   };
 
   const removeFromCart = (cartKey: string) => {

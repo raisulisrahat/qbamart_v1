@@ -550,6 +550,7 @@ class SiteSettings(models.Model):
     meta_keywords = models.CharField(max_length=255, blank=True, help_text="Comma separated SEO keywords")
     facebook_pixel_id = models.CharField(max_length=50, blank=True, null=True, help_text="Facebook Pixel ID")
     google_tag_id = models.CharField(max_length=50, blank=True, null=True, help_text="Google Tag ID (gtag.js) e.g. G-XXXXXX")
+    google_tag_manager_id = models.CharField(max_length=50, blank=True, null=True, help_text="Google Tag Manager ID e.g. GTM-XXXXXXX")
     facebook_capi_token = models.TextField(blank=True, null=True, help_text="Facebook Conversion API Access Token")
     facebook_ad_account_id = models.CharField(max_length=100, blank=True, null=True, help_text="Facebook Ad Account ID")
     facebook_test_code = models.CharField(max_length=100, blank=True, null=True, help_text="Facebook Test Event Code")

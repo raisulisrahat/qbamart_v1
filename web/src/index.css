@@ -7,10 +7,17 @@
 
 @layer base {
 
-    html,
+    html {
+        scroll-behavior: smooth;
+    }
+
     body {
         max-width: 100%;
         overflow-x: clip;
+        -webkit-overflow-scrolling: touch;
+        text-rendering: optimizeSpeed;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
     }
 
     :root {
@@ -71,23 +78,37 @@
     scrollbar-width: none;
 }
 
-/* Premium Animations */
-@keyframes glow {
-    0% {
-        box-shadow: 0 0 0 0 rgba(81, 115, 251, 0.5);
-    }
-
-    70% {
-        box-shadow: 0 0 0 12px rgba(81, 115, 251, 0);
-    }
-
-    100% {
-        box-shadow: 0 0 0 0 rgba(81, 115, 251, 0);
-    }
+/* Premium Animations (GPU-Composited for mobile page speed) */
+.animate-glow {
+    position: relative;
+    z-index: 1;
 }
 
-.animate-glow {
-    animation: glow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+.animate-glow::after {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    box-shadow: 0 0 0 4px var(--color-brand, #5173FB);
+    opacity: 0;
+    z-index: -1;
+    animation: glow-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    pointer-events: none;
+}
+
+@keyframes glow-pulse {
+    0% {
+        transform: scale(1);
+        opacity: 0.5;
+    }
+    70% {
+        transform: scale(1.04, 1.12);
+        opacity: 0;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 0;
+    }
 }
 
 @keyframes shimmer {

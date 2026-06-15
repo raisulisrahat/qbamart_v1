@@ -155,7 +155,7 @@ class UserViewSet(viewsets.ModelViewSet):
             
             from .models import SiteSettings
             settings = SiteSettings.objects.first()
-            site_title = settings.site_title if settings else "Spaceghor"
+            site_title = settings.site_title if settings else "qbamart"
             
             totp = pyotp.TOTP(profile.two_factor_secret)
             provisioning_uri = totp.provisioning_uri(
@@ -321,7 +321,7 @@ class CustomObtainAuthToken(ObtainAuthToken):
                     
                     from .models import SiteSettings
                     settings = SiteSettings.objects.first()
-                    site_title = settings.site_title if settings else "Spaceghor"
+                    site_title = settings.site_title if settings else "qbamart"
                     
                     provisioning_uri = totp.provisioning_uri(
                         name=user.username,
@@ -453,6 +453,7 @@ class ProductViewSet(viewsets.ModelViewSet):
     filterset_fields = ['categories', 'brand', 'is_active']
     search_fields = ['name', 'description']
     ordering_fields = ['regular_price', 'created_at', 'updated_at']
+    ordering = ['-updated_at']
     
     def get_queryset(self):
         from django.utils import timezone
@@ -638,7 +639,7 @@ class OrderViewSet(viewsets.ModelViewSet):
                 
                 # Send Passwordless/OTP Welcome via SMS
                 settings = SiteSettings.objects.first()
-                brand_name = settings.site_title if settings else "Spaceghor"
+                brand_name = settings.site_title if settings else "qbamart"
                 from .sms_utils import send_sms
                 cred_message = f"{brand_name}-এ আপনাকে স্বাগতম! আপনার অ্যাকাউন্ট তৈরি করা হয়েছে। আপনার মোবাইল নম্বর দিয়ে লগইন করে পাসওয়ার্ড সেট করুন।"
                 send_sms(customer_phone, cred_message)
@@ -721,7 +722,7 @@ class OrderViewSet(viewsets.ModelViewSet):
             'recipient_phone': order.phone_number,
             'recipient_address': order.address,
             'cod_amount': float(order.total_amount),
-            'note': f"Sync from {settings.site_title or 'Spaceghor'} (Order #{order.id})"
+            'note': f"Sync from {settings.site_title or 'qbamart'} (Order #{order.id})"
         }
         
         try:
@@ -898,7 +899,7 @@ class OrderViewSet(viewsets.ModelViewSet):
         # 5. Build payload and create order
         total_qty = sum(item.quantity for item in order.items.all()) or 1
         desc_parts = [f"{item.product.name} (Qty: {item.quantity})" for item in order.items.all() if item.product]
-        product_desc = ", ".join(desc_parts)[:255] or f"Package from {settings.site_title or 'Spaceghor'}"
+        product_desc = ", ".join(desc_parts)[:255] or f"Package from {settings.site_title or 'qbamart'}"
 
         # Calculate total weight in grams from product weights (kg * qty)
         total_weight_kg = sum(
@@ -909,7 +910,7 @@ class OrderViewSet(viewsets.ModelViewSet):
         # Convert to grams; minimum 100g, fallback 500g if no weight set
         item_weight_grams = max(int(total_weight_kg * 1000), 100) if total_weight_kg > 0 else 500
         
-        recipient_address = order.address or f"{settings.site_title or 'Spaceghor'} Customer Address"
+        recipient_address = order.address or f"{settings.site_title or 'qbamart'} Customer Address"
         if len(recipient_address) < 10:
             recipient_address = f"{recipient_address}, Bangladesh"
         if len(recipient_address) < 10:
@@ -1177,7 +1178,7 @@ class SiteSettingsViewSet(viewsets.ModelViewSet):
     def get_object(self):
         settings = SiteSettings.objects.first()
         if not settings:
-            settings = SiteSettings.objects.create(site_title="Spaceghor")
+            settings = SiteSettings.objects.create(site_title="qbamart")
         return settings
     
     def list(self, request, *args, **kwargs):
@@ -1739,7 +1740,7 @@ class MetaView(View):
             from .models import SiteSettings
             from django.conf import settings as django_settings
             site_settings = SiteSettings.objects.first()
-            site_title = site_settings.site_title if site_settings else "Spaceghor"
+            site_title = site_settings.site_title if site_settings else "qbamart"
             
             # Helper to extract clean text from potential Quill JSON, HTML, or plain text
             def extract_clean_text(raw_desc):
@@ -1778,7 +1779,7 @@ class MetaView(View):
             
             # Safe image URL retrieval to avoid ValueErrors on empty fields
             # Default fallback to site logo in media
-            image = request.build_absolute_uri('/media/site/spaceghor-logo.png')
+            image = request.build_absolute_uri('/media/site/qbamart-logo.png')
             if site_settings and site_settings.site_logo:
                 try:
                     image = request.build_absolute_uri(site_settings.site_logo.url)
@@ -1786,7 +1787,7 @@ class MetaView(View):
                     pass
 
             # Always point canonical URL to the frontend domain
-            frontend_url = getattr(django_settings, 'FRONTEND_URL', 'https://spaceghor.com').rstrip('/')
+            frontend_url = getattr(django_settings, 'FRONTEND_URL', 'https://qbamart.com').rstrip('/')
             canonical_url = f"{frontend_url}/{path}" if path else f"{frontend_url}/"
             
             # Determine content type based on path
@@ -2330,10 +2331,305 @@ class BkashCallbackView(View):
             return redirect(redirect_url)
 
 
+from django.utils.html import escape
+
+class SitemapXslView(View):
+    def get(self, request, *args, **kwargs):
+        xsl_content = """<?xml version="1.0" encoding="UTF-8"?>
+<xsl:stylesheet version="2.0" 
+                xmlns:html="http://www.w3.org/TR/REC-html40"
+                xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"
+                xmlns:sitemap="http://www.sitemaps.org/schemas/sitemap/0.9"
+                xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+  <xsl:output method="html" version="1.0" encoding="UTF-8" indent="yes"/>
+  <xsl:template match="/">
+    <html xmlns="http://www.w3.org/1999/xhtml">
+      <head>
+        <title>XML Sitemap - qbamart</title>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <style type="text/css">
+          body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            font-size: 14px;
+            color: #334155;
+            margin: 0;
+            padding: 40px 20px;
+            background-color: #f8fafc;
+          }
+          .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: #ffffff;
+            padding: 40px;
+            border-radius: 24px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -4px rgba(0, 0, 0, 0.05);
+            border: 1px solid #e2e8f0;
+          }
+          header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 25px;
+            margin-bottom: 30px;
+          }
+          .logo-text {
+            font-size: 24px;
+            font-weight: 900;
+            color: #0f172a;
+            letter-spacing: -0.025em;
+          }
+          .logo-text span {
+            color: #C35317;
+          }
+          h1 {
+            color: #0f172a;
+            font-size: 28px;
+            font-weight: 800;
+            margin: 0 0 10px 0;
+            letter-spacing: -0.025em;
+          }
+          p.desc {
+            color: #64748b;
+            margin: 0;
+            font-size: 15px;
+            line-height: 1.6;
+            max-width: 800px;
+          }
+          .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+            margin-bottom: 35px;
+          }
+          .stat-card {
+            background: #f8fafc;
+            padding: 24px;
+            border-radius: 16px;
+            border: 1px solid #e2e8f0;
+            transition: all 0.2s;
+          }
+          .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+          }
+          .stat-card .label {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: #64748b;
+            letter-spacing: 0.05em;
+          }
+          .stat-card .value {
+            font-size: 28px;
+            font-weight: 800;
+            color: #0f172a;
+            margin-top: 8px;
+          }
+          .search-wrapper {
+            position: relative;
+            margin-bottom: 25px;
+          }
+          .search-box {
+            width: 100%;
+            padding: 14px 16px 14px 44px;
+            font-size: 14px;
+            border: 1px solid #cbd5e1;
+            border-radius: 12px;
+            box-sizing: border-box;
+            outline: none;
+            transition: all 0.2s;
+            color: #1e293b;
+          }
+          .search-box:focus {
+            border-color: #C35317;
+            box-shadow: 0 0 0 4px rgba(195, 83, 23, 0.12);
+          }
+          .search-icon {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #94a3b8;
+            pointer-events: none;
+          }
+          table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+          }
+          th {
+            background-color: #f8fafc;
+            color: #475569;
+            font-weight: 700;
+            padding: 16px;
+            border-bottom: 2px solid #e2e8f0;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+          }
+          td {
+            padding: 16px;
+            border-bottom: 1px solid #f1f5f9;
+            word-break: break-all;
+            vertical-align: middle;
+          }
+          tr:hover td {
+            background-color: #f8fafc;
+          }
+          a {
+            color: #C35317;
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.15s;
+          }
+          a:hover {
+            color: #a0400f;
+            text-decoration: underline;
+          }
+          .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 700;
+            background: #f1f5f9;
+            color: #475569;
+          }
+          .badge-priority {
+            background: #fff7ed;
+            color: #c2410c;
+          }
+          .badge-freq {
+            background: #f0fdf4;
+            color: #166534;
+          }
+          .image-preview-container {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+          }
+          .image-preview {
+            width: 44px;
+            height: 44px;
+            object-fit: cover;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+            background: #f8fafc;
+            transition: transform 0.2s;
+            cursor: zoom-in;
+          }
+          .image-preview:hover {
+            transform: scale(1.1);
+            z-index: 10;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <header>
+            <div class="logo-text">Space<span>Ghor</span> Sitemap</div>
+            <div class="badge badge-priority">Production Ready</div>
+          </header>
+          
+          <h1>XML Sitemap Index</h1>
+          <p class="desc">This is an advanced XML sitemap indexing all search-engine readable URLs on qbamart. It supports auto-discovery of products, categories, brands, blog posts, and marketing landing pages (funnels) with built-in Google Image extensions.</p>
+          
+          <div class="stats" style="margin-top: 30px;">
+            <div class="stat-card">
+              <div class="label">Total Pages / URLs</div>
+              <div class="value"><xsl:value-of select="count(sitemap:urlset/sitemap:url)"/></div>
+            </div>
+            <div class="stat-card">
+              <div class="label">Total Media / Images</div>
+              <div class="value"><xsl:value-of select="count(sitemap:urlset/sitemap:url/image:image)"/></div>
+            </div>
+          </div>
+          
+          <div class="search-wrapper">
+            <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <input type="text" id="searchInput" class="search-box" placeholder="Filter sitemap URLs..." onkeyup="filterUrls()"/>
+          </div>
+          
+          <table id="sitemapTable">
+            <thead>
+              <tr>
+                <th>Location / URL</th>
+                <th style="width: 100px;">Priority</th>
+                <th style="width: 120px;">Change Freq</th>
+                <th style="width: 150px;">Last Modified</th>
+                <th>Image Previews</th>
+              </tr>
+            </thead>
+            <tbody>
+              <xsl:for-each select="sitemap:urlset/sitemap:url">
+                <tr>
+                  <td>
+                    <a href="{sitemap:loc}" target="_blank">
+                      <xsl:value-of select="sitemap:loc"/>
+                    </a>
+                  </td>
+                  <td>
+                    <span class="badge badge-priority">
+                      <xsl:value-of select="sitemap:priority"/>
+                    </span>
+                  </td>
+                  <td>
+                    <span class="badge badge-freq">
+                      <xsl:value-of select="sitemap:changefreq"/>
+                    </span>
+                  </td>
+                  <td>
+                    <xsl:value-of select="sitemap:lastmod"/>
+                  </td>
+                  <td>
+                    <xsl:if test="image:image">
+                      <div class="image-preview-container">
+                        <xsl:for-each select="image:image">
+                          <img class="image-preview" src="{image:loc}" title="{image:title}" alt="{image:title}"/>
+                        </xsl:for-each>
+                      </div>
+                    </xsl:if>
+                  </td>
+                </tr>
+              </xsl:for-each>
+            </tbody>
+          </table>
+        </div>
+        <script type="text/javascript">
+          function filterUrls() {
+            var input = document.getElementById('searchInput');
+            var filter = input.value.toLowerCase();
+            var table = document.getElementById('sitemapTable');
+            var tr = table.getElementsByTagName('tr');
+            for (var i = 1; i &lt; tr.length; i++) {
+              var td = tr[i].getElementsByTagName('td')[0];
+              if (td) {
+                var txtValue = td.textContent || td.innerText;
+                if (txtValue.toLowerCase().indexOf(filter) &gt; -1) {
+                  tr[i].style.display = "";
+                } else {
+                  tr[i].style.display = "none";
+                }
+              }
+            }
+          }
+        </script>
+      </body>
+    </html>
+  </xsl:template>
+</xsl:stylesheet>
+"""
+        return HttpResponse(xsl_content, content_type="application/xml")
+
+
 class SitemapView(View):
     def get(self, request, *args, **kwargs):
         from django.conf import settings as django_settings
-        frontend_url = getattr(django_settings, 'FRONTEND_URL', 'https://spaceghor.com').rstrip('/')
+        frontend_url = getattr(django_settings, 'FRONTEND_URL', 'https://qbamart.com').rstrip('/')
         
         # Build sitemap XML
         urls = []

@@ -224,12 +224,25 @@ const Checkout = () => {
             transaction_id: searchParams.get('order_id') || `checkout_${Date.now()}`,
             value: cartTotal + shippingCost,
             currency: 'BDT',
-            items: cart.map(item => ({
-              item_name: item.name,
-              item_id: item.id,
-              price: item.price,
-              quantity: item.quantity
-            }))
+            items: cart.map(item => {
+              const itemData: any = {
+                item_name: item.name,
+                item_id: item.id,
+                price: parseFloat(item.price.toString().replace(/[^0-9.]/g, '')) || 0,
+                quantity: item.quantity
+              };
+              if (item.color) {
+                itemData.item_variant = item.color.name;
+              }
+              if (item.size) {
+                if (itemData.item_variant) {
+                  itemData.item_variant += ` / ${item.size.name}`;
+                } else {
+                  itemData.item_variant = item.size.name;
+                }
+              }
+              return itemData;
+            })
           }
         });
       }
@@ -432,12 +445,25 @@ const Checkout = () => {
             transaction_id: res.data?.id || `checkout_${Date.now()}`,
             value: cartTotal + shippingCost,
             currency: 'BDT',
-            items: cart.map(item => ({
-              item_name: item.name,
-              item_id: item.id,
-              price: item.price,
-              quantity: item.quantity
-            }))
+            items: cart.map(item => {
+              const itemData: any = {
+                item_name: item.name,
+                item_id: item.id,
+                price: parseFloat(item.price.toString().replace(/[^0-9.]/g, '')) || 0,
+                quantity: item.quantity
+              };
+              if (item.color) {
+                itemData.item_variant = item.color.name;
+              }
+              if (item.size) {
+                if (itemData.item_variant) {
+                  itemData.item_variant += ` / ${item.size.name}`;
+                } else {
+                  itemData.item_variant = item.size.name;
+                }
+              }
+              return itemData;
+            })
           }
         });
       }
