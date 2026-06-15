@@ -345,7 +345,7 @@ const StepFunnelLayout = ({
                                         </button>
                                         
                                         <p className="text-center text-[10px] uppercase tracking-widest text-white/30 font-black">
-                                            100% Secure Checkout | Verified by Qbamart
+                                            100% Secure Checkout | Verified by Spaceghor
                                         </p>
                                     </form>
                                 </div>
@@ -447,14 +447,14 @@ const StepFunnelLayout = ({
             {/* Footer */}
             <footer className="py-12 bg-[#080b12] border-t border-white/5 text-center">
                 <div className="container mx-auto px-4">
-                    <div className="text-xl font-black text-slate-300 mb-4 tracking-tighter uppercase">Qbamart</div>
-                    <p className="text-slate-400 text-xs font-bold uppercase tracking-widest">&copy; 2026 Qbamart. Powered by <a href="https://ctsolutionbd.com" target="_blank" rel="noopener noreferrer" className="hover:text-brand transition-colors">Cyber and Tech Solution</a>.</p>
+                    <div className="text-xl font-black text-slate-300 mb-4 tracking-tighter uppercase">Spaceghor</div>
+                    <p className="text-slate-400 text-xs font-bold uppercase tracking-widest">&copy; 2026 Spaceghor. Developed by <a href="https://ctsolutionbd.com" target="_blank" rel="noopener noreferrer" className="hover:text-brand transition-colors">Cyber and Tech Solution</a>.</p>
                 </div>
             </footer>
             
             <style dangerouslySetInnerHTML={{ __html: `
-                .swiper-pagination-bullet-active { background: #5173FB !important; }
-                .swiper-button-next, .swiper-button-prev { color: #5173FB !important; }
+                .swiper-pagination-bullet-active { background: #C0561F !important; }
+                .swiper-button-next, .swiper-button-prev { color: #C0561F !important; }
             `}} />
         </div>
     );

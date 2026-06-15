@@ -96,7 +96,7 @@ const FlashSaleManager = () => {
                             setFormData({ title: '', start_time: '', end_time: '', discount_percentage: '', is_active: true });
                             setShowModal(true);
                         }}
-                        className="flex items-center gap-2 px-5 py-2 bg-[#5173FB] text-white rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-black transition-all shadow-lg shadow-zinc-900/10 active:scale-95"
+                        className="flex items-center gap-2 px-5 py-2 bg-brand text-white rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-black transition-all shadow-lg shadow-zinc-900/10 active:scale-95"
                     >
                         <Plus size={14} /> Add Campaign
                     </button>
@@ -152,7 +152,7 @@ const FlashSaleManager = () => {
                         <input
                             type="text"
                             placeholder="Search campaigns..."
-                            className="w-full pl-9 pr-4 py-2 bg-white border border-zinc-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#5173FB]/5 transition-all"
+                            className="w-full pl-9 pr-4 py-2 bg-white border border-zinc-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand/5 transition-all"
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                         />
@@ -191,7 +191,7 @@ const FlashSaleManager = () => {
                                         <tr key={sale.id} className="group hover:bg-zinc-50 transition-colors">
                                             <td className="px-6 py-4">
                                                 <div className="flex items-center gap-3">
-                                                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${isActive ? 'bg-[#5173FB] text-white' : 'bg-zinc-100 text-zinc-400'}`}>
+                                                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${isActive ? 'bg-brand text-white' : 'bg-zinc-100 text-zinc-400'}`}>
                                                         {isActive ? <Zap size={16} /> : <Clock size={16} />}
                                                     </div>
                                                     <div>
@@ -271,7 +271,7 @@ const FlashSaleManager = () => {
                                 <input
                                     type="text"
                                     required
-                                    className="w-full px-4 py-2.5 bg-zinc-50 border border-zinc-200 rounded-xl text-sm font-semibold focus:ring-2 focus:ring-[#5173FB]/5 outline-none transition-all"
+                                    className="w-full px-4 py-2.5 bg-zinc-50 border border-zinc-200 rounded-xl text-sm font-semibold focus:ring-2 focus:ring-brand/5 outline-none transition-all"
                                     value={formData.title}
                                     onChange={e => setFormData({ ...formData, title: e.target.value })}
                                     placeholder="e.g. Midnight Madness"
@@ -284,7 +284,7 @@ const FlashSaleManager = () => {
                                     <input
                                         type="datetime-local"
                                         required
-                                        className="w-full px-4 py-2.5 bg-zinc-50 border border-zinc-200 rounded-xl text-xs font-semibold focus:ring-2 focus:ring-[#5173FB]/5 outline-none transition-all"
+                                        className="w-full px-4 py-2.5 bg-zinc-50 border border-zinc-200 rounded-xl text-xs font-semibold focus:ring-2 focus:ring-brand/5 outline-none transition-all"
                                         value={formData.start_time}
                                         onChange={e => setFormData({ ...formData, start_time: e.target.value })}
                                     />
@@ -294,7 +294,7 @@ const FlashSaleManager = () => {
                                     <input
                                         type="datetime-local"
                                         required
-                                        className="w-full px-4 py-2.5 bg-zinc-50 border border-zinc-200 rounded-xl text-xs font-semibold focus:ring-2 focus:ring-[#5173FB]/5 outline-none transition-all"
+                                        className="w-full px-4 py-2.5 bg-zinc-50 border border-zinc-200 rounded-xl text-xs font-semibold focus:ring-2 focus:ring-brand/5 outline-none transition-all"
                                         value={formData.end_time}
                                         onChange={e => setFormData({ ...formData, end_time: e.target.value })}
                                     />
@@ -308,7 +308,7 @@ const FlashSaleManager = () => {
                                     min="0"
                                     max="100"
                                     step="0.01"
-                                    className="w-full px-4 py-2.5 bg-zinc-50 border border-zinc-200 rounded-xl text-sm font-semibold focus:ring-2 focus:ring-[#5173FB]/5 outline-none transition-all"
+                                    className="w-full px-4 py-2.5 bg-zinc-50 border border-zinc-200 rounded-xl text-sm font-semibold focus:ring-2 focus:ring-brand/5 outline-none transition-all"
                                     value={formData.discount_percentage}
                                     onChange={e => setFormData({ ...formData, discount_percentage: e.target.value })}
                                     placeholder="25.00"
@@ -330,7 +330,7 @@ const FlashSaleManager = () => {
 
                             <div className="pt-4 flex gap-3">
                                 <button type="button" onClick={() => setShowModal(false)} className="flex-1 py-3 text-[10px] font-bold uppercase tracking-widest text-zinc-400 hover:text-zinc-900 transition-colors">Cancel</button>
-                                <button type="submit" className="flex-1 py-3 bg-[#5173FB] text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-xl shadow-zinc-900/10 active:scale-95 transition-all flex items-center justify-center gap-2">
+                                <button type="submit" className="flex-1 py-3 bg-brand text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-xl shadow-zinc-900/10 active:scale-95 transition-all flex items-center justify-center gap-2">
                                     <Check size={16} /> {editingSale ? 'Update' : 'Launch'}
                                 </button>
                             </div>

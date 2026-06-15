@@ -421,12 +421,19 @@ const ComboFunnelLayout = ({
                                         disabled={siteSettings?.enable_district_upazila !== false}
                                         onChange={handleChange}
                                     >
-                                        <option value="" className="text-slate-400">{siteSettings?.enable_district_upazila !== false ? '...' : t('select_area')}</option>
-                                        {shippingZones.map(zone => (
-                                            <option key={zone.id} value={zone.id} className="text-slate-800">
-                                                {zone.name} - ৳{parseFloat(zone.shipping_cost).toFixed(0)}
-                                            </option>
-                                        ))}
+                                        <option value="" className="text-slate-400">{siteSettings?.enable_district_upazila !== false ? '...' : t('select_shipping_zone')}</option>
+                                        {shippingZones.map(zone => {
+                                            const displayName = zone.name.toLowerCase().includes('inside')
+                                                ? 'ঢাকা সিটির ভেতরে (Inside Dhaka)'
+                                                : zone.name.toLowerCase().includes('outside')
+                                                    ? 'ঢাকা সিটির বাইরে (Outside Dhaka)'
+                                                    : zone.name;
+                                            return (
+                                                <option key={zone.id} value={zone.id} className="text-slate-800">
+                                                    {displayName} - ৳{parseFloat(zone.shipping_cost).toFixed(0)}
+                                                </option>
+                                            );
+                                        })}
                                     </select>
                                     <Truck className="absolute right-5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={20} />
                                 </div>
@@ -1000,12 +1007,19 @@ const ComboFunnelLayout = ({
                                         disabled={siteSettings?.enable_district_upazila !== false}
                                         onChange={handleChange}
                                     >
-                                        <option value="" className="text-slate-400">{siteSettings?.enable_district_upazila !== false ? '...' : t('select_area')}</option>
-                                        {shippingZones.map(zone => (
-                                            <option key={zone.id} value={zone.id} className="text-slate-800">
-                                                {zone.name} - ৳{parseFloat(zone.shipping_cost).toFixed(0)}
-                                            </option>
-                                        ))}
+                                        <option value="" className="text-slate-400">{siteSettings?.enable_district_upazila !== false ? '...' : t('select_shipping_zone')}</option>
+                                        {shippingZones.map(zone => {
+                                            const displayName = zone.name.toLowerCase().includes('inside')
+                                                ? 'ঢাকা সিটির ভেতরে (Inside Dhaka)'
+                                                : zone.name.toLowerCase().includes('outside')
+                                                    ? 'ঢাকা সিটির বাইরে (Outside Dhaka)'
+                                                    : zone.name;
+                                            return (
+                                                <option key={zone.id} value={zone.id} className="text-slate-800">
+                                                    {displayName} - ৳{parseFloat(zone.shipping_cost).toFixed(0)}
+                                                </option>
+                                            );
+                                        })}
                                     </select>
                                     <Truck className="absolute right-5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={20} />
                                 </div>
@@ -1104,7 +1118,7 @@ const ComboFunnelLayout = ({
             {/* Footer */}
             <div className="bg-green-900 text-white/50 py-12 text-center text-xs font-semibold border-t border-white/10">
                 <div className="container mx-auto px-4 max-w-4xl space-y-2">
-                    <p className="mb-2 font-medium text-white">© 2026 Qbamart. Powered by <a href="https://ctsolutionbd.com" target="_blank" rel="noopener noreferrer" className='text-white hover:text-slate-300 transition-colors'>Cyber and Tech Solution</a>.</p>
+                    <p className="mb-2 font-medium text-white">© 2026 Qbamart. Developed by <a href="https://ctsolutionbd.com" target="_blank" rel="noopener noreferrer" className='text-white hover:text-slate-300 transition-colors'>Cyber and Tech Solution</a>.</p>
                 </div>
             </div>
 

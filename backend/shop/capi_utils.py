@@ -105,8 +105,8 @@ def send_fb_capi_purchase(order):
         event_time = int(timezone.now().timestamp())
         event_id = f"order_{order.id}" # Matches client-side eventID perfectly for deduplication!
 
-        site_title = settings.site_title if settings else "Qbamart"
-        site_title_clean = ''.join(c for c in site_title if c.isalnum()) or "Qbamart"
+        site_title = settings.site_title if settings else "spaceghor"
+        site_title_clean = ''.join(c for c in site_title if c.isalnum()) or "spaceghor"
 
         event_data = {
             'event_name': 'Purchase',

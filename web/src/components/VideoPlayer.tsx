@@ -11,11 +11,7 @@ interface VideoPlayerProps {
 export const VideoPlayer = (props: VideoPlayerProps) => {
     const videoRef = useRef<HTMLDivElement>(null);
     const playerRef = useRef<any>(null);
-    const onReadyRef = useRef<((player: any) => void) | undefined>(undefined);
     const { options, onReady, className } = props;
-
-    // Keep onReadyRef always pointing at the latest prop so the closure never goes stale
-    onReadyRef.current = onReady;
 
     useEffect(() => {
         // Make sure Video.js player is only initialized once
@@ -33,7 +29,7 @@ export const VideoPlayer = (props: VideoPlayerProps) => {
                 ...options,
                 controls: true, // Force controls to be true
             }, () => {
-                onReadyRef.current && onReadyRef.current(player);
+                onReady && onReady(player);
             });
         } else {
             const player = playerRef.current;
@@ -49,7 +45,6 @@ export const VideoPlayer = (props: VideoPlayerProps) => {
             }
         }
     }, [options, videoRef]);
-
 
     // Dispose the player on unmount
     useEffect(() => {

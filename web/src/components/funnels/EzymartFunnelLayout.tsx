@@ -10,7 +10,7 @@ import 'swiper/css/effect-fade';
 import { resolveImageUrl } from '../../utils/image';
 import VideoPlayer from '../VideoPlayer';
 
-const EzyFunnelLayout = ({
+const EzymartFunnelLayout = ({
     product,
     formData,
     handleChange,
@@ -66,7 +66,7 @@ const EzyFunnelLayout = ({
         targets.forEach(t => observer.observe(t));
 
         return () => observer.disconnect();
-    }, []);
+    }, [product, funnel]);
 
     const toBanglaNumber = (num) => {
         if (num === undefined || num === null) return '';
@@ -247,8 +247,8 @@ const EzyFunnelLayout = ({
             <style dangerouslySetInnerHTML={{
                 __html: `
                 @keyframes pulse-glow {
-                    0%, 100% { transform: scale(1); box-shadow: 0 0 15px rgba(174, 0, 255, 0.4); }
-                    50% { transform: scale(1.03); box-shadow: 0 0 30px rgba(38, 0, 255, 0.7); }
+                    0%, 100% { transform: scale(1); box-shadow: 0 0 15px rgba(16, 185, 129, 0.4); }
+                    50% { transform: scale(1.03); box-shadow: 0 0 30px rgba(34, 197, 94, 0.7); }
                 }
                 .pulse-btn {
                     animation: pulse-glow 2.5s infinite ease-in-out;
@@ -304,8 +304,8 @@ const EzyFunnelLayout = ({
                     line-height: 74px !important;
                     border-radius: 50% !important;
                     border: 3px solid #ffffff !important;
-                    background-color: rgba(81, 115, 251, 0.85) !important; /* Premium brand amber/orange */
-                    box-shadow: 0 0 20px rgba(81, 115, 251, 0.5), inset 0 0 10px rgba(255, 255, 255, 0.2) !important;
+                    background-color: rgba(16, 185, 129, 0.85) !important; /* Premium brand green */
+                    box-shadow: 0 0 20px rgba(16, 185, 129, 0.5), inset 0 0 10px rgba(255, 255, 255, 0.2) !important;
                     color: #ffffff !important;
                     font-size: 2.8em !important;
                     top: 50% !important;
@@ -321,7 +321,7 @@ const EzyFunnelLayout = ({
                 .video-js .vjs-big-play-button:hover {
                     background-color: #C0561F !important; /* solid premium brand orange */
                     transform: translate(-50%, -50%) scale(1.12) !important;
-                    box-shadow: 0 0 35px rgba(81, 115, 251, 0.8), inset 0 0 15px rgba(255, 255, 255, 0.4) !important;
+                    box-shadow: 0 0 35px rgba(34, 197, 94, 0.8), inset 0 0 15px rgba(255, 255, 255, 0.4) !important;
                     border-color: #ffffff !important;
                 }
                 .video-js .vjs-big-play-button .vjs-icon-placeholder:before {
@@ -341,7 +341,7 @@ const EzyFunnelLayout = ({
             `}} />
 
             {/* B. Hero / Video Section */}
-            <section className="bg-[#0d0f4b] text-white pt-10 pb-16 px-4 relative overflow-hidden">
+            <section className="bg-[#052e16] text-white pt-10 pb-16 px-4 relative overflow-hidden">
                 {/* Premium Grainy Silk Gradient Background (Matches reference image) */}
                 <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
                     <svg className="w-full h-full object-cover opacity-95" viewBox="0 0 1000 1000" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
@@ -354,32 +354,32 @@ const EzyFunnelLayout = ({
                             
                             {/* Radials matching user-uploaded reference image */}
                             <radialGradient id="meshCyan" cx="0%" cy="30%" r="65%">
-                                <stop offset="0%" stopColor="#9ce2ff" stopOpacity="0.9" />
-                                <stop offset="45%" stopColor="#3bb2ec" stopOpacity="0.5" />
-                                <stop offset="100%" stopColor="#3bb2ec" stopOpacity="0" />
+                                <stop offset="0%" stopColor="#d1fae5" stopOpacity="0.9" />
+                                <stop offset="45%" stopColor="#34d399" stopOpacity="0.5" />
+                                <stop offset="100%" stopColor="#34d399" stopOpacity="0" />
                             </radialGradient>
                             
                             <radialGradient id="meshTeal" cx="80%" cy="75%" r="65%">
-                                <stop offset="0%" stopColor="#1073a3" stopOpacity="0.85" />
-                                <stop offset="50%" stopColor="#0e1883" stopOpacity="0.4" />
-                                <stop offset="100%" stopColor="#0e1883" stopOpacity="0" />
+                                <stop offset="0%" stopColor="#047857" stopOpacity="0.85" />
+                                <stop offset="50%" stopColor="#064e3b" stopOpacity="0.4" />
+                                <stop offset="100%" stopColor="#064e3b" stopOpacity="0" />
                             </radialGradient>
                             
                             <radialGradient id="meshIndigo" cx="30%" cy="95%" r="75%">
-                                <stop offset="0%" stopColor="#0e1883" stopOpacity="0.95" />
-                                <stop offset="60%" stopColor="#0d0f4b" stopOpacity="0.5" />
-                                <stop offset="100%" stopColor="#0d0f4b" stopOpacity="0" />
+                                <stop offset="0%" stopColor="#064e3b" stopOpacity="0.95" />
+                                <stop offset="60%" stopColor="#022c22" stopOpacity="0.5" />
+                                <stop offset="100%" stopColor="#022c22" stopOpacity="0" />
                             </radialGradient>
                             
                             <radialGradient id="meshDark" cx="95%" cy="5%" r="55%">
-                                <stop offset="0%" stopColor="#07070a" stopOpacity="0.95" />
-                                <stop offset="65%" stopColor="#0d0f4b" stopOpacity="0.5" />
-                                <stop offset="100%" stopColor="#0d0f4b" stopOpacity="0" />
+                                <stop offset="0%" stopColor="#022c22" stopOpacity="0.95" />
+                                <stop offset="65%" stopColor="#052e16" stopOpacity="0.5" />
+                                <stop offset="100%" stopColor="#052e16" stopOpacity="0" />
                             </radialGradient>
                         </defs>
                         
-                        {/* Base blue */}
-                        <rect width="1000" height="1000" fill="#0d0f4b" />
+                        {/* Base green */}
+                        <rect width="1000" height="1000" fill="#052e16" />
                         
                         {/* Layered silk mesh gradients */}
                         <rect width="1000" height="1000" fill="url(#meshIndigo)" />
@@ -477,6 +477,12 @@ const EzyFunnelLayout = ({
                         )}
                     </div>
 
+                    <div className='py-14 space-y-16 animate-on-scroll'>
+                    <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-white tracking-tight">
+                        {funnel?.top_header_line_2}
+                    </h2>
+                    </div>
+
                     {/* Promo Ribbon */}
                     <button
                         onClick={() => document.getElementById('pricing-box-container')?.scrollIntoView({ behavior: 'smooth' })}
@@ -487,191 +493,9 @@ const EzyFunnelLayout = ({
                     </button>
                 </div>
             </section>
-
-            {/* C. Features Section */}
-            <section className="py-16 px-4 max-w-4xl mx-auto space-y-16 animate-on-scroll">
-                {/* Heading */}
-                <div className="text-center">
-                    <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-slate-800 tracking-tight">
-                        {funnel?.top_header_line_2}
-                    </h2>
-                    <WavyUnderline />
-                </div>
-                {/* Key Features checklist */}
-                <div className="bg-white rounded-[2rem] p-6 sm:p-10  space-y-4">
-                    {dynamicWhyBuyList.map((reason, idx) => (
-                        <div key={idx} className="flex items-start gap-4">
-                            <span className="w-8 h-8 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0 shadow-inner mt-0.5">
-                                <CheckCircle size={18} className="fill-emerald-100" />
-                            </span>
-                            <p className="font-bold text-slate-700 text-sm sm:text-base leading-relaxed">
-                                {highlightText(reason)}
-                            </p>
-                        </div>
-                    ))}
-                </div>
-
-                {/* First Pulsating CTA Button */}
-                <div className="text-center">
-                    <button
-                        onClick={() => document.getElementById('pricing-box-container')?.scrollIntoView({ behavior: 'smooth' })}
-                        className="pulse-btn shimmer-overlay bg-brand hover:bg-brand text-white font-black text-lg sm:text-2xl py-5 px-10 rounded-full flex items-center justify-center gap-3 mx-auto transition-transform w-full sm:w-auto"
-                    >
-                        <ShoppingCart size={22} className="fill-white" />
-                        <span>মূল্য জানতে চাই</span>
-                    </button>
-                </div>
-            </section>
-            
-            {/* D. Original Product Images Section */}
-            {product.funnel_sections && product.funnel_sections.length > 0 && (
-                <section className="py-16 px-4 bg-white border-y border-slate-100 animate-on-scroll">
-                    <div className="max-w-4xl mx-auto my-auto py-10 space-y-16">
-                        {/* Title */}
-                        <div className="text-center">
-                            <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-slate-800 tracking-tight">
-                                পণ্যটির অরজিনাল ছবি গুলা দেখুন
-                            </h2>
-                            <WavyUnderline />
-                        </div>
-
-                        {/* Image Slider 2 */}
-                        <div className="relative">
-                            <Swiper
-                                modules={[Pagination, Autoplay]}
-                                spaceBetween={24}
-                                slidesPerView={1}
-                                breakpoints={{
-                                    640: { slidesPerView: 2 },
-                                    1024: { slidesPerView: 3 },
-                                }}
-                                pagination={{ clickable: true }}
-                                autoplay={{ delay: 3000, disableOnInteraction: false }}
-                                className="pb-4"
-                            >
-                                {product.images.map((section, idx) => (
-                                    <SwiperSlide key={section.id || idx} className="h-auto">
-                                        <div className="bg-[#f8fafc] rounded-2xl p-3 border border-slate-100 h-full flex flex-col items-center justify-between group shadow-sm hover:shadow-md transition-shadow">
-                                            <div className="relative overflow-hidden rounded-xl w-full bg-slate-900 aspect-square flex items-center justify-center">
-                                                {section.image ? (
-                                                    <img
-                                                        src={resolveImageUrl(section.image)}
-                                                        alt={section.title || `Gallery - ${idx + 1}`}
-                                                        className="w-full h-full object-cover rounded-xl transition-transform duration-700 group-hover:scale-105"
-                                                    />
-                                                ) : (
-                                                    <div className="w-full h-full bg-slate-800 flex items-center justify-center rounded-xl">
-                                                        <Zap className="text-white/20" size={48} />
-                                                    </div>
-                                                )}
-                                            </div>
-                                            {(section.title || section.text) && (
-                                                <div className="p-4 text-center w-full">
-                                                    {section.title && <h4 className="font-bold text-slate-950 text-base mb-1 line-clamp-1">{section.title}</h4>}
-                                                    {section.text && <p className="text-slate-500 font-bold text-xs leading-relaxed line-clamp-2">{section.text}</p>}
-                                                </div>
-                                            )}
-                                        </div>
-                                    </SwiperSlide>
-                                ))}
-                            </Swiper>
-                        </div>
-                    </div>
-                    
-                    {product.funnel_sections && product.funnel_sections.length > 0 && (
-                                    <div className="py-24 bg-slate-50 border-y border-slate-200 animate-on-scroll">
-                                        <div className="container mx-auto px-4 max-w-6xl">
-                                            {/* Section Header */}
-                                            <div className="text-center mb-16 space-y-4">
-                                                <div className="bg-gradient-to-r from-brand via-[#8B5CF6] to-[#BC14CD] text-white px-8 py-4 rounded-3xl inline-block shadow-2xl transform -rotate-1">
-                                                    <h5 className="text-xl md:text-2xl font-black tracking-tight uppercase">
-                                                        আমাদের কাস্টমার রিভিউ
-                                                    </h5>
-                                                </div>
-                                            </div>
-                                            <div className="relative review-swiper-container">
-                                                <Swiper
-                                                    modules={[Pagination, Autoplay]}
-                                                    spaceBetween={30}
-                                                    slidesPerView={1}
-                                                    breakpoints={{
-                                                        640: { slidesPerView: 2 },
-                                                        1024: { slidesPerView: 3 },
-                                                    }}
-                                                    pagination={{ clickable: true }}
-                                                    autoplay={{ delay: 3000, disableOnInteraction: false }}
-                                                    className="pb-16"
-                                                >
-                                                    <style dangerouslySetInnerHTML={{
-                                                        __html: `
-                                                        .review-swiper-container .swiper-pagination {
-                                                            bottom: 0px !important;
-                                                        }
-                                                        .review-swiper-container .swiper-pagination-bullet {
-                                                            width: 8px !important;
-                                                            height: 8px !important;
-                                                            background: #cbd5e1 !important;
-                                                            opacity: 1 !important;
-                                                            margin: 0 5px !important;
-                                                            border-radius: 50% !important;
-                                                            transition: all 0.3s ease !important;
-                                                        }
-                                                        .review-swiper-container .swiper-pagination-bullet-active {
-                                                            background: #000000 !important;
-                                                            opacity: 1 !important;
-                                                            width: 8px !important;
-                                                            border-radius: 50% !important;
-                                                        }
-                                                    `}} />
-                                                    {product.funnel_sections.map((section, idx) => (
-                                                        <SwiperSlide key={section.id || idx}>
-                                                            <div className="bg-white rounded-[2rem] overflow-hidden border border-slate-100 h-full flex flex-col items-center justify-center p-3 group">
-                                                                <div className="relative overflow-hidden rounded-xl w-full flex items-center justify-center bg-slate-50">
-                                                                    {section.image ? (
-                                                                        <img src={section.image} alt={section.title} className="w-full h-auto max-h-[750px] object-contain rounded-xl mx-auto transition-transform duration-700 group-hover:scale-105" loading="eager" />
-                                                                    ) : (
-                                                                        <div className="w-full aspect-[9/16] max-h-[750px] bg-slate-900 flex items-center justify-center rounded-xl">
-                                                                            <Zap className="text-white/20" size={48} />
-                                                                        </div>
-                                                                    )}
-                                                                </div>
-                                                                
-                                                                {(section.title || section.text) && (
-                                                                    <div className="p-6 text-center w-full">
-                                                                        {section.title && <h3 className="font-black text-slate-900 text-lg mb-2 leading-tight">{section.title}</h3>}
-                                                                        {section.text && <p className="text-slate-500 font-bold text-xs leading-relaxed">{section.text}</p>}
-                                                                    </div>
-                                                                )}
-                                                            </div>
-                                                        </SwiperSlide>
-                                                    ))}
-                                                </Swiper>
-                                            </div>
-                    
-                                            {/* Order CTA */}
-                                            <div className="mt-10 text-center">
-                                                <button 
-                                                    onClick={() => document.getElementById('order-form')?.scrollIntoView({ behavior: 'smooth' })}
-                                                    className="bg-gradient-to-r from-brand via-[#8B5CF6] to-[#BC14CD] text-white px-8 py-5 rounded-full text-md md:text-xl font-black shadow-2xl shadow-brand/30 transform transition-all hover:scale-105 active:scale-95 flex items-center justify-center gap-4 mx-auto uppercase tracking-tighter"
-                                                >
-                                                    <ShoppingCart size={20} /> অর্ডার করতে ক্লিক করুন
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                )}
-                </section>
-                
-            )}
-
-            {/* E. Pricing & Checkout Form Section */}
-            <section id="pricing-box-container" className="py-20 px-4 bg-[#0a0f1d]/90 text-white relative overflow-hidden animate-on-scroll">
-                <div className="absolute top-0 left-0 w-full h-full bg-cover bg-center opacity-5 pointer-events-none" style={{ backgroundImage: `url(${product.image})` }}></div>
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-purple-900/10 rounded-full blur-3xl pointer-events-none"></div>
-
-                <div className="max-w-4xl mx-auto space-y-12 relative z-10">
-                    {/* Main Pricing Box */}
-                    <div className="bg-gradient-to-br from-[#3b0a60]/60 to-[#1e0033]/40 rounded-[2.5rem] p-6 sm:p-12 border border-white/10 shadow-2xl text-center space-y-6">
+                    <div className="px-4 md:max-w-4xl mx-auto py-14 animate-on-scroll">
+                                {/* Main Pricing Box */}
+                    <div className="bg-gradient-to-br from-green-900/70 to-green-400/70 rounded-[2.5rem] p-6 sm:p-12 border border-white/10 shadow-2xl text-center space-y-6">
                         {/* Regular Price Tag */}
                         <div className="inline-block bg-[#ffff00] text-black px-5 py-2 rounded-xl font-black text-sm sm:text-base uppercase tracking-wider shadow-md">
                             রেগুলার প্রাইস আগে ছিলো <span className="line-through decoration-[#ff003c] decoration-4 font-black">৳ {regPriceStr}</span> টাকা
@@ -699,10 +523,246 @@ const EzyFunnelLayout = ({
                         </h3>
                         {/* Heading directing to the checkout form */}
                         <div className="pt-6 border-t border-white/10">
-                            <h4 className="text-lg sm:text-2xl font-black leading-relaxed">
-                                অর্ডার করতে <span className="bg-[#28a745] text-white px-3 py-1 rounded mx-1 inline-block font-black shadow-md">নিচের ফর্মটি পূরণ করুন</span>
+                        <div className='p-6 bg-brand rounded-full'>
+                        <h4 className="text-lg sm:text-2xl font-black text-white leading-relaxed">
+                                ⏳ সীমিত সময়ের অফার⏳ ঘড়িতে {funnel?.discount_percentage} ছাড় – আজই উপভোগ করুন!
                             </h4>
+                            </div>
                         </div>
+                    </div>
+                    </div>
+
+            {/* Original Product Images Section */}
+            {product.images && product.images.length > 0 && (
+                <section className="py-24 px-4 bg-[#052e16] text-white relative overflow-hidden animate-on-scroll">
+                    {/* Premium Grainy Silk Gradient Background */}
+                    <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
+                        <svg className="w-full h-full object-cover opacity-95" viewBox="0 0 1000 1000" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+                            <defs>
+                                <filter id="silkNoise_gallery" colorInterpolationFilters="sRGB">
+                                    <feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="3" result="noise" />
+                                    <feColorMatrix type="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 0.05 0" />
+                                </filter>
+                                
+                                <radialGradient id="meshCyan_gallery" cx="0%" cy="30%" r="65%">
+                                    <stop offset="0%" stopColor="#d1fae5" stopOpacity="0.9" />
+                                    <stop offset="45%" stopColor="#34d399" stopOpacity="0.5" />
+                                    <stop offset="100%" stopColor="#34d399" stopOpacity="0" />
+                                </radialGradient>
+                                
+                                <radialGradient id="meshTeal_gallery" cx="80%" cy="75%" r="65%">
+                                    <stop offset="0%" stopColor="#047857" stopOpacity="0.85" />
+                                    <stop offset="50%" stopColor="#064e3b" stopOpacity="0.4" />
+                                    <stop offset="100%" stopColor="#064e3b" stopOpacity="0" />
+                                </radialGradient>
+                                
+                                <radialGradient id="meshIndigo_gallery" cx="30%" cy="95%" r="75%">
+                                    <stop offset="0%" stopColor="#064e3b" stopOpacity="0.95" />
+                                    <stop offset="60%" stopColor="#022c22" stopOpacity="0.5" />
+                                    <stop offset="100%" stopColor="#022c22" stopOpacity="0" />
+                                </radialGradient>
+                                
+                                <radialGradient id="meshDark_gallery" cx="95%" cy="5%" r="55%">
+                                    <stop offset="0%" stopColor="#022c22" stopOpacity="0.95" />
+                                    <stop offset="65%" stopColor="#052e16" stopOpacity="0.5" />
+                                    <stop offset="100%" stopColor="#052e16" stopOpacity="0" />
+                                </radialGradient>
+                            </defs>
+                            
+                            {/* Base green */}
+                            <rect width="1000" height="1000" fill="#052e16" />
+                            
+                            {/* Layered silk mesh gradients */}
+                            <rect width="1000" height="1000" fill="url(#meshIndigo_gallery)" />
+                            <rect width="1000" height="1000" fill="url(#meshTeal_gallery)" />
+                            <rect width="1000" height="1000" fill="url(#meshCyan_gallery)" />
+                            <rect width="1000" height="1000" fill="url(#meshDark_gallery)" />
+                            
+                            {/* Soft satin waves/folds */}
+                            <path d="M-100,500 C200,300 400,700 700,400 C900,200 1100,600 1200,500 L1200,1200 L-100,1200 Z" fill="url(#meshTeal_gallery)" opacity="0.3" style={{ mixBlendMode: 'screen' }} />
+                            <path d="M-100,200 C300,500 500,100 800,400 C950,550 1100,250 1200,300 L1200,1200 L-100,1200 Z" fill="url(#meshCyan_gallery)" opacity="0.2" style={{ mixBlendMode: 'screen' }} />
+                            
+                            {/* Beautiful Silk Grain Overlay */}
+                            <rect width="1000" height="1000" filter="url(#silkNoise_gallery)" />
+                        </svg>
+                    </div>
+
+                    <div className="max-w-4xl mx-auto my-auto py-10 space-y-16 relative z-10">
+                        {/* Title */}
+                        <div className="text-center">
+                            <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-white tracking-tight drop-shadow-md">
+                                পণ্যটির অরজিনাল ছবি গুলা দেখুন
+                            </h2>
+                            <WavyUnderline />
+                        </div>
+
+                        {/* Image Grid (2 columns, 2 rows) */}
+                        <div className="grid grid-cols-2 gap-4 sm:gap-6">
+                            {product.images.slice(0, 4).map((section, idx) => (
+                                <div key={section.id || idx} className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-3 flex flex-col items-center justify-between group shadow-2xl hover:border-white/20 hover:bg-white/10 transition-all duration-300">
+                                    <div className="relative overflow-hidden rounded-xl w-full bg-slate-900 aspect-square flex items-center justify-center">
+                                        {section.image ? (
+                                            <img
+                                                src={resolveImageUrl(section.image)}
+                                                alt={section.title || `Gallery - ${idx + 1}`}
+                                                className="w-full h-full object-cover rounded-xl transition-transform duration-700 group-hover:scale-105"
+                                            />
+                                        ) : (
+                                            <div className="w-full h-full bg-slate-800 flex items-center justify-center rounded-xl">
+                                                <Zap className="text-white/20" size={48} />
+                                            </div>
+                                        )}
+                                    </div>
+                                    {(section.title || section.text) && (
+                                        <div className="p-3 text-center w-full mt-2">
+                                            {section.title && <h4 className="font-bold text-white text-sm sm:text-base mb-1 line-clamp-1">{section.title}</h4>}
+                                            {section.text && <p className="text-slate-300 font-bold text-xs leading-relaxed line-clamp-2">{section.text}</p>}
+                                        </div>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </section>
+            )}
+
+            <section className='py-16 px-4 max-w-4xl mx-auto space-y-16 animate-on-scroll'>
+                    <div className="text-center">
+                    <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-black tracking-tight">
+                        {funnel?.top_header_line_3}
+                    </h2>
+                    <WavyUnderline />
+                </div>
+
+                {/* Key Features checklist */}
+                <div className="bg-white rounded-[2rem] p-6 sm:p-10">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+                        {dynamicWhyBuyList.map((reason, idx) => (
+                            <div key={idx} className="flex items-start gap-4">
+                                <span className="w-8 h-8 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0 shadow-inner mt-0.5">
+                                    <CheckCircle size={18} className="fill-emerald-100" />
+                                </span>
+                                <p className="font-bold text-slate-700 text-sm sm:text-base leading-relaxed">
+                                    {highlightText(reason)}
+                                </p>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+                <div className="text-center border border-slate-300 rounded-2xl p-10 bg-gradient-to-br from-slate-100 to-slate-200">
+                    <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-slate-600 tracking-tight">
+                        ক্যাশ অন ডেলিভারি সুবিধা
+                    </h2>
+                    <h6 className="mt-2 text-md font-bold text-slate-600 leading-relaxed max-w-2xl mx-auto">
+                       প্রডাক্টটি হাতে নিয়ে ইচ্ছেমতো চেক করে তারপর পেমেন্ট করতে পারবেন। এক টাকাও অগ্রিম দিতে হবে না ইনশাআল্লাহ
+                    </h6>
+                </div>
+
+                {/* First Pulsating CTA Button */}
+                <div className="text-center">
+                    <button
+                        onClick={() => document.getElementById('pricing-box-container')?.scrollIntoView({ behavior: 'smooth' })}
+                        className="pulse-btn shimmer-overlay bg-brand hover:bg-brand text-white font-black text-lg sm:text-2xl py-5 px-10 rounded-full flex items-center justify-center gap-3 mx-auto transition-transform w-full sm:w-auto"
+                    >
+                        <ShoppingCart size={22} className="fill-white" />
+                        <span>মূল্য জানতে চাই</span>
+                    </button>
+                </div>
+            </section>     
+            {/* E. Review screenshots Section */}
+            {product.funnel_sections && product.funnel_sections.length > 0 && (
+                <section className="py-24 bg-slate-50 border-y border-slate-200 animate-on-scroll">
+                    <div className="container mx-auto px-4 max-w-6xl">
+                        {/* Section Header */}
+                        <div className="text-center mb-16 space-y-4">
+                            <div className="bg-brand text-white px-8 py-4 rounded-3xl inline-block shadow-2xl transform -rotate-1">
+                                <h5 className="text-xl md:text-2xl font-black tracking-tight uppercase">
+                                    আমাদের কাস্টমার রিভিউ
+                                </h5>
+                            </div>
+                        </div>
+                        <div className="relative review-swiper-container">
+                            <Swiper
+                                modules={[Pagination, Autoplay]}
+                                spaceBetween={30}
+                                slidesPerView={1}
+                                breakpoints={{
+                                    640: { slidesPerView: 2 },
+                                    1024: { slidesPerView: 3 },
+                                }}
+                                pagination={{ clickable: true }}
+                                autoplay={{ delay: 3000, disableOnInteraction: false }}
+                                className="pb-16"
+                            >
+                                <style dangerouslySetInnerHTML={{
+                                    __html: `
+                                    .review-swiper-container .swiper-pagination {
+                                        bottom: 0px !important;
+                                    }
+                                    .review-swiper-container .swiper-pagination-bullet {
+                                        width: 8px !important;
+                                        height: 8px !important;
+                                        background: #cbd5e1 !important;
+                                        opacity: 1 !important;
+                                        margin: 0 5px !important;
+                                        border-radius: 50% !important;
+                                        transition: all 0.3s ease !important;
+                                    }
+                                    .review-swiper-container .swiper-pagination-bullet-active {
+                                        background: #000000 !important;
+                                        opacity: 1 !important;
+                                        width: 8px !important;
+                                        border-radius: 50% !important;
+                                    }
+                                `}} />
+                                {product.funnel_sections.map((section, idx) => (
+                                    <SwiperSlide key={section.id || idx}>
+                                        <div className="bg-white rounded-[2rem] overflow-hidden border border-slate-100 h-full flex flex-col items-center justify-center p-3 group">
+                                            <div className="relative overflow-hidden rounded-xl w-full flex items-center justify-center bg-slate-50">
+                                                {section.image ? (
+                                                    <img src={resolveImageUrl(section.image)} alt={section.title} className="w-full h-auto max-h-[750px] object-contain rounded-xl mx-auto transition-transform duration-700 group-hover:scale-105" loading="eager" />
+                                                ) : (
+                                                    <div className="w-full aspect-[9/16] max-h-[750px] bg-slate-900 flex items-center justify-center rounded-xl">
+                                                        <Zap className="text-white/20" size={48} />
+                                                    </div>
+                                                )}
+                                            </div>
+                                            
+                                            {(section.title || section.text) && (
+                                                <div className="p-6 text-center w-full">
+                                                    {section.title && <h3 className="font-black text-slate-900 text-lg mb-2 leading-tight">{section.title}</h3>}
+                                                    {section.text && <p className="text-slate-500 font-bold text-xs leading-relaxed">{section.text}</p>}
+                                                </div>
+                                            )}
+                                        </div>
+                                    </SwiperSlide>
+                                ))}
+                            </Swiper>
+                        </div>
+                        
+                        {/* Order CTA */}
+                        <div className="mt-10 text-center">
+                            <button 
+                                onClick={() => document.getElementById('order-form')?.scrollIntoView({ behavior: 'smooth' })}
+                                className="bg-brand  text-white px-8 py-5 rounded-full text-md md:text-xl font-black shadow-2xl shadow-brand/30 transform transition-all hover:scale-105 active:scale-95 flex items-center justify-center gap-4 mx-auto uppercase tracking-tighter"
+                            >
+                                <ShoppingCart size={20} /> অর্ডার করতে ক্লিক করুন
+                            </button>
+                        </div>
+                    </div>
+                </section>
+            )
+            }
+            
+
+            {/* E. Pricing & Checkout Form Section */}
+            <section id="pricing-box-container" className="py-20 px-4 bg-[#0a0f1d]/90 text-white relative overflow-hidden animate-on-scroll">
+                <div className="absolute top-0 left-0 w-full h-full bg-cover bg-center opacity-5 pointer-events-none" style={{ backgroundImage: `url(${product.image})` }}></div>
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-purple-900/10 rounded-full blur-3xl pointer-events-none"></div>
+
+                <div className="max-w-4xl mx-auto space-y-12 relative z-10">
+                    <div className="text-center text-white mb-8 sm:mb-12">
+                        <h2 className="text-xl sm:text-2xl md:text-3xl font-black mb-4 sm:mb-6 drop-shadow-md">{t('fill_form_to_order')}</h2>
                     </div>
 
                     {/* F. High Conversion Order Form */}
@@ -728,7 +788,7 @@ const EzyFunnelLayout = ({
                                                         <div className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${variant.quantity > 0 ? 'bg-white scale-100' : 'bg-transparent scale-0'}`} />
                                                     </div>
                                                     <div className="w-10 h-10 sm:w-14 sm:h-14 rounded-lg overflow-hidden bg-white shrink-0 border border-white/20">
-                                                        <img src={resolveImageUrl(variant.image || product.image || product.images?.[0]?.image)} alt={variant.color ? variant.color.name : product.name} className="w-full h-full object-cover" onError={(e) => { e.target.src = product.images?.[0]?.image || ''; }} loading="eager" />
+                                                        <img src={resolveImageUrl(variant.image || product.image || product.images?.[0]?.image)} alt={variant.color ? variant.color.name : product.name} className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).src = product.images?.[0]?.image || ''; }} loading="eager" />
                                                     </div>
                                                     <div className="flex flex-col items-start text-left min-w-0 flex-1">
                                                         <h4 className="font-bold text-white leading-tight text-sm sm:text-base truncate w-full">
@@ -866,7 +926,7 @@ const EzyFunnelLayout = ({
                                         <textarea
                                             name="address"
                                             required
-                                            rows="2"
+                                            rows={2}
                                             className="w-full pl-5 pr-12 py-4 bg-slate-900/50 border border-white/20 rounded-2xl focus:border-[#ff003c] focus:bg-slate-900/80 focus:ring-4 focus:ring-[#ff003c]/10 text-white placeholder-slate-500 outline-none font-bold transition-all duration-300 resize-none"
                                             placeholder={t('write_full_address')}
                                             value={formData.address}
@@ -1004,4 +1064,4 @@ const EzyFunnelLayout = ({
     );
 };
 
-export default EzyFunnelLayout;
+export default EzymartFunnelLayout;

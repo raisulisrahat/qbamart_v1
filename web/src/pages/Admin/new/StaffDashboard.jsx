@@ -227,7 +227,7 @@ const StaffDashboard = ({ role }) => {
                             <input
                                 type="text"
                                 placeholder="Search system..."
-                                className="pl-9 pr-4 py-2 bg-zinc-50 border border-zinc-200 rounded-lg text-sm w-64 focus:bg-white focus:ring-2 focus:ring-[#5173FB]/5 transition-all outline-none"
+                                className="pl-9 pr-4 py-2 bg-zinc-50 border border-zinc-200 rounded-lg text-sm w-64 focus:bg-white focus:ring-2 focus:ring-brand/5 transition-all outline-none"
                                 value={searchQuery}
                                 onChange={(e) => handleSearch(e.target.value)}
                                 onFocus={() => searchQuery.length >= 2 && setShowSearchResults(true)}
@@ -239,7 +239,7 @@ const StaffDashboard = ({ role }) => {
                                     <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-zinc-200 rounded-xl shadow-2xl z-50 overflow-hidden min-w-[320px] animate-in fade-in slide-in-from-top-2 duration-200">
                                         <div className="px-4 py-3 border-b border-zinc-100 bg-zinc-50/50 flex justify-between items-center">
                                             <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider">Search Results</span>
-                                            {isLoadingSearch && <div className="w-3 h-3 border-2 border-[#5173FB] border-t-transparent rounded-full animate-spin" />}
+                                            {isLoadingSearch && <div className="w-3 h-3 border-2 border-brand border-t-transparent rounded-full animate-spin" />}
                                         </div>
                                         <div className="max-h-[400px] overflow-y-auto luxury-scrollbar">
                                             {searchResults.length > 0 ? (
@@ -277,11 +277,11 @@ const StaffDashboard = ({ role }) => {
                         <div className="relative">
                             <button 
                                 onClick={() => setShowNotifications(!showNotifications)}
-                                className={`p-2 transition-all relative rounded-lg ${showNotifications ? 'bg-[#5173FB]/10 text-[#5173FB]' : 'text-zinc-400 hover:text-zinc-900 hover:bg-zinc-50'}`}
+                                className={`p-2 transition-all relative rounded-lg ${showNotifications ? 'bg-brand/10 text-brand' : 'text-zinc-400 hover:text-zinc-900 hover:bg-zinc-50'}`}
                             >
                                 <Bell size={18} />
                                 {unreadCount > 0 && (
-                                    <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-[#5173FB] rounded-full border-2 border-white" />
+                                    <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-brand rounded-full border-2 border-white" />
                                 )}
                             </button>
 
@@ -303,7 +303,7 @@ const StaffDashboard = ({ role }) => {
                                                         className={`px-4 py-4 border-b border-zinc-50 last:border-0 hover:bg-zinc-50 transition-colors cursor-pointer relative ${!n.is_read ? 'bg-zinc-50/30' : ''}`}
                                                         onClick={() => handleMarkAsRead(n.id)}
                                                     >
-                                                        {!n.is_read && <div className="absolute left-1.5 top-1/2 -translate-y-1/2 w-1 h-8 bg-[#5173FB] rounded-full" />}
+                                                        {!n.is_read && <div className="absolute left-1.5 top-1/2 -translate-y-1/2 w-1 h-8 bg-brand rounded-full" />}
                                                         <div className="flex items-start gap-3">
                                                             <div className={`w-8 h-8 rounded-full flex items-center justify-center ${!n.is_read ? 'bg-white shadow-sm text-zinc-900' : 'bg-zinc-100 text-zinc-400'}`}>
                                                                 <Bell size={14} />
@@ -377,7 +377,7 @@ const SidebarItem = ({ icon, label, id, activeTab, onClick }) => (
         onClick={() => onClick(id)}
         className={`w-full flex items-center gap-3 px-3 py-2 rounded-md text-[13px] font-medium transition-all duration-200 ${
             activeTab === id
-                ? 'bg-[#5173FB]/10 text-[#5173FB]'
+                ? 'bg-brand/10 text-brand'
                 : 'text-zinc-500 hover:text-zinc-900 hover:bg-zinc-50'
         }`}
     >
@@ -405,7 +405,7 @@ const DashboardStats = ({
                         key={range}
                         onClick={() => setDateRange(range)}
                         className={`px-4 py-1.5 text-xs font-semibold rounded-md transition-all ${dateRange === range 
-                            ? 'bg-[#5173FB] text-white shadow-sm' 
+                            ? 'bg-brand text-white shadow-sm' 
                             : 'text-zinc-500 hover:text-zinc-900'}`}
                     >
                         {range === '1d' ? '24h' : range === '7days' ? '7d' : range === '30days' ? '30d' : range === 'all' ? 'Max' : <Calendar size={14} />}
@@ -472,7 +472,7 @@ const DashboardStats = ({
                     <h3 className="text-sm font-bold text-zinc-900 uppercase tracking-wider">Revenue Analytics</h3>
                     <div className="flex items-center gap-2">
                         <div className="flex items-center gap-1.5">
-                            <div className="w-2 h-2 rounded-full bg-[#5173FB]"></div>
+                            <div className="w-2 h-2 rounded-full bg-brand"></div>
                             <span className="text-[11px] font-bold text-zinc-500">Sales</span>
                         </div>
                     </div>
@@ -603,7 +603,7 @@ const PlaceholderModule = ({ title, icon }) => (
             href="http://127.0.0.1:8000/admin"
             target="_blank"
             rel="noopener noreferrer"
-            className="px-4 py-2 bg-[#5173FB] text-white hover:bg-[#3a5bd9] rounded-lg text-sm font-medium hover:bg-gray-800 transition"
+            className="px-4 py-2 bg-brand text-white hover:bg-[#3a5bd9] rounded-lg text-sm font-medium hover:bg-gray-800 transition"
         >
             Open Django Admin
         </a>
@@ -684,7 +684,7 @@ const SidebarContent = ({ activeTab, handleNavigate }) => (
 
 const UserBlock = ({ user, role }) => (
     <div className="flex items-center gap-3 px-2">
-        <div className="w-9 h-9 rounded-full bg-[#5173FB] flex items-center justify-center text-white text-xs font-bold ring-4 ring-zinc-50">
+        <div className="w-9 h-9 rounded-full bg-brand flex items-center justify-center text-white text-xs font-bold ring-4 ring-zinc-50">
             {user?.username?.[0]?.toUpperCase() || 'U'}
         </div>
         <div className="flex-1 min-w-0">
@@ -700,12 +700,12 @@ const UserBlock = ({ user, role }) => (
 const PremiumLogo = ({ siteTitle }) => {
     return (
         <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 bg-[#5173FB] rounded-md flex items-center justify-center text-white">
+            <div className="w-8 h-8 bg-brand rounded-md flex items-center justify-center text-white">
                 <LayoutDashboard size={18} strokeWidth={2.5} />
             </div>
             <div className="flex flex-col">
                 <span className="text-[14px] font-bold tracking-tight text-zinc-900 leading-none">
-                    {siteTitle || "QBAMART"}
+                    {siteTitle || "Spaceghor"}
                 </span>
                 <span className="text-[10px] font-medium text-zinc-400 mt-1 uppercase tracking-wider leading-none">Management</span>
             </div>

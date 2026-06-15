@@ -76,6 +76,8 @@ const LAYOUT_OPTIONS = [
 
     { id: 'ezymart', name: 'EzyMart', description: 'Marketplace style layout', color: 'bg-orange-600' },
 
+    { id: 'ezymart_v2', name: 'EzyMart V2', description: 'Marketplace style layout V2', color: 'bg-orange-500' },
+
     { id: 'dark', name: 'Dark', description: 'High contrast & premium', color: 'bg-black' },
 
     { id: 'professional', name: 'Pro', description: 'Structured & informative', color: 'bg-blue-700' },
@@ -221,6 +223,8 @@ const ProductForm = ({ product, onSave, onCancel }) => {
         specifications: {}, // Dynamic Key-Value pairs
 
         show_specifications: true,
+
+        video_url: '',
 
     });
 
@@ -377,6 +381,8 @@ const ProductForm = ({ product, onSave, onCancel }) => {
                 specifications: product.specifications || {},
 
                 show_specifications: product.show_specifications !== false,
+
+                video_url: product.video_url || '',
 
             });
 
@@ -2877,7 +2883,29 @@ const ProductForm = ({ product, onSave, onCancel }) => {
 
                         )}
 
-                        <p className="text-[10px] text-zinc-400 mt-2">Recommended: mp4, webm under 10MB</p>
+                        <div className="mt-4">
+
+                            <label className="block text-xs font-bold text-zinc-700 mb-2">YouTube Embed URL</label>
+
+                            <input
+
+                                type="text"
+
+                                name="video_url"
+
+                                placeholder="e.g. https://www.youtube.com/embed/..."
+
+                                className="w-full px-4 py-2 bg-zinc-50 border border-zinc-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-black/5 focus:border-zinc-400 transition-colors outline-none placeholder:text-zinc-400"
+
+                                value={formData.video_url}
+
+                                onChange={handleChange}
+
+                            />
+
+                        </div>
+
+                        <p className="text-[10px] text-zinc-400 mt-2">Recommended: mp4, webm</p>
 
                     </div>
 
@@ -3743,6 +3771,7 @@ const ProductForm = ({ product, onSave, onCancel }) => {
                                     <MediaManager 
                                         selectMode={true}
                                         onSelect={(url) => handleGallerySelect(url)}
+                                        onSelectMultiple={(urls) => handleGallerySelectMultiple(urls)}
                                     />
                                 </div>
                             )}

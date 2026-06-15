@@ -59,7 +59,7 @@ def get_balance():
 def send_otp_sms(number, otp_code):
     api_key, sender_id, otp_template = get_sms_settings()
     settings = SiteSettings.objects.first()
-    site_title = settings.site_title if settings else "Qbamart"
+    site_title = settings.site_title if settings else "Spaceghor"
     
     message = otp_template.format(site_title=site_title, otp=otp_code)
     return send_sms(number, message)

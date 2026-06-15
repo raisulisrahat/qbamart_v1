@@ -9,10 +9,10 @@ const ContactUs = () => {
 
   const formattedSiteTitle = siteTitle.toLowerCase().replace(/\s+/g, '');
   const siteEmail = `support@${formattedSiteTitle}.com`;
-  const contactPhone = settings?.support_phone || "01618-320869";
-  const whatsappNumber = settings?.whatsapp_number || "01618-320869";
-  const facebookLink = settings?.facebook_url || "https://www.facebook.com/qbamart";
-  const messengerLink = settings?.messenger_url || "https://m.me/qbamart";
+  const contactPhone = settings?.support_phone || "01516-542909";
+  const whatsappNumber = settings?.whatsapp_number || "01516-542909";
+  const facebookLink = settings?.facebook_url || "https://www.facebook.com/Spaceghor";
+  const messengerLink = settings?.messenger_url || "https://m.me/Spaceghor";
 
   return (
     <div className="bg-white min-h-screen">

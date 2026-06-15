@@ -11,7 +11,8 @@ const formatAddressForAdmin = (address) => {
 };
 
 const OrderManager = () => {
-    const { token } = useAuth();
+    const { token, user } = useAuth();
+    const isModerator = user?.profile?.role === 'moderator';
     const navigate = useNavigate();
     const location = useLocation();
     
@@ -114,6 +115,10 @@ const OrderManager = () => {
     }, [search, statusFilter, orderType, activeDateFilter, dateRange, activeView]);
 
     const handleDelete = async (id) => {
+        if (isModerator) {
+            alert("Moderators do not have permission to delete orders.");
+            return;
+        }
         try {
             const endpoint = activeView === 'real' ? `orders/${id}/` : `incomplete-orders/${id}/`;
             await api.delete(endpoint);
@@ -128,6 +133,10 @@ const OrderManager = () => {
     };
 
     const handleBulkDelete = async () => {
+        if (isModerator) {
+            alert("Moderators do not have permission to delete orders.");
+            return;
+        }
         if (selectedOrders.length === 0) return;
 
         try {
@@ -285,6 +294,7 @@ const OrderManager = () => {
     };
 
     const handleSendToSteadfast = async (order = null) => {
+        if (isModerator) return;
         const targetOrder = order || selectedOrder;
         if (!targetOrder) return;
         setIsDispatching(true);
@@ -308,6 +318,7 @@ const OrderManager = () => {
     };
 
     const handleSendToCarrybee = async (order = null) => {
+        if (isModerator) return;
         const targetOrder = order || selectedOrder;
         if (!targetOrder) return;
         setIsDispatching(true);
@@ -461,10 +472,15 @@ const OrderManager = () => {
 
     const filteredOrders = orders.filter(order => {
         if (order.status === 'draft') return false;
+        const matchesProduct = Array.isArray(order.items) && order.items.some(item => {
+            const productName = item.product_details?.name || item.product_name || item.name || '';
+            return productName.toLowerCase().includes(search.toLowerCase());
+        });
         const matchesSearch =
             order.id.toString().includes(search) ||
             (order.customer_name && order.customer_name.toLowerCase().includes(search.toLowerCase())) ||
-            (order.phone_number && order.phone_number.includes(search));
+            (order.phone_number && order.phone_number.includes(search)) ||
+            matchesProduct;
         const matchesStatus = statusFilter === 'all' || order.status === statusFilter;
         let matchesDate = true;
         const orderDate = new Date(order.created_at);
@@ -503,10 +519,16 @@ const OrderManager = () => {
     });
 
     const filteredIncomplete = incompleteOrders.filter(order => {
+        const items = order.items || order.cart_items;
+        const matchesProduct = Array.isArray(items) && items.some(item => {
+            const productName = item.product_details?.name || item.product_name || item.name || '';
+            return productName.toLowerCase().includes(search.toLowerCase());
+        });
         const matchesSearch =
             order.id.toString().includes(search) ||
             (order.customer_name && order.customer_name.toLowerCase().includes(search.toLowerCase())) ||
-            (order.phone_number && order.phone_number.includes(search));
+            (order.phone_number && order.phone_number.includes(search)) ||
+            matchesProduct;
         return matchesSearch;
     });
 
@@ -600,7 +622,7 @@ const OrderManager = () => {
                     <button
                         onClick={() => { setActiveView('real'); setSelectedOrders([]); }}
                         className={`px-3 md:px-4 py-1.5 text-[10px] md:text-xs font-semibold rounded-md transition-all ${activeView === 'real' 
-                            ? 'bg-[#5173FB] text-white shadow-sm' 
+                            ? 'bg-brand text-white shadow-sm' 
                             : 'text-zinc-500 hover:text-zinc-900'}`}
                     >
                         Real Orders
@@ -608,7 +630,7 @@ const OrderManager = () => {
                     <button
                         onClick={() => { setActiveView('incomplete'); setSelectedOrders([]); }}
                         className={`px-3 md:px-4 py-1.5 text-[10px] md:text-xs font-semibold rounded-md transition-all ${activeView === 'incomplete' 
-                            ? 'bg-[#5173FB] text-white shadow-sm' 
+                            ? 'bg-brand text-white shadow-sm' 
                             : 'text-zinc-500 hover:text-zinc-900'}`}
                     >
                         Drafts <span className="ml-0.5 md:ml-1 opacity-50">({incompleteOrders.length})</span>
@@ -644,7 +666,7 @@ const OrderManager = () => {
                             </ResponsiveContainer>
                         </div>
                     </div>
-                    <div className="bg-[#5173FB] rounded-xl p-6 text-white flex flex-col justify-between shadow-lg shadow-zinc-900/10">
+                    <div className="bg-brand rounded-xl p-6 text-white flex flex-col justify-between shadow-lg shadow-zinc-900/10">
                         <div>
                             <p className="text-[10px] font-bold uppercase tracking-widest opacity-60">Pending Recovery</p>
                             <h4 className="text-3xl font-bold tracking-tight mt-2 font-mono">{incompleteOrders.length}</h4>
@@ -668,8 +690,8 @@ const OrderManager = () => {
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400" size={14} />
                             <input
                                 type="text"
-                                placeholder="Search hash, customer, phone..."
-                                className="w-full pl-9 pr-4 py-2 bg-white border border-zinc-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#5173FB]/5 transition-all"
+                                placeholder="Search hash, customer, phone, product..."
+                                className="w-full pl-9 pr-4 py-2 bg-white border border-zinc-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand/5 transition-all"
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
                             />
@@ -685,7 +707,7 @@ const OrderManager = () => {
                                                 setShowCustomDate(false);
                                             }}
                                             className={`flex-1 sm:flex-none px-3 py-1.5 text-[10px] md:text-[11px] font-bold uppercase tracking-wider rounded-md transition-all whitespace-nowrap ${
-                                                activeDateFilter === range ? 'bg-[#5173FB] text-white shadow-sm' : 'text-zinc-400 hover:text-zinc-600'
+                                                activeDateFilter === range ? 'bg-brand text-white shadow-sm' : 'text-zinc-400 hover:text-zinc-600'
                                             }`}
                                         >
                                             {range}
@@ -766,7 +788,7 @@ const OrderManager = () => {
                     )}
 
                     <div className="flex items-center gap-2">
-                        {selectedOrders.length > 0 && (
+                        {!isModerator && selectedOrders.length > 0 && (
                             <button 
                                 onClick={handleBulkDelete}
                                 className="px-4 py-2 bg-rose-500 text-white rounded-lg text-[11px] font-bold uppercase tracking-widest hover:bg-rose-600 transition-all flex items-center gap-2 animate-in zoom-in duration-200"
@@ -783,7 +805,7 @@ const OrderManager = () => {
                                 <AlertTriangle size={14} /> Clean Duplicates
                             </button>
                         )}
-                        <button onClick={handleBulkExport} disabled={selectedOrders.length === 0} className="px-4 py-2 bg-[#5173FB] text-white rounded-lg text-[11px] font-bold uppercase tracking-widest hover:bg-zinc-800 disabled:opacity-30 transition-all">
+                        <button onClick={handleBulkExport} disabled={selectedOrders.length === 0} className="px-4 py-2 bg-brand text-white rounded-lg text-[11px] font-bold uppercase tracking-widest hover:bg-zinc-800 disabled:opacity-30 transition-all">
                             <Download size={14} className="inline mr-2" /> Export
                         </button>
                         <button onClick={activeView === 'real' ? fetchOrders : fetchIncompleteOrders} className="p-2 border border-zinc-200 bg-white rounded-lg text-zinc-400 hover:text-zinc-900 transition-all">
@@ -892,7 +914,7 @@ const OrderManager = () => {
                                         </td>
                                     )}
                                     <td className="px-6 py-4 text-center">
-                                        <span className={`text-xs font-bold ${order.notes?.length > 0 ? 'text-[#5173FB]' : 'text-zinc-300'}`}>
+                                        <span className={`text-xs font-bold ${order.notes?.length > 0 ? 'text-brand' : 'text-zinc-300'}`}>
                                             {order.notes?.length || 0}
                                         </span>
                                     </td>
@@ -903,9 +925,9 @@ const OrderManager = () => {
                                             </button>
                                             {activeView === 'real' ? (
                                                 <>
-                                                    {!order.courier_consignment_id && (
+                                                    {!order.courier_consignment_id && !isModerator && (
                                                         <>
-                                                            <button onClick={() => handleSendToSteadfast(order)} disabled={isDispatching} className="p-2 text-zinc-400 bg-green-600/30 hover:text-[#5173FB] hover:bg-white border border-transparent hover:border-zinc-200 rounded-lg transition-all" title="Sync with Steadfast">
+                                                            <button onClick={() => handleSendToSteadfast(order)} disabled={isDispatching} className="p-2 text-zinc-400 bg-green-600/30 hover:text-brand hover:bg-white border border-transparent hover:border-zinc-200 rounded-lg transition-all" title="Sync with Steadfast">
                                                                 <Truck size={14} />
                                                             </button>
                                                             <button onClick={() => handleSendToCarrybee(order)} disabled={isDispatching} className="p-2 text-zinc-400 bg-yellow-400/30 hover:text-purple-600 hover:bg-white border border-transparent hover:border-zinc-200 rounded-lg transition-all" title="Sync with Carrybee">
@@ -923,9 +945,11 @@ const OrderManager = () => {
                                                     {isConverting === order.id ? <RefreshCw size={14} className="animate-spin" /> : <CheckCircle size={14} />}
                                                 </button>
                                             )}
-                                            <button onClick={() => handleDelete(order.id)} className="p-2 text-zinc-400 hover:text-rose-600 hover:bg-white border border-transparent hover:border-zinc-200 rounded-lg transition-all">
-                                                <Trash2 size={14} />
-                                            </button>
+                                            {!isModerator && (
+                                                <button onClick={() => handleDelete(order.id)} className="p-2 text-zinc-400 hover:text-rose-600 hover:bg-white border border-transparent hover:border-zinc-200 rounded-lg transition-all">
+                                                    <Trash2 size={14} />
+                                                </button>
+                                            )}
                                         </div>
                                     </td>
                                 </tr>
@@ -958,7 +982,7 @@ const OrderManager = () => {
                                             onClick={() => setCurrentPage(Number(page))}
                                             className={`px-3 py-1.5 text-xs font-bold rounded-lg border transition-all ${
                                                 currentPage === page 
-                                                    ? 'bg-[#5173FB] text-white border-[#5173FB] shadow-sm shadow-[#5173FB]/10' 
+                                                    ? 'bg-brand text-white border-brand shadow-sm shadow-brand/10' 
                                                     : 'bg-white text-zinc-600 border-zinc-200 hover:bg-zinc-50'
                                             }`}
                                         >
@@ -1026,7 +1050,7 @@ const OrderManager = () => {
                                         <button 
                                             onClick={() => handleConvertToOrder(selectedOrder.id)} 
                                             disabled={isConverting === selectedOrder.id}
-                                            className="px-4 py-2 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all flex items-center gap-2 shadow-lg bg-[#5173FB] text-white hover:bg-zinc-800 shadow-zinc-900/10 disabled:opacity-50"
+                                            className="px-4 py-2 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all flex items-center gap-2 shadow-lg bg-brand text-white hover:bg-zinc-800 shadow-zinc-900/10 disabled:opacity-50"
                                         >
                                             {isConverting === selectedOrder.id ? (
                                                 <RefreshCw size={14} className="animate-spin" />
@@ -1068,8 +1092,8 @@ const OrderManager = () => {
                                 <h4 className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Fulfillment Information</h4>
                                 {isEditingDetails ? (
                                     <div className="space-y-3">
-                                        <input className="w-full px-4 py-2.5 bg-zinc-50 border border-zinc-200 rounded-lg text-sm font-semibold focus:ring-2 focus:ring-[#5173FB]/5 transition-all outline-none" value={editForm.customer_name} onChange={e => setEditForm({...editForm, customer_name: e.target.value})} placeholder="Customer Name" />
-                                        <textarea className="w-full px-4 py-2.5 bg-zinc-50 border border-zinc-200 rounded-lg text-sm font-semibold focus:ring-2 focus:ring-[#5173FB]/5 transition-all outline-none min-h-[100px]" value={editForm.address} onChange={e => setEditForm({...editForm, address: e.target.value})} placeholder="Shipping Address" />
+                                        <input className="w-full px-4 py-2.5 bg-zinc-50 border border-zinc-200 rounded-lg text-sm font-semibold focus:ring-2 focus:ring-brand/5 transition-all outline-none" value={editForm.customer_name} onChange={e => setEditForm({...editForm, customer_name: e.target.value})} placeholder="Customer Name" />
+                                        <textarea className="w-full px-4 py-2.5 bg-zinc-50 border border-zinc-200 rounded-lg text-sm font-semibold focus:ring-2 focus:ring-brand/5 transition-all outline-none min-h-[100px]" value={editForm.address} onChange={e => setEditForm({...editForm, address: e.target.value})} placeholder="Shipping Address" />
                                     </div>
                                 ) : (
                                     <div className="p-6 bg-zinc-50 rounded-2xl border border-zinc-100 relative group">
@@ -1085,85 +1109,54 @@ const OrderManager = () => {
                                 )}
                             </div>
 
-                            {/* Customer Activities & Session Details */}
-                            <div className="space-y-4">
-                                <h4 className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Metadata & Activities</h4>
-                                <div className="p-6 bg-zinc-50 rounded-2xl border border-zinc-100 space-y-4">
-                                    {/* Confirmed by staff info
-                                    {(() => {
-                                        const confirmNote = selectedOrder.notes?.find(n => 
-                                            n.note && n.note.toLowerCase().includes('confirmed')
-                                        );
-                                        if (confirmNote) {
-                                            return (
-                                                <div className="flex items-center gap-3 pb-3 border-b border-zinc-200/50">
-                                                    <div className="p-2 bg-emerald-50 text-emerald-600 rounded-lg">
-                                                        <CheckCircle size={16} />
-                                                    </div>
-                                                    <div>
-                                                        <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest">Confirmed By</p>
-                                                        <p className="text-xs font-bold text-zinc-900 mt-0.5">Staff User: <span className="font-mono">{confirmNote.username || 'System'}</span></p>
-                                                    </div>
-                                                </div>
-                                            );
-                                        }
-                                        return null;
-                                    })()} */}
-
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <div className="flex items-start gap-3">
-                                            <div className="p-2 bg-zinc-100 text-zinc-500 rounded-lg mt-0.5">
-                                                <Globe size={14} />
+                            {/* Timeline Notes */}
+                            <div className="space-y-4 pb-10">
+                                <h4 className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Order Logs</h4>
+                                <div className="space-y-2">
+                                    {selectedOrder.notes?.map((note) => (
+                                        <div key={note.id} className="p-4 bg-zinc-50 rounded-xl border border-zinc-100 flex flex-col">
+                                            <div className="flex justify-between items-center mb-1">
+                                                <span className="text-[9px] font-bold text-zinc-900 uppercase tracking-widest">{note.username || 'System'}</span>
+                                                <span className="text-[9px] font-bold text-zinc-400 uppercase">{new Date(note.created_at).toLocaleString()}</span>
                                             </div>
-                                            <div className="min-w-0">
-                                                <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest">IP Address</p>
-                                                <p className="text-xs font-bold text-zinc-900 mt-0.5 font-mono truncate">{selectedOrder.ip_address || 'N/A'}</p>
-                                            </div>
+                                            <p className="text-xs font-semibold text-zinc-600 leading-relaxed">{note.note}</p>
                                         </div>
-
-                                        <div className="flex items-start gap-3">
-                                            <div className="p-2 bg-zinc-100 text-zinc-500 rounded-lg mt-0.5">
-                                                <MapPin size={14} />
-                                            </div>
-                                            <div className="min-w-0">
-                                                <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest">IP Location</p>
-                                                <p className="text-xs font-bold text-zinc-900 mt-0.5 truncate">{selectedOrder.location || 'Unknown'}</p>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div className="flex items-start gap-3 pt-3 border-t border-zinc-200/50">
-                                        <div className="p-2 bg-zinc-100 text-zinc-500 rounded-lg mt-0.5">
-                                            <Compass size={14} />
-                                        </div>
-                                        <div className="min-w-0 flex-1">
-                                            <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest">User Device Agent</p>
-                                            <p className="text-xs font-medium text-zinc-600 mt-0.5 break-words leading-relaxed">{selectedOrder.user_agent || 'N/A'}</p>
-                                        </div>
+                                    ))}
+                                    <div className="flex gap-2 pt-2">
+                                        <input 
+                                            value={noteText} 
+                                            onChange={e => setNoteText(e.target.value)} 
+                                            placeholder="Add operational note..." 
+                                            className="flex-1 px-4 py-2.5 bg-zinc-50 border border-zinc-200 rounded-lg text-xs font-semibold focus:ring-2 focus:ring-brand/5 outline-none" 
+                                        />
+                                        <button onClick={handleAddNote} disabled={!noteText.trim() || isSubmittingNote} className="px-5 py-2.5 bg-brand text-white rounded-lg text-[10px] font-bold uppercase tracking-widest hover:bg-black transition-all disabled:opacity-30">Add</button>
                                     </div>
                                 </div>
                             </div>
-
                             {/* Logistics Sync */}
                             {selectedOrder.status !== 'draft' && (
                                 <div className="space-y-3">
                                     {!selectedOrder.courier_consignment_id ? (
-                                        <div className="grid grid-cols-2 gap-3">
-                                            <button 
-                                                onClick={() => handleSendToSteadfast()} 
-                                                disabled={isDispatching || !selectedOrder.items} 
-                                                className="py-3 bg-green-700/70 text-white rounded-xl text-[10px] font-bold uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-black transition-all disabled:opacity-30"
-                                            >
-                                                <Truck size={14} /> Steadfast Sync
-                                            </button>
-                                            <button 
-                                                onClick={() => handleSendToCarrybee()} 
-                                                disabled={isDispatching || !selectedOrder.items} 
-                                                className="py-3 bg-yellow-400/80 text-white rounded-xl text-[10px] font-bold uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-black transition-all disabled:opacity-30"
-                                            >
-                                                <Truck size={14} /> Carrybee Sync
-                                            </button>
-                                        </div>
+                                        !isModerator && (
+                                            <div className="grid grid-cols-2 gap-3">
+                                                <button 
+                                                    onClick={() => handleSendToSteadfast()} 
+                                                    disabled={isDispatching || !selectedOrder.items} 
+                                                    className="py-3 bg-green-700/70 text-white rounded-xl text-[10px] font-bold uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-black transition-all disabled:opacity-30"
+                                                    title="Sync with Steadfast"
+                                                >
+                                                    <Truck size={14} /> Steadfast Sync
+                                                </button>
+                                                <button 
+                                                    onClick={() => handleSendToCarrybee()} 
+                                                    disabled={isDispatching || !selectedOrder.items} 
+                                                    className="py-3 bg-yellow-400/80 text-white rounded-xl text-[10px] font-bold uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-black transition-all disabled:opacity-30"
+                                                    title="Sync with Carrybee"
+                                                >
+                                                    <Truck size={14} /> Carrybee Sync
+                                                </button>
+                                            </div>
+                                        )
                                     ) : (
                                         <div className="grid grid-cols-2 gap-3">
                                             <div className="py-3 bg-zinc-100 border border-zinc-200 text-zinc-700 rounded-xl text-[10px] font-bold uppercase tracking-widest flex items-center justify-center gap-2">
@@ -1272,7 +1265,7 @@ const OrderManager = () => {
                                                             <input 
                                                                 type="number" 
                                                                 min="0" 
-                                                                className="w-16 px-2 py-1 bg-white border border-zinc-300 rounded text-center font-bold text-zinc-900 focus:ring-2 focus:ring-[#5173FB]/5 outline-none" 
+                                                                className="w-16 px-2 py-1 bg-white border border-zinc-300 rounded text-center font-bold text-zinc-900 focus:ring-2 focus:ring-brand/5 outline-none" 
                                                                 value={item.quantity} 
                                                                 onChange={(e) => handleItemChange(item.id, 'quantity', Number(e.target.value))} 
                                                             />
@@ -1283,7 +1276,7 @@ const OrderManager = () => {
                                                                 <input 
                                                                     type="number" 
                                                                     min="0" 
-                                                                    className="w-20 px-2 py-1 bg-white border border-zinc-300 rounded text-right font-bold text-zinc-900 focus:ring-2 focus:ring-[#5173FB]/5 outline-none" 
+                                                                    className="w-20 px-2 py-1 bg-white border border-zinc-300 rounded text-right font-bold text-zinc-900 focus:ring-2 focus:ring-brand/5 outline-none" 
                                                                     value={item.price} 
                                                                     onChange={(e) => handleItemChange(item.id, 'price', Number(e.target.value))} 
                                                                 />
@@ -1339,7 +1332,7 @@ const OrderManager = () => {
                                                             <input 
                                                                 type="number" 
                                                                 min="0" 
-                                                                className="w-20 px-2 py-1 bg-white border border-zinc-300 rounded text-right font-bold text-zinc-900 focus:ring-2 focus:ring-[#5173FB]/5 outline-none" 
+                                                                className="w-20 px-2 py-1 bg-white border border-zinc-300 rounded text-right font-bold text-zinc-900 focus:ring-2 focus:ring-brand/5 outline-none" 
                                                                 value={editForm.shipping_cost} 
                                                                 onChange={(e) => handleShippingChange(Number(e.target.value))} 
                                                             />
@@ -1349,7 +1342,7 @@ const OrderManager = () => {
                                                     )}
                                                 </td>
                                             </tr>
-                                            <tr className="bg-[#5173FB] text-white font-black">
+                                            <tr className="bg-brand text-white font-black">
                                                 <td colSpan={2} className="px-5 py-4 uppercase tracking-widest text-[10px]">Total Amount</td>
                                                 <td className="px-5 py-4 text-right text-base">
                                                     {isEditingDetails ? (
@@ -1358,7 +1351,7 @@ const OrderManager = () => {
                                                             <input 
                                                                 type="number" 
                                                                 min="0" 
-                                                                className="w-24 px-2 py-1 bg-[#5173FB] text-white border border-white/30 rounded text-right font-black focus:ring-2 focus:ring-white/20 outline-none font-mono" 
+                                                                className="w-24 px-2 py-1 bg-brand text-white border border-white/30 rounded text-right font-black focus:ring-2 focus:ring-white/20 outline-none font-mono" 
                                                                 value={editForm.total_amount} 
                                                                 onChange={(e) => setEditForm({ ...editForm, total_amount: Number(e.target.value) })} 
                                                             />
@@ -1373,27 +1366,61 @@ const OrderManager = () => {
                                 </div>
                             </div>
 
-                            {/* Timeline Notes */}
-                            <div className="space-y-4 pb-10">
-                                <h4 className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Order Logs</h4>
-                                <div className="space-y-2">
-                                    {selectedOrder.notes?.map((note) => (
-                                        <div key={note.id} className="p-4 bg-zinc-50 rounded-xl border border-zinc-100 flex flex-col">
-                                            <div className="flex justify-between items-center mb-1">
-                                                <span className="text-[9px] font-bold text-zinc-900 uppercase tracking-widest">{note.username || 'System'}</span>
-                                                <span className="text-[9px] font-bold text-zinc-400 uppercase">{new Date(note.created_at).toLocaleString()}</span>
+                                                        {/* Customer Activities & Session Details */}
+                            <div className="space-y-4">
+                                <h4 className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Metadata & Activities</h4>
+                                <div className="p-6 bg-zinc-50 rounded-2xl border border-zinc-100 space-y-4">
+                                    {/* Confirmed by staff info
+                                    {(() => {
+                                        const confirmNote = selectedOrder.notes?.find(n => 
+                                            n.note && n.note.toLowerCase().includes('confirmed')
+                                        );
+                                        if (confirmNote) {
+                                            return (
+                                                <div className="flex items-center gap-3 pb-3 border-b border-zinc-200/50">
+                                                    <div className="p-2 bg-emerald-50 text-emerald-600 rounded-lg">
+                                                        <CheckCircle size={16} />
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest">Confirmed By</p>
+                                                        <p className="text-xs font-bold text-zinc-900 mt-0.5">Staff User: <span className="font-mono">{confirmNote.username || 'System'}</span></p>
+                                                    </div>
+                                                </div>
+                                            );
+                                        }
+                                        return null;
+                                    })()} */}
+
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div className="flex items-start gap-3">
+                                            <div className="p-2 bg-zinc-100 text-zinc-500 rounded-lg mt-0.5">
+                                                <Globe size={14} />
                                             </div>
-                                            <p className="text-xs font-semibold text-zinc-600 leading-relaxed">{note.note}</p>
+                                            <div className="min-w-0">
+                                                <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest">IP Address</p>
+                                                <p className="text-xs font-bold text-zinc-900 mt-0.5 font-mono truncate">{selectedOrder.ip_address || 'N/A'}</p>
+                                            </div>
                                         </div>
-                                    ))}
-                                    <div className="flex gap-2 pt-2">
-                                        <input 
-                                            value={noteText} 
-                                            onChange={e => setNoteText(e.target.value)} 
-                                            placeholder="Add operational note..." 
-                                            className="flex-1 px-4 py-2.5 bg-zinc-50 border border-zinc-200 rounded-lg text-xs font-semibold focus:ring-2 focus:ring-[#5173FB]/5 outline-none" 
-                                        />
-                                        <button onClick={handleAddNote} disabled={!noteText.trim() || isSubmittingNote} className="px-5 py-2.5 bg-[#5173FB] text-white rounded-lg text-[10px] font-bold uppercase tracking-widest hover:bg-black transition-all disabled:opacity-30">Add</button>
+
+                                        <div className="flex items-start gap-3">
+                                            <div className="p-2 bg-zinc-100 text-zinc-500 rounded-lg mt-0.5">
+                                                <MapPin size={14} />
+                                            </div>
+                                            <div className="min-w-0">
+                                                <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest">IP Location</p>
+                                                <p className="text-xs font-bold text-zinc-900 mt-0.5 truncate">{selectedOrder.location || 'Unknown'}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex items-start gap-3 pt-3 border-t border-zinc-200/50">
+                                        <div className="p-2 bg-zinc-100 text-zinc-500 rounded-lg mt-0.5">
+                                            <Compass size={14} />
+                                        </div>
+                                        <div className="min-w-0 flex-1">
+                                            <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest">User Device Agent</p>
+                                            <p className="text-xs font-medium text-zinc-600 mt-0.5 break-words leading-relaxed">{selectedOrder.user_agent || 'N/A'}</p>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -1402,12 +1429,12 @@ const OrderManager = () => {
                         {/* Footer */}
                         <div className="p-8 border-t border-zinc-100 bg-zinc-50 flex gap-3">
                             {isEditingDetails ? (
-                                <button onClick={handleSaveDetails} disabled={isSavingDetails} className="flex-1 py-4 bg-[#5173FB] text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-xl shadow-zinc-900/10 active:scale-95 transition-all">Save Changes</button>
+                                <button onClick={handleSaveDetails} disabled={isSavingDetails} className="flex-1 py-4 bg-brand text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-xl shadow-zinc-900/10 active:scale-95 transition-all">Save Changes</button>
                             ) : selectedOrder.status === 'draft' ? (
                                 <button 
                                     onClick={() => handleConvertToOrder(selectedOrder.id)} 
                                     disabled={isConverting === selectedOrder.id}
-                                    className="flex-1 py-4 bg-[#5173FB] text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-xl shadow-zinc-900/10 active:scale-95 transition-all flex items-center justify-center gap-2 disabled:opacity-50 hover:bg-black"
+                                    className="flex-1 py-4 bg-brand text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-xl shadow-zinc-900/10 active:scale-95 transition-all flex items-center justify-center gap-2 disabled:opacity-50 hover:bg-black"
                                 >
                                     {isConverting === selectedOrder.id ? (
                                         <RefreshCw size={14} className="animate-spin" />
@@ -1417,7 +1444,7 @@ const OrderManager = () => {
                                     Convert to Real Order
                                 </button>
                             ) : (
-                                <button onClick={() => { setShowViewModal(false); openStatusModal(selectedOrder); }} className="flex-1 py-4 bg-[#5173FB] text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-xl shadow-zinc-900/10 active:scale-95 transition-all">Update Status</button>
+                                <button onClick={() => { setShowViewModal(false); openStatusModal(selectedOrder); }} className="flex-1 py-4 bg-brand text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-xl shadow-zinc-900/10 active:scale-95 transition-all">Update Status</button>
                             )}
                         </div>
                     </div>
@@ -1435,7 +1462,7 @@ const OrderManager = () => {
                                 <button 
                                     key={status} 
                                     onClick={() => setNewStatus(status)} 
-                                    className={`w-full py-3 px-5 rounded-xl flex items-center justify-between border-2 transition-all ${newStatus === status ? 'border-[#5173FB] bg-zinc-50 text-zinc-900' : 'border-transparent bg-zinc-50 text-zinc-400 hover:bg-zinc-100'}`}
+                                    className={`w-full py-3 px-5 rounded-xl flex items-center justify-between border-2 transition-all ${newStatus === status ? 'border-brand bg-zinc-50 text-zinc-900' : 'border-transparent bg-zinc-50 text-zinc-400 hover:bg-zinc-100'}`}
                                 >
                                     <span className="text-[10px] font-bold uppercase tracking-widest">{status}</span>
                                     {newStatus === status && <CheckCircle size={16} className="text-zinc-900" />}
@@ -1444,7 +1471,7 @@ const OrderManager = () => {
                         </div>
                         <div className="flex gap-4">
                             <button onClick={() => setShowStatusModal(false)} className="flex-1 py-3 text-[10px] font-bold uppercase tracking-widest text-zinc-400 hover:text-zinc-900 transition-colors">Cancel</button>
-                            <button onClick={handleUpdateStatus} className="flex-1 py-3 bg-[#5173FB] text-white rounded-xl text-[10px] font-bold uppercase tracking-widest shadow-xl shadow-zinc-900/10 active:scale-95 transition-all">Apply Status</button>
+                            <button onClick={handleUpdateStatus} className="flex-1 py-3 bg-brand text-white rounded-xl text-[10px] font-bold uppercase tracking-widest shadow-xl shadow-zinc-900/10 active:scale-95 transition-all">Apply Status</button>
                         </div>
                     </div>
                 </div>
@@ -1456,11 +1483,11 @@ const OrderManager = () => {
 const getStatusStyle = (status) => {
     switch (status) {
         case 'pending': return 'bg-zinc-50 text-zinc-500 border-zinc-200';
-        case 'processing': return 'bg-[#5173FB]/10 text-[#5173FB] border-zinc-200';
+        case 'processing': return 'bg-brand/10 text-brand border-zinc-200';
         case 'shipped': return 'bg-indigo-50 text-indigo-700 border-indigo-100';
         case 'delivered': return 'bg-emerald-50 text-emerald-700 border-emerald-100';
         case 'partial_delivered': return 'bg-amber-50 text-amber-700 border-amber-100';
-        case 'cancelled': return 'bg-rose-50 text-rose-700 border-rose-100';
+        case 'cancelled': return 'bg-rose-500 text-rose-100 border-rose-900';
         case 'unknown': return 'bg-zinc-50 text-zinc-400 border-zinc-100';
         default: return 'bg-zinc-50 text-zinc-500 border-zinc-100';
     }

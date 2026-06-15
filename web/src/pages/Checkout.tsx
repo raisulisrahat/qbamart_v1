@@ -48,18 +48,26 @@ const Checkout = () => {
   const [paymentMethods, setPaymentMethods] = useState<{id: number, name: string, provider: string}[]>([]);
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<number | null>(null);
   const [isLoadingLocations, setIsLoadingLocations] = useState(false);
-  const [shippingZoneId, setShippingZoneId] = useState<number | null>(2); // Default to Inside Dhaka City
+  const [shippingZoneId, setShippingZoneId] = useState<number | null>(null); // Default to null
 
-  const [shippingCost, setShippingCost] = useState(50);
+  const [shippingCost, setShippingCost] = useState(0);
 
-  // Set initial default shipping cost from fetched shipping zones
+  // Set initial default shipping zone to Outside Dhaka when zones load
   useEffect(() => {
-    if (shippingZones.length > 0 && !formData.district) {
-        const defaultZone = shippingZones.find(z => z.name.toLowerCase().includes('dhaka city')) || shippingZones[0];
-        if (defaultZone) {
-            setShippingCost(parseFloat(defaultZone.shipping_cost));
-            setShippingZoneId(defaultZone.id);
-        }
+    if (shippingZones.length > 0 && shippingZoneId === null) {
+      const outsideZone = shippingZones.find(z =>
+        z.name.toLowerCase().includes('outside') ||
+        (z.name.toLowerCase().includes('dhaka') && !z.name.toLowerCase().includes('inside') && !z.name.toLowerCase().includes('city'))
+      ) || shippingZones.find(z => !z.name.toLowerCase().includes('inside'));
+      if (outsideZone) {
+        setShippingCost(parseFloat(outsideZone.shipping_cost));
+        setShippingZoneId(outsideZone.id);
+      } else {
+        // Fallback: pick the last zone (usually outside)
+        const last = shippingZones[shippingZones.length - 1];
+        setShippingCost(parseFloat(last.shipping_cost));
+        setShippingZoneId(last.id);
+      }
     }
   }, [shippingZones]);
 
@@ -106,14 +114,17 @@ const Checkout = () => {
                 setShippingZoneId(shippingZones[1]?.id || 2);
             }
         } else {
-            // No district selected — default to Dhaka City zone
-            const zone = shippingZones.find(z => z.name.toLowerCase().includes('dhaka city'));
+            // No district selected — default to Outside Dhaka zone
+            const zone = shippingZones.find(z =>
+              z.name.toLowerCase().includes('outside') ||
+              (z.name.toLowerCase().includes('dhaka') && !z.name.toLowerCase().includes('inside') && !z.name.toLowerCase().includes('city'))
+            );
             if (zone) {
                 setShippingCost(parseFloat(zone.shipping_cost));
                 setShippingZoneId(zone.id);
             } else {
-                setShippingCost(50);
-                setShippingZoneId(shippingZones[0]?.id || 1);
+                setShippingCost(100);
+                setShippingZoneId(shippingZones[shippingZones.length - 1]?.id || 2);
             }
         }
     }
@@ -205,6 +216,23 @@ const Checkout = () => {
     const message = searchParams.get('message');
 
     if (status === 'success') {
+      // Google Tag Manager dataLayer Purchase Event
+      if ((window as any).dataLayer && cart.length > 0) {
+        (window as any).dataLayer.push({
+          event: 'purchase',
+          ecommerce: {
+            transaction_id: searchParams.get('order_id') || `checkout_${Date.now()}`,
+            value: cartTotal + shippingCost,
+            currency: 'BDT',
+            items: cart.map(item => ({
+              item_name: item.name,
+              item_id: item.id,
+              price: item.price,
+              quantity: item.quantity
+            }))
+          }
+        });
+      }
       setIsSuccess(true);
       clearCart();
       if (name) setFormData(prev => ({ ...prev, name }));
@@ -396,6 +424,24 @@ const Checkout = () => {
         setTempPassword(res.data.temp_password || res.data.password || res.data.guest_password);
       }
 
+      // Google Tag Manager dataLayer Purchase Event
+      if ((window as any).dataLayer) {
+        (window as any).dataLayer.push({
+          event: 'purchase',
+          ecommerce: {
+            transaction_id: res.data?.id || `checkout_${Date.now()}`,
+            value: cartTotal + shippingCost,
+            currency: 'BDT',
+            items: cart.map(item => ({
+              item_name: item.name,
+              item_id: item.id,
+              price: item.price,
+              quantity: item.quantity
+            }))
+          }
+        });
+      }
+
       setIsSuccess(true);
       clearCart();
     } catch (err: any) {
@@ -422,7 +468,7 @@ const Checkout = () => {
              <h2 className="text-3xl font-extrabold text-neutral-900 tracking-tight">Order Placed!</h2>
              <p className="text-neutral-500 text-lg">
                Thank you, <span className="font-bold text-neutral-900">{formData.name}</span>. 
-               We've sent a confirmation to <span className="text-[#5173FB] font-medium">{formData.phone}</span>.
+               We've sent a confirmation to <span className="text-brand font-medium">{formData.phone}</span>.
              </p>
           </div>
 
@@ -480,7 +526,7 @@ const Checkout = () => {
         <h2 className="text-3xl font-black text-neutral-900 uppercase">Your cart is empty</h2>
         <Link 
             to="/products" 
-            className="inline-block bg-[#5173FB] text-white font-black py-4 px-10 rounded-xl shadow-lg shadow-[#5173FB]/20 active:scale-95 transition-all"
+            className="inline-block bg-brand text-white font-black py-4 px-10 rounded-xl shadow-lg shadow-brand/20 active:scale-95 transition-all"
         >
             Explore our Shop
         </Link>
@@ -535,7 +581,7 @@ const Checkout = () => {
                       required
                       type="text" 
                       placeholder="যেমন: রহিম আহমেদ" 
-                      className="w-full px-4 py-2.5 bg-neutral-50 border border-neutral-200 rounded-lg text-sm transition-all focus:bg-white focus:border-[#5173FB] focus:ring-2 focus:ring-red-100/50 outline-none placeholder:text-neutral-400"
+                      className="w-full px-4 py-2.5 bg-neutral-50 border border-neutral-200 rounded-lg text-sm transition-all focus:bg-white focus:border-brand focus:ring-2 focus:ring-red-100/50 outline-none placeholder:text-neutral-400"
                       value={formData.name}
                       onChange={e => setFormData({...formData, name: e.target.value})}
                     />
@@ -548,7 +594,7 @@ const Checkout = () => {
                       required
                       type="tel" 
                       placeholder="যেমন: 01XXXXXXXXX" 
-                      className="w-full px-4 py-2.5 bg-neutral-50 border border-neutral-200 rounded-lg text-sm transition-all focus:bg-white focus:border-[#5173FB] focus:ring-2 focus:ring-red-100/50 outline-none placeholder:text-neutral-400"
+                      className="w-full px-4 py-2.5 bg-neutral-50 border border-neutral-200 rounded-lg text-sm transition-all focus:bg-white focus:border-brand focus:ring-2 focus:ring-red-100/50 outline-none placeholder:text-neutral-400"
                       value={formData.phone}
                       onChange={e => setFormData({...formData, phone: e.target.value.replace(/\D/g, '').slice(0, 11)})}
                     />
@@ -562,7 +608,7 @@ const Checkout = () => {
                         <div className="relative">
                             <select 
                                 required
-                                className="w-full px-4 py-2.5 bg-neutral-50 border border-neutral-200 rounded-lg text-sm transition-all focus:bg-white focus:border-[#5173FB] outline-none appearance-none cursor-pointer"
+                                className="w-full px-4 py-2.5 bg-neutral-50 border border-neutral-200 rounded-lg text-sm transition-all focus:bg-white focus:border-brand outline-none appearance-none cursor-pointer"
                                 value={formData.district}
                                 onChange={e => setFormData({...formData, district: e.target.value, upazila: ''})}
                             >
@@ -581,7 +627,7 @@ const Checkout = () => {
                             <select 
                                 required
                                 disabled={!formData.district || isLoadingLocations}
-                                className="w-full px-4 py-2.5 bg-neutral-50 border border-neutral-200 rounded-lg text-sm transition-all focus:bg-white focus:border-[#5173FB] outline-none appearance-none cursor-pointer disabled:opacity-50"
+                                className="w-full px-4 py-2.5 bg-neutral-50 border border-neutral-200 rounded-lg text-sm transition-all focus:bg-white focus:border-brand outline-none appearance-none cursor-pointer disabled:opacity-50"
                                 value={formData.upazila}
                                 onChange={e => setFormData({...formData, upazila: e.target.value})}
                             >
@@ -601,7 +647,7 @@ const Checkout = () => {
                       <div className="relative">
                         <select 
                             required
-                            className="w-full px-4 py-2.5 bg-neutral-50 border border-neutral-200 rounded-lg text-sm transition-all focus:bg-white focus:border-[#5173FB] outline-none appearance-none cursor-pointer"
+                            className="w-full px-4 py-2.5 bg-neutral-50 border border-neutral-200 rounded-lg text-sm transition-all focus:bg-white focus:border-brand outline-none appearance-none cursor-pointer"
                             value={shippingZoneId || ''}
                             onChange={e => {
                                 const zoneId = parseInt(e.target.value);
@@ -613,9 +659,16 @@ const Checkout = () => {
                             }}
                         >
                             <option value="">শিপিং এলাকা সিলেক্ট করুন</option>
-                            {shippingZones.map(z => (
-                                <option key={z.id} value={z.id}>{z.name} - ৳{parseFloat(z.shipping_cost).toLocaleString()}</option>
-                            ))}
+                            {shippingZones.map(z => {
+                                const displayName = z.name.toLowerCase().includes('inside dhaka')
+                                    ? 'ঢাকা সিটির ভেতরে (Inside Dhaka)'
+                                    : z.name.toLowerCase().includes('outside dhaka')
+                                        ? 'ঢাকা সিটির বাইরে (Outside Dhaka)'
+                                        : z.name;
+                                return (
+                                    <option key={z.id} value={z.id}>{displayName} - ৳{parseFloat(z.shipping_cost).toLocaleString()}</option>
+                                );
+                            })}
                         </select>
                         <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400 pointer-events-none rotate-90" />
                       </div>
@@ -628,8 +681,8 @@ const Checkout = () => {
                     <textarea 
                       required
                       rows={2}
-                      placeholder="গ্রাম/মহল্লা, ইউনিয়ন, সুনির্দিষ্ট ল্যান্ডমার্ক সহ বিস্তারিত ঠিকানা লিখুন" 
-                      className="w-full px-4 py-2.5 bg-neutral-50 border border-neutral-200 rounded-lg text-sm transition-all focus:bg-white focus:border-[#5173FB] outline-none resize-none placeholder:text-neutral-400"
+                      placeholder="জেলা,উপজেলা,গ্রাম,মহল্লা,রাস্তা সহ বিস্তারিত ঠিকানা লিখুন" 
+                      className="w-full px-4 py-2.5 bg-neutral-50 border border-neutral-200 rounded-lg text-sm transition-all focus:bg-white focus:border-brand outline-none resize-none placeholder:text-neutral-400"
                       value={formData.address}
                       onChange={e => setFormData({...formData, address: e.target.value})}
                     />
@@ -657,13 +710,13 @@ const Checkout = () => {
                       onClick={() => setSelectedPaymentMethod(method.id)}
                       className={`relative border-2 p-5 rounded-xl flex items-center justify-between cursor-pointer group transition-all ${
                         selectedPaymentMethod === method.id 
-                        ? 'border-[#5173FB] bg-brand/5/20' 
+                        ? 'border-brand bg-brand/5/20' 
                         : 'border-neutral-100 bg-neutral-50/50 hover:border-neutral-200'
                       }`}
                     >
                         <div className="flex items-center space-x-4">
                             <div className={`w-10 h-10 rounded-lg flex items-center justify-center shadow-sm transition-colors ${
-                                selectedPaymentMethod === method.id ? 'bg-[#5173FB] text-white' : 'bg-neutral-100 text-neutral-400'
+                                selectedPaymentMethod === method.id ? 'bg-brand text-white' : 'bg-neutral-100 text-neutral-400'
                             }`}>
                                 <CreditCard className="w-5 h-5" />
                             </div>
@@ -671,13 +724,13 @@ const Checkout = () => {
                                 <span className={`block font-bold text-base transition-colors ${
                                     selectedPaymentMethod === method.id ? 'text-neutral-900' : 'text-neutral-500'
                                 }`}>{method.name.toLowerCase().includes('cash') ? 'ক্যাশ অন ডেলিভারি' : method.name}</span>
-                                <span className="text-[10px] font-bold text-[#5173FB] uppercase tracking-wider">
+                                <span className="text-[10px] font-bold text-brand uppercase tracking-wider">
                                     {method.name.toLowerCase().includes('cash') ? 'পণ্য হাতে পেয়ে পেমেন্ট' : 'অগ্রিম পেমেন্ট'}
                                 </span>
                             </div>
                         </div>
                         {selectedPaymentMethod === method.id && (
-                          <div className="w-6 h-6 rounded-full bg-[#5173FB] flex items-center justify-center border-2 border-white shadow-sm">
+                          <div className="w-6 h-6 rounded-full bg-brand flex items-center justify-center border-2 border-white shadow-sm">
                              <CheckCircle className="w-3.5 h-3.5 text-white" />
                           </div>
                         )}
@@ -739,13 +792,13 @@ const Checkout = () => {
                   <span>ডেলিভারি চার্জ ({
                       shippingZones.find(z => z.id === shippingZoneId)?.name || 'ঢাকা শহরের ভেতরে'
                   })</span>
-                  <span className="text-[#5173FB] font-bold">৳{shippingCost}</span>
+                  <span className="text-brand font-bold">৳{shippingCost}</span>
                 </div>
                 
                 <div className="pt-4 flex items-center justify-between">
                   <h4 className="text-lg font-bold text-neutral-900">সর্বমোট পরিশোধযোগ্য</h4>
                   <div className="text-right">
-                    <div className="text-2xl font-bold text-[#5173FB]">৳{(cartTotal + shippingCost).toLocaleString()}</div>
+                    <div className="text-2xl font-bold text-brand">৳{(cartTotal + shippingCost).toLocaleString()}</div>
                   </div>
                 </div>
               </div>
@@ -761,7 +814,7 @@ const Checkout = () => {
                   type="submit" 
                   form="checkout-form"
                   disabled={isSubmitting || cart.some(item => item.stock !== undefined && item.stock <= 0)}
-                  className="w-full bg-[#5173FB] hover:bg-[#3a5bd9] disabled:bg-neutral-200 disabled:text-neutral-400 text-white font-bold py-3.5 rounded-xl shadow-md transition-all text-base flex items-center justify-center space-x-2 active:scale-[0.98] disabled:cursor-not-allowed group"
+                  className="w-full bg-brand hover:bg-[#3a5bd9] disabled:bg-neutral-200 disabled:text-neutral-400 text-white font-bold py-3.5 rounded-xl shadow-md transition-all text-base flex items-center justify-center space-x-2 active:scale-[0.98] disabled:cursor-not-allowed group"
                 >
                   {isSubmitting ? (
                     <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />

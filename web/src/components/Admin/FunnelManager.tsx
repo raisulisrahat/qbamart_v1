@@ -217,7 +217,7 @@ const FunnelManager = () => {
                 <div className="flex items-center gap-2">
                     <button 
                         onClick={() => { resetForm(); setShowModal(true); }}
-                        className="flex items-center gap-2 px-5 py-2 bg-[#5173FB] text-white rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-black transition-all shadow-lg shadow-zinc-900/10 active:scale-95"
+                        className="flex items-center gap-2 px-5 py-2 bg-brand text-white rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-black transition-all shadow-lg shadow-zinc-900/10 active:scale-95"
                     >
                         <Plus size={14} /> Add Funnel
                     </button>
@@ -263,7 +263,7 @@ const FunnelManager = () => {
                         <input
                             type="text"
                             placeholder="Search conversion paths..."
-                            className="w-full pl-9 pr-4 py-2 bg-white border border-zinc-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#5173FB]/5 transition-all"
+                            className="w-full pl-9 pr-4 py-2 bg-white border border-zinc-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand/5 transition-all"
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                         />
@@ -299,7 +299,7 @@ const FunnelManager = () => {
                                             <div>
                                                 <button 
                                                     onClick={() => openEditModal(funnel)}
-                                                    className="text-sm font-bold text-zinc-900 tracking-tight hover:text-[#5173FB] transition-colors text-left block"
+                                                    className="text-sm font-bold text-zinc-900 tracking-tight hover:text-brand transition-colors text-left block"
                                                 >
                                                     {funnel.title}
                                                 </button>
@@ -387,7 +387,7 @@ const FunnelManager = () => {
                                         type="text"
                                         name="title"
                                         required
-                                        className="w-full px-4 py-2.5 bg-zinc-50 border border-zinc-200 rounded-xl text-sm font-semibold focus:ring-2 focus:ring-[#5173FB]/5 outline-none transition-all"
+                                        className="w-full px-4 py-2.5 bg-zinc-50 border border-zinc-200 rounded-xl text-sm font-semibold focus:ring-2 focus:ring-brand/5 outline-none transition-all"
                                         value={formData.title}
                                         onChange={handleInputChange}
                                         placeholder="e.g. Summer Special"
@@ -400,7 +400,7 @@ const FunnelManager = () => {
                                         name="slug"
                                         required
                                         disabled={isEditing}
-                                        className="w-full px-4 py-2.5 bg-zinc-50 border border-zinc-200 rounded-xl text-sm font-semibold focus:ring-2 focus:ring-[#5173FB]/5 outline-none transition-all disabled:opacity-50"
+                                        className="w-full px-4 py-2.5 bg-zinc-50 border border-zinc-200 rounded-xl text-sm font-semibold focus:ring-2 focus:ring-brand/5 outline-none transition-all disabled:opacity-50"
                                         value={formData.slug}
                                         onChange={handleInputChange}
                                         placeholder="summer-special"
@@ -411,7 +411,7 @@ const FunnelManager = () => {
                                     <select
                                         name="product"
                                         required
-                                        className="w-full px-4 py-2.5 bg-zinc-50 border border-zinc-200 rounded-xl text-sm font-semibold focus:ring-2 focus:ring-[#5173FB]/5 outline-none transition-all"
+                                        className="w-full px-4 py-2.5 bg-zinc-50 border border-zinc-200 rounded-xl text-sm font-semibold focus:ring-2 focus:ring-brand/5 outline-none transition-all"
                                         value={formData.product}
                                         onChange={handleInputChange}
                                     >
@@ -425,14 +425,15 @@ const FunnelManager = () => {
                                     <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest ml-1">Base Layout</label>
                                     <select
                                         name="layout_type"
-                                        className="w-full px-4 py-2.5 bg-zinc-50 border border-zinc-200 rounded-xl text-sm font-semibold focus:ring-2 focus:ring-[#5173FB]/5 outline-none transition-all"
+                                        className="w-full px-4 py-2.5 bg-zinc-50 border border-zinc-200 rounded-xl text-sm font-semibold focus:ring-2 focus:ring-brand/5 outline-none transition-all"
                                         value={formData.layout_type}
                                         onChange={handleInputChange}
                                     >
                                         <option value="classic">Classic Minimal</option>
                                         <option value="combo">Combo Layout</option>
                                         <option value="ezymart">EyeCare Layout</option>
-                                        <option value="garden">kazir Hat Layout</option>
+                                        <option value="garden">KazirHat Layout</option>
+                                        <option value="ezymart_v2">EzyMart Layout</option>
                                     </select>
                                 </div>
 
@@ -443,7 +444,7 @@ const FunnelManager = () => {
                                             <select
                                                 name="product_two"
                                                 required
-                                                className="w-full px-4 py-2.5 bg-zinc-50 border border-zinc-200 rounded-xl text-sm font-semibold focus:ring-2 focus:ring-[#5173FB]/5 outline-none transition-all"
+                                                className="w-full px-4 py-2.5 bg-zinc-50 border border-zinc-200 rounded-xl text-sm font-semibold focus:ring-2 focus:ring-brand/5 outline-none transition-all"
                                                 value={formData.product_two}
                                                 onChange={handleInputChange}
                                             >
@@ -459,7 +460,7 @@ const FunnelManager = () => {
                                             <input
                                                 type="text"
                                                 name="top_header_line_1"
-                                                className="w-full px-4 py-2.5 bg-zinc-50 border border-zinc-200 rounded-xl text-sm font-semibold focus:ring-2 focus:ring-[#5173FB]/5 outline-none transition-all"
+                                                className="w-full px-4 py-2.5 bg-zinc-50 border border-zinc-200 rounded-xl text-sm font-semibold focus:ring-2 focus:ring-brand/5 outline-none transition-all"
                                                 value={formData.top_header_line_1 || ''}
                                                 onChange={handleInputChange}
                                                 placeholder="e.g. ⏳ সীমিত সময়ের অফার ⏳"
@@ -470,7 +471,7 @@ const FunnelManager = () => {
                                             <input
                                                 type="text"
                                                 name="top_header_line_2"
-                                                className="w-full px-4 py-2.5 bg-zinc-50 border border-zinc-200 rounded-xl text-sm font-semibold focus:ring-2 focus:ring-[#5173FB]/5 outline-none transition-all"
+                                                className="w-full px-4 py-2.5 bg-zinc-50 border border-zinc-200 rounded-xl text-sm font-semibold focus:ring-2 focus:ring-brand/5 outline-none transition-all"
                                                 value={formData.top_header_line_2 || ''}
                                                 onChange={handleInputChange}
                                                 placeholder="e.g. আমাদের থেকে কেন কিনবেন ?"
@@ -481,7 +482,7 @@ const FunnelManager = () => {
                                             <input
                                                 type="text"
                                                 name="top_header_line_3"
-                                                className="w-full px-4 py-2.5 bg-zinc-50 border border-zinc-200 rounded-xl text-sm font-semibold focus:ring-2 focus:ring-[#5173FB]/5 outline-none transition-all"
+                                                className="w-full px-4 py-2.5 bg-zinc-50 border border-zinc-200 rounded-xl text-sm font-semibold focus:ring-2 focus:ring-brand/5 outline-none transition-all"
                                                 value={formData.top_header_line_3 || ''}
                                                 onChange={handleInputChange}
                                                 placeholder="e.g. কেন আমাদের পণ্যটি নিবেন?"
@@ -492,7 +493,7 @@ const FunnelManager = () => {
                                             <input
                                                 type="text"
                                                 name="top_header_line_4"
-                                                className="w-full px-4 py-2.5 bg-zinc-50 border border-zinc-200 rounded-xl text-sm font-semibold focus:ring-2 focus:ring-[#5173FB]/5 outline-none transition-all"
+                                                className="w-full px-4 py-2.5 bg-zinc-50 border border-zinc-200 rounded-xl text-sm font-semibold focus:ring-2 focus:ring-brand/5 outline-none transition-all"
                                                 value={formData.top_header_line_4 || ''}
                                                 onChange={handleInputChange}
                                                 placeholder="e.g. SIGN OF MODESTY — ELEGANT COLLECTION"
@@ -503,7 +504,7 @@ const FunnelManager = () => {
                                             <textarea
                                                 name="features_list"
                                                 rows={4}
-                                                className="w-full px-4 py-2.5 bg-zinc-50 border border-zinc-200 rounded-xl text-sm font-semibold focus:ring-2 focus:ring-[#5173FB]/5 outline-none transition-all custom-scrollbar"
+                                                className="w-full px-4 py-2.5 bg-zinc-50 border border-zinc-200 rounded-xl text-sm font-semibold focus:ring-2 focus:ring-brand/5 outline-none transition-all custom-scrollbar"
                                                 value={formData.features_list || ''}
                                                 onChange={handleInputChange}
                                                 placeholder="১০০% সিকিউরড পেমেন্ট ও ক্যাশ অন ডেলিভারি সুবিধা&#10;দ্রুত ও নির্ভরযোগ্য হোম ডেলিভারি"
@@ -671,7 +672,7 @@ const FunnelManager = () => {
 
                             <div className="pt-4 flex gap-3">
                                 <button type="button" onClick={() => setShowModal(false)} className="flex-1 py-3 text-[10px] font-bold uppercase tracking-widest text-zinc-400 hover:text-zinc-900 transition-colors">Cancel</button>
-                                <button type="submit" className="flex-1 py-3 bg-[#5173FB] text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-xl shadow-zinc-900/10 active:scale-95 transition-all flex items-center justify-center gap-2">
+                                <button type="submit" className="flex-1 py-3 bg-brand text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-xl shadow-zinc-900/10 active:scale-95 transition-all flex items-center justify-center gap-2">
                                     <CheckCircle size={16} /> {isEditing ? 'Save Changes' : 'Forge Funnel'}
                                 </button>
                             </div>

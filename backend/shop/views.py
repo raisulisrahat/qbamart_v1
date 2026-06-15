@@ -65,6 +65,13 @@ class IsFullAdmin(permissions.BasePermission):
                     (request.user.is_superuser or 
                      (hasattr(request.user, 'profile') and request.user.profile.role == 'admin')))
 
+class IsFullAdminOrAdsManager(permissions.BasePermission):
+    def has_permission(self, request, view):
+        return bool(request.user and request.user.is_authenticated and 
+                    (request.user.is_superuser or 
+                     (hasattr(request.user, 'profile') and 
+                      request.user.profile.role in ['admin', 'ads_manager'])))
+
 class IsModeratorOrAdmin(permissions.BasePermission):
     def has_permission(self, request, view):
         return bool(request.user and request.user.is_authenticated and 
@@ -148,7 +155,7 @@ class UserViewSet(viewsets.ModelViewSet):
             
             from .models import SiteSettings
             settings = SiteSettings.objects.first()
-            site_title = settings.site_title if settings else "Qbamart"
+            site_title = settings.site_title if settings else "Spaceghor"
             
             totp = pyotp.TOTP(profile.two_factor_secret)
             provisioning_uri = totp.provisioning_uri(
@@ -267,13 +274,29 @@ class UserViewSet(viewsets.ModelViewSet):
 
 class CustomObtainAuthToken(ObtainAuthToken):
     def post(self, request, *args, **kwargs):
-        serializer = self.serializer_class(data=request.data,
+        # Resolve user by username or phone number
+        data = request.data.copy() if hasattr(request.data, 'copy') else dict(request.data)
+        username = data.get('username')
+        if username:
+            from django.contrib.auth.models import User
+            from .models import Profile
+            
+            user = User.objects.filter(username=username).first()
+            if not user:
+                profile = Profile.objects.filter(phone_number=username).first()
+                if profile:
+                    user = profile.user
+            
+            if user:
+                data['username'] = user.username
+
+        serializer = self.serializer_class(data=data,
                                            context={'request': request})
         serializer.is_valid(raise_exception=True)
         user = serializer.validated_data['user']
         
         # Check if user is staff/admin
-        is_staff_or_admin = user.is_staff or user.is_superuser or (hasattr(user, 'profile') and user.profile.role in ['admin', 'moderator'])
+        is_staff_or_admin = user.is_staff or user.is_superuser or (hasattr(user, 'profile') and user.profile.role in ['admin', 'moderator', 'ads_manager'])
         enable_2fa = getattr(user.profile, 'enable_2fa', True) if hasattr(user, 'profile') else True
         
         if is_staff_or_admin and enable_2fa:
@@ -298,7 +321,7 @@ class CustomObtainAuthToken(ObtainAuthToken):
                     
                     from .models import SiteSettings
                     settings = SiteSettings.objects.first()
-                    site_title = settings.site_title if settings else "Qbamart"
+                    site_title = settings.site_title if settings else "Spaceghor"
                     
                     provisioning_uri = totp.provisioning_uri(
                         name=user.username,
@@ -536,11 +559,13 @@ class OrderViewSet(viewsets.ModelViewSet):
             return [permissions.AllowAny()]
         if self.action in ['list', 'retrieve', 'request_cancel']:
             return [permissions.IsAuthenticated()]
+        if self.action == 'destroy':
+            return [IsFullAdmin()]
         return [IsModeratorOrAdmin()]
 
     def get_queryset(self):
         user = self.request.user
-        if hasattr(user, 'profile') and user.profile.role in ['admin', 'moderator']:
+        if hasattr(user, 'profile') and user.profile.role in ['admin', 'moderator', 'ads_manager']:
             if self.request.query_params.get('mine') == 'true':
                 return Order.objects.filter(user=user).exclude(status='draft')
             return Order.objects.exclude(status='draft')
@@ -613,7 +638,7 @@ class OrderViewSet(viewsets.ModelViewSet):
                 
                 # Send Passwordless/OTP Welcome via SMS
                 settings = SiteSettings.objects.first()
-                brand_name = settings.site_title if settings else "Qbamart"
+                brand_name = settings.site_title if settings else "Spaceghor"
                 from .sms_utils import send_sms
                 cred_message = f"{brand_name}-এ আপনাকে স্বাগতম! আপনার অ্যাকাউন্ট তৈরি করা হয়েছে। আপনার মোবাইল নম্বর দিয়ে লগইন করে পাসওয়ার্ড সেট করুন।"
                 send_sms(customer_phone, cred_message)
@@ -672,7 +697,7 @@ class OrderViewSet(viewsets.ModelViewSet):
         from .serializers import OrderNoteSerializer
         return Response(OrderNoteSerializer(note).data, status=status.HTTP_201_CREATED)
 
-    @action(detail=True, methods=['post'], permission_classes=[IsModeratorOrAdmin])
+    @action(detail=True, methods=['post'], permission_classes=[IsFullAdmin])
     def send_to_steadfast(self, request, pk=None):
         import requests
         order = self.get_object()
@@ -696,7 +721,7 @@ class OrderViewSet(viewsets.ModelViewSet):
             'recipient_phone': order.phone_number,
             'recipient_address': order.address,
             'cod_amount': float(order.total_amount),
-            'note': f"Sync from {settings.site_title or 'Qbamart'} (Order #{order.id})"
+            'note': f"Sync from {settings.site_title or 'Spaceghor'} (Order #{order.id})"
         }
         
         try:
@@ -730,7 +755,7 @@ class OrderViewSet(viewsets.ModelViewSet):
         except Exception as e:
             return Response({'error': f"Failed to connect to Steadfast: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-    @action(detail=True, methods=['post'], permission_classes=[IsModeratorOrAdmin])
+    @action(detail=True, methods=['post'], permission_classes=[IsFullAdmin])
     def send_to_carrybee(self, request, pk=None):
         import requests
         order = self.get_object()
@@ -873,9 +898,18 @@ class OrderViewSet(viewsets.ModelViewSet):
         # 5. Build payload and create order
         total_qty = sum(item.quantity for item in order.items.all()) or 1
         desc_parts = [f"{item.product.name} (Qty: {item.quantity})" for item in order.items.all() if item.product]
-        product_desc = ", ".join(desc_parts)[:255] or f"Package from {settings.site_title or 'Qbamart'}"
+        product_desc = ", ".join(desc_parts)[:255] or f"Package from {settings.site_title or 'Spaceghor'}"
+
+        # Calculate total weight in grams from product weights (kg * qty)
+        total_weight_kg = sum(
+            float(item.product.weight or 0) * item.quantity
+            for item in order.items.all()
+            if item.product
+        )
+        # Convert to grams; minimum 100g, fallback 500g if no weight set
+        item_weight_grams = max(int(total_weight_kg * 1000), 100) if total_weight_kg > 0 else 500
         
-        recipient_address = order.address or f"{settings.site_title or 'Qbamart'} Customer Address"
+        recipient_address = order.address or f"{settings.site_title or 'Spaceghor'} Customer Address"
         if len(recipient_address) < 10:
             recipient_address = f"{recipient_address}, Bangladesh"
         if len(recipient_address) < 10:
@@ -891,7 +925,7 @@ class OrderViewSet(viewsets.ModelViewSet):
             'recipient_address': recipient_address,
             'city_id': city_id,
             'zone_id': zone_id,
-            'item_weight': 1000, # Grams (default 1kg)
+            'item_weight': item_weight_grams, # Grams, derived from product.weight * quantity
             'item_quantity': total_qty,
             'collectable_amount': int(float(order.total_amount)),
             'product_description': product_desc
@@ -1053,7 +1087,7 @@ class IncompleteOrderViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        if user and user.is_authenticated and hasattr(user, 'profile') and user.profile.role in ['admin', 'moderator']:
+        if user and user.is_authenticated and hasattr(user, 'profile') and user.profile.role in ['admin', 'moderator', 'ads_manager']:
             return Order.objects.filter(status='draft')
         if user and user.is_authenticated:
             return Order.objects.filter(user=user, status='draft')
@@ -1062,6 +1096,8 @@ class IncompleteOrderViewSet(viewsets.ModelViewSet):
     def get_permissions(self):
         if self.action in ['create', 'partial_update', 'update']:
             return [permissions.AllowAny()]
+        if self.action == 'destroy':
+            return [IsFullAdmin()]
         return [IsModeratorOrAdmin()]
 
     def perform_create(self, serializer):
@@ -1139,12 +1175,22 @@ class SiteSettingsViewSet(viewsets.ModelViewSet):
     serializer_class = SiteSettingsSerializer
 
     def get_object(self):
-        return SiteSettings.objects.first()
+        settings = SiteSettings.objects.first()
+        if not settings:
+            settings = SiteSettings.objects.create(site_title="Spaceghor")
+        return settings
+    
+    def list(self, request, *args, **kwargs):
+        settings = self.get_object()
+        serializer = self.get_serializer(settings)
+        return Response([serializer.data])
     
     def get_permissions(self):
         if self.action in ['list', 'retrieve']:
             return [permissions.AllowAny()]
-        return [IsFullAdmin()]
+        if self.action == 'sms_balance':
+            return [IsFullAdmin()]
+        return [IsFullAdminOrAdsManager()]
 
     @action(detail=False, methods=['get'])
     def sms_balance(self, request):
@@ -1196,7 +1242,7 @@ class FunnelViewSet(viewsets.ModelViewSet):
     def get_permissions(self):
         if self.action in ['list', 'retrieve']:
             return [permissions.AllowAny()]
-        return [IsFullAdmin()]
+        return [IsFullAdminOrAdsManager()]
 
 class WishlistViewSet(viewsets.ModelViewSet):
     serializer_class = WishlistSerializer
@@ -1693,14 +1739,46 @@ class MetaView(View):
             from .models import SiteSettings
             from django.conf import settings as django_settings
             site_settings = SiteSettings.objects.first()
-            site_title = site_settings.site_title if site_settings else "Qbamart"
+            site_title = site_settings.site_title if site_settings else "Spaceghor"
             
+            # Helper to extract clean text from potential Quill JSON, HTML, or plain text
+            def extract_clean_text(raw_desc):
+                if not raw_desc:
+                    return ""
+                raw_desc = str(raw_desc).strip()
+                if raw_desc.startswith('{') and raw_desc.endswith('}'):
+                    try:
+                        import json
+                        data = json.loads(raw_desc)
+                        if isinstance(data, dict):
+                            html_content = data.get('html')
+                            if html_content:
+                                import re
+                                clean = re.sub(r'<[^>]+>', '', str(html_content))
+                                return clean.strip()
+                            delta = data.get('delta', {})
+                            if isinstance(delta, dict) and 'ops' in delta:
+                                ops = delta['ops']
+                                text_parts = []
+                                for op in ops:
+                                    if isinstance(op, dict) and 'insert' in op:
+                                        text_parts.append(str(op['insert']))
+                                return "".join(text_parts).strip()
+                    except Exception:
+                        pass
+                import re
+                clean = re.sub(r'<[^>]+>', '', raw_desc)
+                return clean.strip()
+
             # Default values from site settings
             title = f"{site_title} | Premium Gadget & Accessories Shop"
             description = site_settings.meta_description if site_settings and site_settings.meta_description else f"{site_title} - Premium Gadget & Accessories Shop in Bangladesh"
+            # Strip HTML/JSON from default description if any
+            description = extract_clean_text(description)
             
             # Safe image URL retrieval to avoid ValueErrors on empty fields
-            image = "https://api.qbamart.com/media/site/Qbamart_logo_black.png"
+            # Default fallback to site logo in media
+            image = request.build_absolute_uri('/media/site/spaceghor-logo.png')
             if site_settings and site_settings.site_logo:
                 try:
                     image = request.build_absolute_uri(site_settings.site_logo.url)
@@ -1708,7 +1786,7 @@ class MetaView(View):
                     pass
 
             # Always point canonical URL to the frontend domain
-            frontend_url = getattr(django_settings, 'FRONTEND_URL', 'https://qbamart.com/').rstrip('/')
+            frontend_url = getattr(django_settings, 'FRONTEND_URL', 'https://spaceghor.com').rstrip('/')
             canonical_url = f"{frontend_url}/{path}" if path else f"{frontend_url}/"
             
             # Determine content type based on path
@@ -1718,9 +1796,7 @@ class MetaView(View):
                 if product:
                     title = f"{product.name} | {site_title}"
                     raw_desc = product.short_description or product.description or ''
-                    # Strip any HTML tags for clean meta description
-                    import re
-                    clean_desc = re.sub(r'<[^>]+>', '', str(raw_desc))[:200]
+                    clean_desc = extract_clean_text(raw_desc)[:200]
                     description = clean_desc or description
                     if product.image:
                         try:
@@ -1734,8 +1810,7 @@ class MetaView(View):
                 if post:
                     title = f"{post.title} | {site_title}"
                     raw_desc = getattr(post, 'excerpt', '') or post.content or ''
-                    import re
-                    clean_desc = re.sub(r'<[^>]+>', '', str(raw_desc))[:200]
+                    clean_desc = extract_clean_text(raw_desc)[:200]
                     description = clean_desc or description
                     if hasattr(post, 'image') and post.image:
                         try:
@@ -1749,8 +1824,7 @@ class MetaView(View):
                 if funnel and funnel.product:
                     title = f"{funnel.title or funnel.product.name} | {site_title}"
                     raw_desc = funnel.product.short_description or funnel.product.description or ''
-                    import re
-                    clean_desc = re.sub(r'<[^>]+>', '', str(raw_desc))[:200]
+                    clean_desc = extract_clean_text(raw_desc)[:200]
                     description = clean_desc or description
                     if funnel.product.image:
                         try:
@@ -1792,6 +1866,7 @@ class MetaView(View):
         except Exception as e:
             import traceback
             return HttpResponse(f"Error: {str(e)}<br><pre>{traceback.format_exc()}</pre>", status=500)
+
 
 
 from rest_framework.views import APIView
@@ -1917,11 +1992,22 @@ class MediaManagerView(APIView):
             # Skip hidden folders / cache folders
             if any(part.startswith('.') for part in root.split(os.sep)):
                 continue
+            # Skip profile_pictures directory to avoid traversing it
+            if 'profile_pictures' in dirs:
+                dirs.remove('profile_pictures')
+            # Additional safety: skip files inside profile_pictures if walked
+            if 'profile_pictures' in root.replace('\\', '/').split('/'):
+                continue
             for file in files:
                 if file.startswith('.'):
                     continue
                 file_path = os.path.join(root, file)
                 rel_path = os.path.relpath(file_path, media_root)
+                norm_path = rel_path.replace('\\', '/').strip('/')
+                
+                # Never show profile_pictures in Media Manager
+                if 'profile_pictures' in norm_path.split('/'):
+                    continue
                 
                 try:
                     stat_info = os.stat(file_path)
@@ -1939,7 +2025,6 @@ class MediaManagerView(APIView):
                 elif ext in ['.mp4', '.webm', '.ogg', '.mov']:
                     file_type = 'video'
 
-                norm_path = rel_path.replace('\\', '/').strip('/')
                 connections = connections_map.get(norm_path, [])
 
                 files_list.append({
@@ -1979,9 +2064,63 @@ class MediaManagerView(APIView):
             for chunk in file_obj.chunks():
                 destination.write(chunk)
 
-        if ext.lower() in ['.mp4', '.webm', '.ogg', '.mov']:
-            from .video_compressor import compress_video_file
-            compress_video_file(file_path)
+        # Video Compression logic if file is big
+        ext_lower = ext.lower()
+        is_video = ext_lower in ['.mp4', '.webm', '.ogg', '.mov', '.avi', '.mkv']
+        
+        if is_video:
+            try:
+                file_size = os.path.getsize(file_path)
+            except Exception:
+                file_size = 0
+            
+            # Target size threshold for "big" video: 5MB
+            if file_size > 5 * 1024 * 1024:
+                try:
+                    import subprocess
+                    import imageio_ffmpeg
+                    
+                    ffmpeg_exe = imageio_ffmpeg.get_ffmpeg_exe()
+                    
+                    # Generate a unique path for the compressed MP4
+                    compressed_name = f"{base}_compressed.mp4"
+                    compressed_path = os.path.join(upload_dir, compressed_name)
+                    counter = 1
+                    while os.path.exists(compressed_path):
+                        compressed_name = f"{base}_compressed_{counter}.mp4"
+                        compressed_path = os.path.join(upload_dir, compressed_name)
+                        counter += 1
+                        
+                    # ffmpeg command to compress
+                    # Scale to max width 1280 (keeps resolution reasonable for mobile)
+                    # crf 28 (very good compression ratio, still looks good)
+                    cmd = [
+                        ffmpeg_exe,
+                        '-y',
+                        '-i', file_path,
+                        '-vcodec', 'libx264',
+                        '-crf', '28',
+                        '-preset', 'fast',
+                        '-vf', "scale='min(1280,iw)':-2",
+                        '-acodec', 'aac',
+                        '-b:a', '128k',
+                        compressed_path
+                    ]
+                    
+                    result = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=180)
+                    if result.returncode == 0 and os.path.exists(compressed_path) and os.path.getsize(compressed_path) > 0:
+                        # Remove the original uncompressed file
+                        try:
+                            os.remove(file_path)
+                        except Exception:
+                            pass
+                        
+                        # Update references to point to the compressed file
+                        name = compressed_name
+                        file_path = compressed_path
+                        ext = '.mp4'
+                except Exception as e:
+                    print(f"Video compression failed, using original file: {e}")
 
         url = settings.MEDIA_URL + 'uploads/' + name
         return Response({
@@ -2008,6 +2147,13 @@ class MediaManagerView(APIView):
             if not target_path.startswith(media_root):
                 errors.append({'path': p, 'error': 'Access denied'})
                 continue
+            
+            # Security check: prevent deleting profile pictures
+            norm_p = p.replace('\\', '/').strip('/')
+            if norm_p.startswith('profile_pictures/'):
+                errors.append({'path': p, 'error': 'Access denied to profile pictures'})
+                continue
+
             if not os.path.exists(target_path):
                 errors.append({'path': p, 'error': 'File not found'})
                 continue
@@ -2187,7 +2333,7 @@ class BkashCallbackView(View):
 class SitemapView(View):
     def get(self, request, *args, **kwargs):
         from django.conf import settings as django_settings
-        frontend_url = getattr(django_settings, 'FRONTEND_URL', 'https://qbamart.com').rstrip('/')
+        frontend_url = getattr(django_settings, 'FRONTEND_URL', 'https://spaceghor.com').rstrip('/')
         
         # Build sitemap XML
         urls = []

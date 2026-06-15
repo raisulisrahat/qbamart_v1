@@ -412,13 +412,10 @@ class BannerSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class OrderNoteSerializer(serializers.ModelSerializer):
-    username = serializers.SerializerMethodField()
+    username = serializers.CharField(source='user.username', read_only=True)
     class Meta:
         model = OrderNote
         fields = ['id', 'username', 'note', 'created_at']
-
-    def get_username(self, obj):
-        return obj.user.username if obj.user else 'System'
 
 class OrderItemSerializer(serializers.ModelSerializer):
     product_details = serializers.SerializerMethodField()
@@ -515,42 +512,8 @@ class OrderSerializer(serializers.ModelSerializer):
         order = Order.objects.create(**validated_data)
         
         # Create each order item
-        for item_data in items_data:
-            product_id = item_data.pop('product', None)
-            color_id = item_data.pop('color', None)
-            size_id = item_data.pop('size', None)
-            
-            if product_id:
-                try:
-                    product = Product.objects.get(id=product_id)
-                    OrderItem.objects.create(
-                        order=order, 
-                        product=product,
-                        color_id=color_id,
-                        size_id=size_id,
-                        **item_data
-                    )
-                except Product.DoesNotExist:
-                    pass
-        
-        return order
-
-    def update(self, instance, validated_data):
-        # Extract items data if provided
-        request = self.context.get('request')
-        items_data = request.data.get('items', [])
-
-        old_total = instance.total_amount
-
-        # Update order fields
-        for attr, value in validated_data.items():
-            setattr(instance, attr, value)
-        instance.save()
-
-        # Update items if provided in request data
-        if 'items' in request.data:
-            # Delete existing items for this order and recreate them
-            instance.items.all().delete()
+        from django.db import transaction
+        with transaction.atomic():
             for item_data in items_data:
                 product_id = item_data.pop('product', None)
                 color_id = item_data.pop('color', None)
@@ -559,46 +522,87 @@ class OrderSerializer(serializers.ModelSerializer):
                 if product_id:
                     try:
                         product = Product.objects.get(id=product_id)
+                        # Filter to only keep fields expected by OrderItem
+                        valid_keys = ['quantity', 'price']
+                        filtered_data = {k: v for k, v in item_data.items() if k in valid_keys}
                         OrderItem.objects.create(
-                            order=instance,
+                            order=order, 
                             product=product,
                             color_id=color_id,
                             size_id=size_id,
-                            **item_data
+                            **filtered_data
                         )
                     except Product.DoesNotExist:
                         pass
+        
+        return order
 
-        # Check if total amount changed and log note
+    def update(self, instance, validated_data):
+        # Check if total_amount is being changed
+        old_total = instance.total_amount
+        new_total = validated_data.get('total_amount', old_total)
+
+        # Extract items data if provided
+        request = self.context.get('request')
+        items_data = request.data.get('items', [])
+
+        # Update order fields
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+
+        # Update items if provided in request data
+        if 'items' in request.data:
+            from django.db import transaction
+            with transaction.atomic():
+                # Delete existing items for this order and recreate them
+                instance.items.all().delete()
+                for item_data in items_data:
+                    product_id = item_data.pop('product', None)
+                    color_id = item_data.pop('color', None)
+                    size_id = item_data.pop('size', None)
+                    
+                    if product_id:
+                        try:
+                            product = Product.objects.get(id=product_id)
+                            # Filter to only keep fields expected by OrderItem
+                            valid_keys = ['quantity', 'price']
+                            filtered_data = {k: v for k, v in item_data.items() if k in valid_keys}
+                            OrderItem.objects.create(
+                                order=instance,
+                                product=product,
+                                color_id=color_id,
+                                size_id=size_id,
+                                **filtered_data
+                            )
+                        except Product.DoesNotExist:
+                            pass
+
+        # Log change in total_amount as an OrderNote if it was changed
         from decimal import Decimal
-        try:
-            old_total_dec = Decimal(str(old_total))
-        except Exception:
-            old_total_dec = Decimal('0.00')
-
-        try:
-            new_total_dec = Decimal(str(instance.total_amount))
-        except Exception:
-            new_total_dec = Decimal('0.00')
-
-        if old_total_dec != new_total_dec:
-            staff_user = request.user if request and request.user.is_authenticated else None
-            staff_name = (staff_user.get_full_name() or staff_user.username) if staff_user else "System"
-            # Format values cleanly (e.g. 1450 instead of 1450.00)
-            old_str = f"{old_total_dec:f}".rstrip('0').rstrip('.') if '.' in f"{old_total_dec:f}" else f"{old_total_dec:f}"
-            new_str = f"{new_total_dec:f}".rstrip('0').rstrip('.') if '.' in f"{new_total_dec:f}" else f"{new_total_dec:f}"
-            note_content = f"Total amount changed from ৳{old_str} to ৳{new_str} by staff {staff_name}."
-            
-            from .models import OrderNote
-            OrderNote.objects.create(
-                order=instance,
-                user=staff_user,
-                note=note_content
-            )
+        if old_total is not None and new_total is not None:
+            if Decimal(str(old_total)) != Decimal(str(new_total)):
+                user = request.user if request and request.user and request.user.is_authenticated else None
+                from .models import OrderNote
+                staff_name = user.first_name if (user and user.first_name) else (user.username if user else "System")
+                
+                old_val_str = f"{int(old_total)}" if float(old_total).is_integer() else f"{float(old_total):.2f}"
+                new_val_str = f"{int(new_total)}" if float(new_total).is_integer() else f"{float(new_total):.2f}"
+                
+                OrderNote.objects.create(
+                    order=instance,
+                    user=user,
+                    note=f"Total amount updated from ৳{old_val_str} to ৳{new_val_str} by {staff_name}."
+                )
 
         return instance
 
 class SiteSettingsSerializer(serializers.ModelSerializer):
+    site_logo = HybridImageField(required=False, allow_null=True)
+    site_favicon = HybridImageField(required=False, allow_null=True)
+    footer_logo = HybridImageField(required=False, allow_null=True)
+    messenger_image = HybridImageField(required=False, allow_null=True)
+
     class Meta:
         model = SiteSettings
         fields = '__all__'
@@ -652,7 +656,7 @@ class ProfileSerializer(serializers.ModelSerializer):
                 
                 from .models import SiteSettings
                 settings = SiteSettings.objects.first()
-                site_title = settings.site_title if settings else "Qbamart"
+                site_title = settings.site_title if settings else "Spaceghor"
                 
                 totp = pyotp.TOTP(obj.two_factor_secret)
                 provisioning_uri = totp.provisioning_uri(

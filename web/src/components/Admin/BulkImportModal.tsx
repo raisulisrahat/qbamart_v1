@@ -124,7 +124,7 @@ const BulkImportModal = ({ isOpen, onClose, onSuccess, apiEndpoint, type }) => {
                             <button
                                 onClick={handleTextSubmit}
                                 disabled={loading || !textInput.trim()}
-                                className="w-full mt-4 bg-[#5173FB] text-white hover:bg-[#3a5bd9] py-2 rounded-lg font-medium hover:bg-gray-800 transition disabled:opacity-50 disabled:cursor-not-allowed flex justify-center items-center gap-2"
+                                className="w-full mt-4 bg-brand text-white hover:bg-[#3a5bd9] py-2 rounded-lg font-medium hover:bg-gray-800 transition disabled:opacity-50 disabled:cursor-not-allowed flex justify-center items-center gap-2"
                             >
                                 {loading ? <Loader size={18} className="animate-spin" /> : <FileText size={18} />}
                                 {loading ? 'Processing...' : 'Create Bulk'}
@@ -155,7 +155,7 @@ const BulkImportModal = ({ isOpen, onClose, onSuccess, apiEndpoint, type }) => {
                             <button
                                 onClick={handleCsvSubmit}
                                 disabled={loading || !file}
-                                className="w-full mt-6 bg-[#5173FB] text-white hover:bg-[#3a5bd9] py-2 rounded-lg font-medium hover:bg-gray-800 transition disabled:opacity-50 disabled:cursor-not-allowed flex justify-center items-center gap-2"
+                                className="w-full mt-6 bg-brand text-white hover:bg-[#3a5bd9] py-2 rounded-lg font-medium hover:bg-gray-800 transition disabled:opacity-50 disabled:cursor-not-allowed flex justify-center items-center gap-2"
                             >
                                 {loading ? <Loader size={18} className="animate-spin" /> : <Upload size={18} />}
                                 {loading ? 'Uploading...' : 'Import CSV'}

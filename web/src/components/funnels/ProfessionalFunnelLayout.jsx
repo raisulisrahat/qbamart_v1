@@ -51,7 +51,7 @@ const ProfessionalFunnelLayout = ({
             {/* Main Navigation Mockup */}
             <nav className="bg-white border-b border-slate-200 py-4 px-6 flex justify-between items-center sticky top-0 z-50 shadow-sm">
                 <div className="text-2xl font-black text-[#800000] tracking-tighter uppercase italic">
-                    {siteSettings?.site_title || 'Qbamart'}
+                    {siteSettings?.site_title}
                 </div>
                 <div className="hidden md:flex items-center gap-8 text-xs font-bold uppercase tracking-widest text-slate-400">
                     <span className="text-[#800000]">Product Info</span>
@@ -342,14 +342,14 @@ const ProfessionalFunnelLayout = ({
             <footer className="bg-slate-900 text-white py-20 px-4 mt-20">
                 <div className="max-w-4xl mx-auto text-center space-y-8">
                     <div className="text-3xl font-black tracking-tighter uppercase italic text-[#800000]">
-                         {siteSettings?.site_title || 'Qbamart'}
+                         {siteSettings?.site_title}
                     </div>
                     <div className="h-px bg-white/10 w-24 mx-auto"></div>
                     <div className="flex justify-center gap-10 text-xs font-bold uppercase tracking-widest text-slate-400">
                          <span>Privacy</span> <span>Terms</span> <span>Returns</span>
                     </div>
                     <p className="text-slate-600 text-[10px] font-bold tracking-widest uppercase">
-                         © 2026 Qbamart. Powered by <a href="https://ctsolutionbd.com" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">Cyber and Tech Solution</a>.
+                         © 2026 Qbamart. Developed by <a href="https://ctsolutionbd.com" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">Cyber and Tech Solution</a>.
                     </p>
                 </div>
             </footer>

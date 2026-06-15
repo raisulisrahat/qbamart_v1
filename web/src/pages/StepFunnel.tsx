@@ -310,6 +310,24 @@ const StepFunnel = () => {
                     content_type: 'product'
                 });
             }
+
+            // Google Tag Manager dataLayer Purchase Event
+            if ((window as any).dataLayer) {
+                (window as any).dataLayer.push({
+                    event: 'purchase',
+                    ecommerce: {
+                        transaction_id: `stepfunnel_${Date.now()}`,
+                        value: finalTotal,
+                        currency: 'BDT',
+                        items: [{
+                            item_name: product.name,
+                            item_id: product.id,
+                            price: currentPrice,
+                            quantity: 1
+                        }]
+                    }
+                });
+            }
         } catch (err) {
             console.error("Order failed", err);
             alert("Failed to place order. Please check your information.");
@@ -598,8 +616,8 @@ const StepFunnel = () => {
             </footer>
             
             <style dangerouslySetInnerHTML={{ __html: `
-                .swiper-pagination-bullet-active { background: #5173FB !important; }
-                .swiper-button-next, .swiper-button-prev { color: #5173FB !important; }
+                .swiper-pagination-bullet-active { background: #C0561F !important; }
+                .swiper-button-next, .swiper-button-prev { color: #C0561F !important; }
             `}} />
             <ChatBubble />
         </div>

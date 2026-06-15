@@ -1,14 +1,57 @@
 <!doctype html>
 <html lang="en">
   <head>
+    <!-- Google Consent Mode Default Initialization -->
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){window.dataLayer.push(arguments);}
+      window.gtag = gtag;
+
+      var consentDefaults = {
+        'ad_storage': 'denied',
+        'analytics_storage': 'denied',
+        'ad_user_data': 'denied',
+        'ad_personalization': 'denied'
+      };
+
+      try {
+        var storedConsent = localStorage.getItem('qbamart_cookie_consent');
+        if (storedConsent) {
+          var parsed = JSON.parse(storedConsent);
+          if (parsed) {
+            consentDefaults.ad_storage = parsed.ad_storage ? 'granted' : 'denied';
+            consentDefaults.analytics_storage = parsed.analytics_storage ? 'granted' : 'denied';
+            consentDefaults.ad_user_data = parsed.ad_user_data ? 'granted' : 'denied';
+            consentDefaults.ad_personalization = parsed.ad_personalization ? 'granted' : 'denied';
+          }
+        }
+      } catch (e) {
+        console.error('Error loading default consent settings', e);
+      }
+
+      gtag('consent', 'default', consentDefaults);
+    </script>
+
+    <!-- Google tag (gtag.js) -->
+    <script async src="/1dr5/gtag/js?id=G-X06QEH8RN6"></script>
+    <script>
+      gtag('js', new Date());
+      gtag('config', 'G-X06QEH8RN6');
+    </script>
+
+    <!-- Google Tag Manager -->
+    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+    '/1dr5/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+    })(window,document,'script','dataLayer','GTM-NGJMLBJK');</script>
+    <!-- End Google Tag Manager -->
+
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Qbamart | Quality, Best & Authentic Products</title>
     <meta name="description" content="Qbamart - Premium Gadget & Accessories Shop in Bangladesh. Shop the latest tech, gadgets, and accessories with fast delivery." />
-
-    <!-- Google Search Console Verification -->
-    <!-- <meta name="google-site-verification" content="YOUR_VERIFICATION_CODE" /> -->
 
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website" />
@@ -27,6 +70,11 @@
     <meta name="twitter:image" content="https://qbamart.com/favicon.svg" />
   </head>
   <body>
+    <!-- Google Tag Manager (noscript) -->
+    <noscript><iframe src="/1dr5/ns.html?id=GTM-NGJMLBJK"
+    height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+    <!-- End Google Tag Manager (noscript) -->
+
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

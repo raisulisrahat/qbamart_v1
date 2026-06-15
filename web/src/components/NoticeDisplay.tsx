@@ -62,7 +62,7 @@ const NoticeDisplay = () => {
         <>
             {/* Ticker Section */}
             {tickerNotices.length > 0 && (
-                <div className="bg-[#5173FB] text-white py-2 overflow-hidden relative z-50">
+                <div className="bg-brand text-white py-2 overflow-hidden relative z-50">
                     <div className="flex whitespace-nowrap animate-marquee">
                         <div className="flex items-center gap-10 px-4">
                             {tickerNotices.map((notice, idx) => (
@@ -126,8 +126,8 @@ const NoticeDisplay = () => {
 
                             {/* Content Section */}
                             <div className={`flex-1 p-8 flex flex-col justify-center ${!activePopup.image ? 'items-center text-center' : ''}`}>
-                                <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#5173FB]/10 text-[#5173FB] rounded-full mb-4">
-                                    <Zap size={14} className="fill-[#5173FB]" />
+                                <div className="inline-flex items-center gap-2 px-3 py-1 bg-brand/10 text-brand rounded-full mb-4">
+                                    <Zap size={14} className="fill-brand" />
                                     <span className="text-[10px] font-black uppercase tracking-widest">Special Announcement</span>
                                 </div>
                                 
@@ -147,7 +147,7 @@ const NoticeDisplay = () => {
                                     <a 
                                         href={activePopup.button_link}
                                         onClick={closePopup}
-                                        className="inline-flex items-center justify-center gap-3 px-8 py-4 bg-zinc-900 text-white rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-[#5173FB] hover:shadow-xl hover:shadow-[#5173FB]/20 transition-all active:scale-95 group"
+                                        className="inline-flex items-center justify-center gap-3 px-8 py-4 bg-zinc-900 text-white rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-brand hover:shadow-xl hover:shadow-brand/20 transition-all active:scale-95 group"
                                     >
                                         {activePopup.button_text || "View Offer"}
                                         <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />

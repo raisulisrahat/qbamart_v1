@@ -200,6 +200,7 @@ class Product(models.Model):
     show_additional_info = models.BooleanField(default=False, help_text="Enable/Disable Additional Information tab on product page")
     
     image = models.ImageField(upload_to='products/', blank=True, null=True)
+    video_url = models.CharField(max_length=500, blank=True, null=True, help_text="YouTube or external video embed URL")
     is_active = models.BooleanField(default=True)
     
     created_at = models.DateTimeField(auto_now_add=True)
@@ -262,24 +263,6 @@ class ProductVideo(models.Model):
 
     def __str__(self):
         return f"Video for {self.product.name}"
-
-    def save(self, *args, **kwargs):
-        import os
-        is_new_video = False
-        if self.video:
-            try:
-                from django.core.files.uploadedfile import UploadedFile
-                if hasattr(self.video, 'file') and isinstance(self.video.file, UploadedFile):
-                    is_new_video = True
-            except Exception:
-                pass
-
-        super().save(*args, **kwargs)
-
-        if is_new_video and self.video and os.path.exists(self.video.path):
-            from .video_compressor import compress_video_file
-            compress_video_file(self.video.path)
-
 
 class Order(models.Model):
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='orders')
@@ -369,25 +352,9 @@ class Banner(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def save(self, *args, **kwargs):
-        import os
         if self.image and not self.image.name.endswith('.webp'):
             compress_image(self.image)
-
-        is_new_video = False
-        if self.video:
-            try:
-                from django.core.files.uploadedfile import UploadedFile
-                if hasattr(self.video, 'file') and isinstance(self.video.file, UploadedFile):
-                    is_new_video = True
-            except Exception:
-                pass
-
         super().save(*args, **kwargs)
-
-        if is_new_video and self.video and os.path.exists(self.video.path):
-            from .video_compressor import compress_video_file
-            compress_video_file(self.video.path)
-
 
     class Meta:
         ordering = ['order', '-created_at']
@@ -429,6 +396,7 @@ class Profile(models.Model):
         ('admin', 'Admin'),
         ('moderator', 'Moderator'),
         ('customer', 'Customer'),
+        ('ads_manager', 'Ads Manager'),
     )
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='customer')
@@ -560,7 +528,7 @@ class BlogPost(models.Model):
         return self.title
 
 class SiteSettings(models.Model):
-    site_title = models.CharField(max_length=200, default="Qbamart")
+    site_title = models.CharField(max_length=200, default="Spaceghor")
     site_logo = models.ImageField(upload_to='site/', blank=True, null=True)
     site_favicon = models.ImageField(upload_to='site/', blank=True, null=True, help_text="Browser tab icon (e.g., .ico or .png)")
     footer_logo = models.ImageField(upload_to='site/', blank=True, null=True)
@@ -610,7 +578,7 @@ class SiteSettings(models.Model):
     enable_order_confirmation_sms = models.BooleanField(default=False, help_text="Send SMS to customer when order is placed")
 
     # bKash Integration
-    bkash_base_url = models.URLField(max_length=500, default='https://tokenized.sandbox.bka.sh/v1.2.0-beta', help_text="bKash API URL")
+    bkash_base_url = models.URLField(max_length=500, help_text="bKash API URL")
     bkash_app_key = models.CharField(max_length=255, blank=True, null=True, help_text="bKash App Key")
     bkash_app_secret = models.CharField(max_length=255, blank=True, null=True, help_text="bKash App Secret")
     bkash_username = models.CharField(max_length=255, blank=True, null=True, help_text="bKash Username")
@@ -629,6 +597,7 @@ class Funnel(models.Model):
         ('combo', 'Combo Layout'),
         ('bangla', 'Bangla Funnel Layout'),
         ('ezymart', 'EzyMart Layout'),
+        ('ezymart_v2', 'EzyMart V2 Layout'),
         ('dark', 'Dark High-Contrast Layout'),
         ('professional', 'Professional Two-Column Layout'),
         ('garden', 'Garden Green Layout'),
@@ -695,8 +664,28 @@ class Notification(models.Model):
         return f"{self.title} - {self.user.username if self.user else 'System'}"
 
 # Signal Handlers for Notifications
-from django.db.models.signals import post_save
+from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
+import os
+
+@receiver(pre_save, sender=Profile)
+def delete_old_profile_picture(sender, instance, **kwargs):
+    """Auto-delete old profile picture from disk when a new one is uploaded."""
+    if not instance.pk:
+        return  # New profile, nothing to delete
+    try:
+        old_profile = Profile.objects.get(pk=instance.pk)
+    except Profile.DoesNotExist:
+        return
+    old_picture = old_profile.profile_picture
+    new_picture = instance.profile_picture
+    # If the picture has changed and an old one exists, delete the old file
+    if old_picture and old_picture != new_picture:
+        if os.path.isfile(old_picture.path):
+            try:
+                os.remove(old_picture.path)
+            except Exception:
+                pass
 
 @receiver(post_save, sender=Order)
 def order_notification(sender, instance, created, **kwargs):
@@ -789,25 +778,9 @@ class ProductFunnelSection(models.Model):
         return f"Section for {self.product.name}: {self.title or 'Untitled'}"
 
     def save(self, *args, **kwargs):
-        import os
         if self.image and not self.image.name.endswith('.webp'):
             compress_image(self.image)
-
-        is_new_video = False
-        if self.video:
-            try:
-                from django.core.files.uploadedfile import UploadedFile
-                if hasattr(self.video, 'file') and isinstance(self.video.file, UploadedFile):
-                    is_new_video = True
-            except Exception:
-                pass
-
         super().save(*args, **kwargs)
-
-        if is_new_video and self.video and os.path.exists(self.video.path):
-            from .video_compressor import compress_video_file
-            compress_video_file(self.video.path)
-
 
 
 class FunnelReviewImage(models.Model):

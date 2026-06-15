@@ -25,8 +25,10 @@ const GoogleTag = ({ tagId: customTagId }: GoogleTagProps) => {
             inlineScript.id = 'google-tag-inline';
             inlineScript.innerHTML = `
                 window.dataLayer = window.dataLayer || [];
-                function gtag(){window.dataLayer.push(arguments);}
-                window.gtag = gtag;
+                if (!window.gtag) {
+                    window.gtag = function(){window.dataLayer.push(arguments);}
+                }
+                var gtag = window.gtag;
                 gtag('js', new Date());
                 gtag('config', '${tagId}');
             `;

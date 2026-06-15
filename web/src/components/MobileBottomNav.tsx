@@ -23,19 +23,19 @@ const MobileBottomNav = () => {
               <Heart 
                 className={`w-6 h-6 transition-colors duration-300 ${
                   isActive('/wishlist') 
-                    ? 'text-[#5173FB] fill-[#5173FB]' 
+                    ? 'text-brand fill-brand' 
                     : 'text-neutral-400 group-hover:text-neutral-600'
                 }`} 
               />
             </motion.div>
             {wishlist.length > 0 && (
-              <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 bg-[#5173FB] text-white text-[9px] font-black flex items-center justify-center rounded-full px-1 border-2 border-white">
+              <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 bg-brand text-white text-[9px] font-black flex items-center justify-center rounded-full px-1 border-2 border-white">
                 {wishlist.length}
               </span>
             )}
           </div>
           {/* <span className={`text-[10px] font-bold mt-0.5 transition-colors duration-300 ${
-            isActive('/wishlist') ? 'text-[#5173FB]' : 'text-neutral-400'
+            isActive('/wishlist') ? 'text-brand' : 'text-neutral-400'
           }`}>
             Wishlist
           </span> */}
@@ -51,7 +51,7 @@ const MobileBottomNav = () => {
               <Home 
                 className={`w-6 h-6 transition-colors duration-300 ${
                   isActive('/') 
-                    ? 'text-[#5173FB] fill-[#5173FB]/10' 
+                    ? 'text-brand fill-brand/10' 
                     : 'text-neutral-400 group-hover:text-neutral-600'
                 }`} 
               />
@@ -59,12 +59,12 @@ const MobileBottomNav = () => {
             {isActive('/') && (
               <motion.div 
                 layoutId="activeTab"
-                className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-[#5173FB] rounded-full"
+                className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-brand rounded-full"
               />
             )}
           </div>
           {/* <span className={`text-[10px] font-bold mt-0.5 transition-colors duration-300 ${
-            isActive('/') ? 'text-[#5173FB]' : 'text-neutral-400'
+            isActive('/') ? 'text-brand' : 'text-neutral-400'
           }`}>
             Home
           </span> */}
@@ -86,7 +86,7 @@ const MobileBottomNav = () => {
               <User 
                 className={`w-6 h-6 transition-colors duration-300 ${
                   isAccountActive 
-                    ? 'text-[#5173FB] fill-[#5173FB]/10' 
+                    ? 'text-brand fill-brand/10' 
                     : 'text-neutral-400 group-hover:text-neutral-600'
                 }`} 
               />
@@ -94,12 +94,12 @@ const MobileBottomNav = () => {
             {isAccountActive && (
               <motion.div 
                 layoutId="activeTab"
-                className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-[#5173FB] rounded-full"
+                className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-brand rounded-full"
               />
             )}
           </div>
           {/* <span className={`text-[10px] font-bold mt-0.5 transition-colors duration-300 ${
-            isAccountActive ? 'text-[#5173FB]' : 'text-neutral-400'
+            isAccountActive ? 'text-brand' : 'text-neutral-400'
           }`}>
             Profile
           </span> */}

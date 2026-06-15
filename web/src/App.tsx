@@ -12,6 +12,7 @@ import CartDrawer from './components/CartDrawer';
 import ScrollToTop from './components/ScrollToTop';
 import FacebookPixel from './components/FacebookPixel';
 import GoogleTag from './components/GoogleTag';
+import CookieConsent from './components/CookieConsent';
 import Home from './pages/Home';
 import ProductDetail from './pages/ProductDetail';
 import Shop from './pages/Shop';
@@ -63,6 +64,7 @@ function App() {
                 <ScrollToTop />
                 <FacebookPixel />
                 <GoogleTag />
+                <CookieConsent />
                 <div className="flex flex-col min-h-screen bg-neutral-50 font-sans selection:bg-indigo-100 selection:text-indigo-900">
                   <Routes>
                     {/* User Routes */}
@@ -112,6 +114,7 @@ function App() {
                     {/* Admin Routes */}
                     <Route path="/staff/admin/*" element={<StaffDashboard role="admin" />} />
                     <Route path="/staff/moderator/*" element={<StaffDashboard role="moderator" />} />
+                    <Route path="/staff/ads_manager/*" element={<StaffDashboard role="ads_manager" />} />
 
                     {/* 404 Catch-all */}
                     <Route path="*" element={<NotFound />} />

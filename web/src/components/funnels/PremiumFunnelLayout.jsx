@@ -316,12 +316,19 @@ const PremiumFunnelLayout = ({
                                                 value={formData.shipping_zone}
                                                 onChange={handleChange}
                                             >
-                                                <option value="">{t('select_area')}</option>
-                                                {shippingZones.map(zone => (
-                                                    <option key={zone.id} value={zone.id}>
-                                                        {zone.name} (+ ৳{parseFloat(zone.shipping_cost).toFixed(0)})
-                                                    </option>
-                                                ))}
+                                                <option value="">{t('select_shipping_zone')}</option>
+                                                {shippingZones.map(zone => {
+                                                    const displayName = zone.name.toLowerCase().includes('inside')
+                                                        ? 'ঢাকা সিটির ভেতরে (Inside Dhaka)'
+                                                        : zone.name.toLowerCase().includes('outside')
+                                                            ? 'ঢাকা সিটির বাইরে (Outside Dhaka)'
+                                                            : zone.name;
+                                                    return (
+                                                        <option key={zone.id} value={zone.id}>
+                                                            {displayName} (+ ৳{parseFloat(zone.shipping_cost).toFixed(0)})
+                                                        </option>
+                                                    );
+                                                })}
                                             </select>
                                             <Truck className="absolute right-6 top-1/2 -translate-y-1/2 text-neutral-300" size={18} />
                                         </div>
@@ -420,7 +427,7 @@ const PremiumFunnelLayout = ({
 
                 {/* Final Trust Signal */}
                 <div className="text-center space-y-6 pt-20">
-                     <p className="text-sm font-bold text-neutral-400 uppercase tracking-widest">© 2026 Qbamart. Powered by <a href="https://ctsolutionbd.com" target="_blank" rel="noopener noreferrer" className="hover:text-black transition-colors">Cyber and Tech Solution</a>.</p>
+                     <p className="text-sm font-bold text-neutral-400 uppercase tracking-widest">© 2026 Qbamart. Developed by <a href="https://ctsolutionbd.com" target="_blank" rel="noopener noreferrer" className="hover:text-black transition-colors">Cyber and Tech Solution</a>.</p>
                      <div className="flex justify-center gap-10 opacity-30 grayscale">
                          <img src="/payment-icons.png" className="h-8 w-auto grayscale" alt="" />
                          <ShieldCheck size={32} />

@@ -59,6 +59,39 @@ const ProductDetail = () => {
     const [zoomStyle, setZoomStyle] = useState({ transformOrigin: 'center' });
     const [isHovered, setIsHovered] = useState(false);
 
+    // Touch events for manual swipe on mobile
+    const touchStartX = useRef<number | null>(null);
+    const touchEndX = useRef<number | null>(null);
+
+    const handleTouchStart = (e: React.TouchEvent) => {
+        touchStartX.current = e.touches[0].clientX;
+        touchEndX.current = e.touches[0].clientX;
+    };
+
+    const handleTouchMove = (e: React.TouchEvent) => {
+        touchEndX.current = e.touches[0].clientX;
+    };
+
+    const handleTouchEnd = () => {
+        if (touchStartX.current === null || touchEndX.current === null) return;
+        const diffX = touchStartX.current - touchEndX.current;
+        const minSwipeDistance = 50; // threshold in pixels
+
+        if (Math.abs(diffX) > minSwipeDistance) {
+            if (diffX > 0) {
+                // Swiped Left -> Next Image
+                setActiveImage(prev => (prev < gallery.length - 1 ? prev + 1 : 0));
+            } else {
+                // Swiped Right -> Previous Image
+                setActiveImage(prev => (prev > 0 ? prev - 1 : gallery.length - 1));
+            }
+        }
+        
+        // Reset
+        touchStartX.current = null;
+        touchEndX.current = null;
+    };
+
     // Lock body scroll when lightbox is open
     useEffect(() => {
         if (isLightboxOpen) {
@@ -320,6 +353,9 @@ const ProductDetail = () => {
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             className="aspect-square rounded-[1.5rem] lg:rounded-[2rem] overflow-hidden bg-neutral-50 border border-neutral-100 relative group sm:mx-0 shadow-lg"
+                            onTouchStart={handleTouchStart}
+                            onTouchMove={handleTouchMove}
+                            onTouchEnd={handleTouchEnd}
                         >
                             {gallery.length > 0 && gallery[activeImage] && (
                                 gallery[activeImage].type === 'video' ? (
@@ -516,7 +552,7 @@ const ProductDetail = () => {
                                                 alert('Link copied to clipboard!');
                                             }
                                         }}
-                                        className="p-3 bg-white shadow-sm border border-neutral-100 rounded-xl text-neutral-400 hover:text-[#5173FB] hover:border-[#5173FB] transition-all active:scale-95"
+                                        className="p-3 bg-white shadow-sm border border-neutral-100 rounded-xl text-neutral-400 hover:text-brand hover:border-brand transition-all active:scale-95"
                                         title="Share Product"
                                     >
                                         <Share2 className="w-5 h-5" />
@@ -569,11 +605,11 @@ const ProductDetail = () => {
                                                     const imgIdx = gallery.findIndex((img: any) => img.color === color.id);
                                                     if (imgIdx !== -1) setActiveImage(imgIdx);
                                                 }}
-                                                className={`group relative w-12 h-12 lg:w-14 lg:h-14 rounded-xl overflow-hidden border-2 transition-all ${isActive ? 'border-[#5173FB] shadow-lg ring-2 ring-red-100' : 'border-neutral-100 hover:border-neutral-200'}`}
+                                                className={`group relative w-12 h-12 lg:w-14 lg:h-14 rounded-xl overflow-hidden border-2 transition-all ${isActive ? 'border-brand shadow-lg ring-2 ring-red-100' : 'border-neutral-100 hover:border-neutral-200'}`}
                                             >
                                                 <img src={resolveImageUrl(colorImg)} className="w-full h-full object-cover" alt={color.name} />
                                                 {isActive && (
-                                                    <div className="absolute top-1 right-1 bg-[#5173FB] rounded-full p-0.5 shadow-sm">
+                                                    <div className="absolute top-1 right-1 bg-brand rounded-full p-0.5 shadow-sm">
                                                         <CheckCircle2 className="w-3 h-3 text-white fill-current" />
                                                     </div>
                                                 )}
@@ -599,7 +635,7 @@ const ProductDetail = () => {
                                             <button
                                                 key={size.id}
                                                 onClick={() => setSelectedSize(size)}
-                                                className={`min-w-[50px] h-9 flex shadow-sm shadow-red-700/20 items-center justify-center px-3 rounded-lg border-2  font-black text-[10px] uppercase tracking-widest transition-all ${isActive ? 'border-[#5173FB] bg-[#5173FB] text-white shadow-lg shadow-red-700/20' : 'border-neutral-100 text-neutral-400 hover:border-neutral-200 bg-neutral-50/50'}`}
+                                                className={`min-w-[50px] h-9 flex shadow-sm shadow-red-700/20 items-center justify-center px-3 rounded-lg border-2  font-black text-[10px] uppercase tracking-widest transition-all ${isActive ? 'border-brand bg-brand text-white shadow-lg shadow-red-700/20' : 'border-neutral-100 text-neutral-400 hover:border-neutral-200 bg-neutral-50/50'}`}
                                             >
                                                 {size.code}
                                             </button>
@@ -712,7 +748,7 @@ const ProductDetail = () => {
                                                 handleAddToCart();
                                                 setIsCartOpen(true);
                                             }}
-                                            className="flex-1 bg-white border-2 border-[#5173FB] text-[#5173FB] font-black h-12 rounded-xl active:scale-95 transition-all flex items-center justify-center gap-2"
+                                            className="flex-1 bg-white border-2 border-brand text-brand font-black h-12 rounded-xl active:scale-95 transition-all flex items-center justify-center gap-2"
                                         >
                                             <ShoppingCart className="w-4 h-4" />
                                             <span className="text-[10px] uppercase font-bold">Add to Cart</span>
@@ -723,7 +759,7 @@ const ProductDetail = () => {
                                                 handleAddToCart();
                                                 navigate('/checkout');
                                             }}
-                                            className="flex-1 bg-[#5173FB] text-white font-black h-12 rounded-xl shadow-lg shadow-red-700/10 active:scale-95 transition-all flex items-center justify-center gap-2 animate-glow font-bold"
+                                            className="flex-1 bg-brand text-white font-black h-12 rounded-xl shadow-lg shadow-red-700/10 active:scale-95 transition-all flex items-center justify-center gap-2 animate-glow font-bold"
                                         >
                                             <Zap className="w-4 h-4 fill-current" />
                                             <span className="text-[10px] uppercase font-bold">Order Now</span>
@@ -940,7 +976,7 @@ const ProductDetail = () => {
                                         handleAddToCart();
                                         setIsCartOpen(true);
                                     }}
-                                    className="flex-1 bg-white border-2 border-[#5173FB] text-[#5173FB] font-black h-13 rounded-xl active:scale-95 transition-all flex items-center justify-center gap-2"
+                                    className="flex-1 bg-white border-2 border-brand text-brand font-black h-13 rounded-xl active:scale-95 transition-all flex items-center justify-center gap-2"
                                 >
                                     <ShoppingCart className="w-4 h-4" />
                                     <span className="text-[10px] uppercase font-bold">Add to Cart</span>
@@ -951,7 +987,7 @@ const ProductDetail = () => {
                                         handleAddToCart();
                                         navigate('/checkout');
                                     }}
-                                    className="flex-1 bg-[#5173FB] text-white font-black h-13 rounded-xl shadow-lg shadow-red-700/10 active:scale-95 transition-all flex items-center justify-center gap-2 animate-glow"
+                                    className="flex-1 bg-brand text-white font-black h-13 rounded-xl shadow-lg shadow-red-700/10 active:scale-95 transition-all flex items-center justify-center gap-2 animate-glow"
                                 >
                                     <Zap className="w-4 h-4 fill-current" />
                                     <span className="text-[10px] uppercase font-bold">Order Now</span>

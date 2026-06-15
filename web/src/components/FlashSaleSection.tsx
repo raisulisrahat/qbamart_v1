@@ -58,10 +58,10 @@ const FlashSaleSection = () => {
             <div className="space-y-0">
               <div className="flex items-center justify-center md:justify-start space-x-1.5">
                 <div className="relative flex h-1.5 w-1.5">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#5173FB] opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-[#5173FB]"></span>
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-brand"></span>
                 </div>
-                <h2 className="text-[9px] font-black text-[#5173FB] uppercase tracking-[0.2em]">Flash Sale</h2>
+                <h2 className="text-[9px] font-black text-brand uppercase tracking-[0.2em]">Flash Sale</h2>
               </div>
               <h3 className="text-base md:text-lg font-bold text-neutral-900 tracking-tight leading-tight">
                 {activeSale.title}
@@ -109,7 +109,7 @@ const FlashSaleSection = () => {
             )}
             <Link 
               to="/flash-sale" 
-              className="group flex items-center space-x-2 bg-neutral-900 text-white hover:bg-[#5173FB] px-4 py-1.5 rounded-xl font-bold text-[10px] uppercase tracking-wider transition-all shadow-md active:scale-95"
+              className="group flex items-center space-x-2 bg-neutral-900 text-white hover:bg-brand px-4 py-1.5 rounded-xl font-bold text-[10px] uppercase tracking-wider transition-all shadow-md active:scale-95"
             >
               <span>View All</span>
               <ChevronRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
@@ -165,14 +165,14 @@ const FlashSaleSection = () => {
                   <div className="px-0.5 space-y-1">
                     <div className="flex justify-between text-[9px] font-bold uppercase tracking-wider">
                       <span className="text-neutral-400 font-black">{stock > 0 ? `${stock} Left` : 'Sold Out'}</span>
-                      <span className="text-[#5173FB]">{soldPercentage}% Sold</span>
+                      <span className="text-brand">{soldPercentage}% Sold</span>
                     </div>
                     <div className="h-1 w-full bg-neutral-50 rounded-full overflow-hidden">
                       <motion.div 
                         initial={{ width: 0 }}
                         whileInView={{ width: `${soldPercentage}%` }}
                         transition={{ duration: 1.2, delay: 0.3 }}
-                        className="h-full bg-[#5173FB]" 
+                        className="h-full bg-brand" 
                       />
                     </div>
                   </div>

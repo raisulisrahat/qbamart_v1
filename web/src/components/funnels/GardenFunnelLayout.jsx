@@ -426,12 +426,19 @@ const GardenFunnelLayout = ({
                                             disabled={siteSettings?.enable_district_upazila !== false}
                                             onChange={handleChange}
                                         >
-                                            <option value="" className="bg-slate-800">{siteSettings?.enable_district_upazila !== false ? '...' : t('select_area')}</option>
-                                            {shippingZones.map(zone => (
-                                                <option key={zone.id} value={zone.id} className="bg-slate-800">
-                                                    {zone.name} - ৳{parseFloat(zone.shipping_cost).toFixed(0)}
-                                                </option>
-                                            ))}
+                                            <option value="" className="bg-slate-800">{siteSettings?.enable_district_upazila !== false ? '...' : t('select_shipping_zone')}</option>
+                                            {shippingZones.map(zone => {
+                                                const displayName = zone.name.toLowerCase().includes('inside')
+                                                    ? 'ঢাকা সিটির ভেতরে (Inside Dhaka)'
+                                                    : zone.name.toLowerCase().includes('outside')
+                                                        ? 'ঢাকা সিটির বাইরে (Outside Dhaka)'
+                                                        : zone.name;
+                                                return (
+                                                    <option key={zone.id} value={zone.id} className="bg-slate-800">
+                                                        {displayName} - ৳{parseFloat(zone.shipping_cost).toFixed(0)}
+                                                    </option>
+                                                );
+                                            })}
                                         </select>
                                         <Truck className="absolute right-5 top-1/2 -translate-y-1/2 text-white/70 pointer-events-none" size={20} />
                                     </div>
@@ -611,7 +618,7 @@ const GardenFunnelLayout = ({
                                     transition: all 0.3s ease !important;
                                 }
                                 .product-hero-swiper .swiper-pagination-bullet-active {
-                                    background: #5173FB !important;
+                                    background: #C0561F !important;
                                     opacity: 1 !important;
                                 }
                             `}} />
@@ -789,7 +796,7 @@ const GardenFunnelLayout = ({
                                 <style dangerouslySetInnerHTML={{
                                     __html: `
                                     .review-swiper-container .swiper-pagination-bullet-active {
-                                        background: #5173FB !important;
+                                        background: #C0561F !important;
                                     }
                                 `}} />
                                 {product.funnel_sections.map((section, idx) => (
@@ -1006,12 +1013,19 @@ const GardenFunnelLayout = ({
                                             disabled={siteSettings?.enable_district_upazila !== false}
                                             onChange={handleChange}
                                         >
-                                            <option value="" className="bg-slate-800">{siteSettings?.enable_district_upazila !== false ? '...' : t('select_area')}</option>
-                                            {shippingZones.map(zone => (
-                                                <option key={zone.id} value={zone.id} className="bg-slate-800">
-                                                    {zone.name} - ৳{parseFloat(zone.shipping_cost).toFixed(0)}
-                                                </option>
-                                            ))}
+                                            <option value="" className="bg-slate-800">{siteSettings?.enable_district_upazila !== false ? '...' : t('select_shipping_zone')}</option>
+                                            {shippingZones.map(zone => {
+                                                const displayName = zone.name.toLowerCase().includes('inside')
+                                                    ? 'ঢাকা সিটির ভেতরে (Inside Dhaka)'
+                                                    : zone.name.toLowerCase().includes('outside')
+                                                        ? 'ঢাকা সিটির বাইরে (Outside Dhaka)'
+                                                        : zone.name;
+                                                return (
+                                                    <option key={zone.id} value={zone.id} className="bg-slate-800">
+                                                        {displayName} - ৳{parseFloat(zone.shipping_cost).toFixed(0)}
+                                                    </option>
+                                                );
+                                            })}
                                         </select>
                                         <Truck className="absolute right-5 top-1/2 -translate-y-1/2 text-white/70 pointer-events-none" size={20} />
                                     </div>
@@ -1077,7 +1091,7 @@ const GardenFunnelLayout = ({
             {/* Footer */}
             <div className="bg-slate-900 text-slate-400 py-12 text-center text-xs font-semibold border-t border-slate-800">
                 <div className="container mx-auto px-4 max-w-4xl space-y-2">
-                    <p className="mb-2 font-medium text-white">© 2026 Qbamart. Powered by <a href="https://ctsolutionbd.com" target="_blank" rel="noopener noreferrer" className='text-white hover:text-slate-300 transition-colors'>Cyber and Tech Solution</a>.</p>
+                    <p className="mb-2 font-medium text-white">© 2026 Qbamart. Developed by <a href="https://ctsolutionbd.com" target="_blank" rel="noopener noreferrer" className='text-white hover:text-slate-300 transition-colors'>Cyber and Tech Solution</a>.</p>
                 </div>
             </div>
 
