@@ -979,6 +979,16 @@ const ProductDetail = () => {
                             <>
                                 <button
                                     onClick={() => {
+                                    handleAddToCart();
+                                    setIsCartOpen(true);
+                                    }}
+                                    className="flex-1 bg-white border-2 border-brand text-brand font-black h-13 rounded-xl active:scale-95 transition-all flex items-center justify-center gap-2"
+                                >
+                                    <ShoppingCart className="w-4 h-4" />
+                                    <span className="text-[10px] uppercase font-bold">Add to Cart</span>
+                                </button>
+                                <button
+                                    onClick={() => {
                                         handleAddToCart(true);
                                         navigate('/checkout');
                                     }}
