@@ -2631,12 +2631,23 @@ class SitemapXslView(View):
 """
         return HttpResponse(xsl_content, content_type="application/xml")
 
-
 class SitemapView(View):
     def get(self, request, *args, **kwargs):
         from django.conf import settings as django_settings
         frontend_url = getattr(django_settings, 'FRONTEND_URL', 'https://qbamart.com').rstrip('/')
         
+        def get_absolute_image_url(image_field):
+            if not image_field:
+                return None
+            try:
+                return request.build_absolute_uri(image_field.url)
+            except Exception:
+                backend_base = getattr(django_settings, 'BACKEND_URL', 'https://api.qbamart.com').rstrip('/')
+                url_path = image_field.url
+                if not url_path.startswith('/'):
+                    url_path = '/' + url_path
+                return f"{backend_base}{url_path}"
+
         # Build sitemap XML
         urls = []
         
@@ -2656,37 +2667,159 @@ class SitemapView(View):
             ('/brands', '0.5', 'monthly'),
             ('/categories', '0.5', 'monthly'),
         ]
+        
+        today_str = timezone.now().strftime('%Y-%m-%d')
+        
         for path_str, priority, changefreq in static_paths:
-            urls.append(f"  <url>\n    <loc>{frontend_url}{path_str}</loc>\n    <changefreq>{changefreq}</changefreq>\n    <priority>{priority}</priority>\n  </url>")
+            urls.append(
+                f"  <url>\n"
+                f"    <loc>{escape(frontend_url + path_str)}</loc>\n"
+                f"    <lastmod>{today_str}</lastmod>\n"
+                f"    <changefreq>{changefreq}</changefreq>\n"
+                f"    <priority>{priority}</priority>\n"
+                f"  </url>"
+            )
         
         # 2. Dynamic Categories
         categories = Category.objects.all()
         for cat in categories:
-            urls.append(f"  <url>\n    <loc>{frontend_url}/products?category={cat.slug}</loc>\n    <changefreq>daily</changefreq>\n    <priority>0.8</priority>\n  </url>")
+            img_xml = ""
+            if cat.image:
+                try:
+                    img_url = get_absolute_image_url(cat.image)
+                    if img_url:
+                        img_xml = f"\n    <image:image>\n      <image:loc>{escape(img_url)}</image:loc>\n      <image:title>{escape(cat.name)}</image:title>\n    </image:image>"
+                except Exception:
+                    pass
+            
+            urls.append(
+                f"  <url>\n"
+                f"    <loc>{escape(frontend_url + '/products?category=' + cat.slug)}</loc>\n"
+                f"    <lastmod>{today_str}</lastmod>\n"
+                f"    <changefreq>daily</changefreq>\n"
+                f"    <priority>0.8</priority>{img_xml}\n"
+                f"  </url>"
+            )
             
         # 3. Dynamic Brands
         brands = Brand.objects.all()
         for brand in brands:
-            urls.append(f"  <url>\n    <loc>{frontend_url}/products?brand={brand.slug}</loc>\n    <changefreq>weekly</changefreq>\n    <priority>0.6</priority>\n  </url>")
+            img_xml = ""
+            if brand.logo:
+                try:
+                    img_url = get_absolute_image_url(brand.logo)
+                    if img_url:
+                        img_xml = f"\n    <image:image>\n      <image:loc>{escape(img_url)}</image:loc>\n      <image:title>{escape(brand.name)} Logo</image:title>\n    </image:image>"
+                except Exception:
+                    pass
+            
+            urls.append(
+                f"  <url>\n"
+                f"    <loc>{escape(frontend_url + '/products?brand=' + brand.slug)}</loc>\n"
+                f"    <lastmod>{today_str}</lastmod>\n"
+                f"    <changefreq>weekly</changefreq>\n"
+                f"    <priority>0.6</priority>{img_xml}\n"
+                f"  </url>"
+            )
             
         # 4. Dynamic Products
-        products = Product.objects.filter(is_active=True)
+        products = Product.objects.filter(is_active=True).prefetch_related('images')
         for prod in products:
-            urls.append(f"  <url>\n    <loc>{frontend_url}/product/{prod.slug}</loc>\n    <lastmod>{prod.updated_at.strftime('%Y-%m-%d')}</lastmod>\n    <changefreq>daily</changefreq>\n    <priority>0.8</priority>\n  </url>")
+            images_xml = []
+            
+            # Primary Product Image
+            if prod.image:
+                try:
+                    img_url = get_absolute_image_url(prod.image)
+                    if img_url:
+                        images_xml.append(
+                            f"\n    <image:image>\n"
+                            f"      <image:loc>{escape(img_url)}</image:loc>\n"
+                            f"      <image:title>{escape(prod.name)}</image:title>\n"
+                            f"    </image:image>"
+                        )
+                except Exception:
+                    pass
+            
+            # Gallery Images
+            for gal_img in prod.images.all():
+                if gal_img.image:
+                    try:
+                        gal_url = get_absolute_image_url(gal_img.image)
+                        if gal_url:
+                            images_xml.append(
+                                f"\n    <image:image>\n"
+                                f"      <image:loc>{escape(gal_url)}</image:loc>\n"
+                                f"      <image:title>{escape(prod.name)} Gallery Image</image:title>\n"
+                                f"    </image:image>"
+                            )
+                    except Exception:
+                        pass
+                        
+            images_str = "".join(images_xml)
+            lastmod_str = prod.updated_at.strftime('%Y-%m-%d')
+            
+            urls.append(
+                f"  <url>\n"
+                f"    <loc>{escape(frontend_url + '/product/' + prod.slug)}</loc>\n"
+                f"    <lastmod>{lastmod_str}</lastmod>\n"
+                f"    <changefreq>daily</changefreq>\n"
+                f"    <priority>0.8</priority>{images_str}\n"
+                f"  </url>"
+            )
             
         # 5. Dynamic Blog Posts
         posts = BlogPost.objects.filter(is_published=True)
         for post in posts:
-            urls.append(f"  <url>\n    <loc>{frontend_url}/blog/{post.slug}</loc>\n    <lastmod>{post.created_at.strftime('%Y-%m-%d')}</lastmod>\n    <changefreq>weekly</changefreq>\n    <priority>0.7</priority>\n  </url>")
+            img_xml = ""
+            if post.image:
+                try:
+                    img_url = get_absolute_image_url(post.image)
+                    if img_url:
+                        img_xml = f"\n    <image:image>\n      <image:loc>{escape(img_url)}</image:loc>\n      <image:title>{escape(post.title)}</image:title>\n    </image:image>"
+                except Exception:
+                    pass
+            
+            lastmod_str = post.created_at.strftime('%Y-%m-%d')
+            urls.append(
+                f"  <url>\n"
+                f"    <loc>{escape(frontend_url + '/blog/' + post.slug)}</loc>\n"
+                f"    <lastmod>{lastmod_str}</lastmod>\n"
+                f"    <changefreq>weekly</changefreq>\n"
+                f"    <priority>0.7</priority>{img_xml}\n"
+                f"  </url>"
+            )
             
         # 6. Dynamic Funnels
-        funnels = Funnel.objects.filter(is_active=True)
+        funnels = Funnel.objects.filter(is_active=True).select_related('product')
         for funnel in funnels:
+            img_xml = ""
+            if funnel.product and funnel.product.image:
+                try:
+                    img_url = get_absolute_image_url(funnel.product.image)
+                    if img_url:
+                        img_xml = f"\n    <image:image>\n      <image:loc>{escape(img_url)}</image:loc>\n      <image:title>{escape(funnel.title)}</image:title>\n    </image:image>"
+                except Exception:
+                    pass
+            
             path_prefix = '/step' if funnel.layout_type == 'bangla' else '/offer'
-            urls.append(f"  <url>\n    <loc>{frontend_url}{path_prefix}/{funnel.slug}</loc>\n    <changefreq>weekly</changefreq>\n    <priority>0.7</priority>\n  </url>")
+            urls.append(
+                f"  <url>\n"
+                f"    <loc>{escape(frontend_url + path_prefix + '/' + funnel.slug)}</loc>\n"
+                f"    <lastmod>{today_str}</lastmod>\n"
+                f"    <changefreq>weekly</changefreq>\n"
+                f"    <priority>0.7</priority>{img_xml}\n"
+                f"  </url>"
+            )
             
         # Combine
-        xml_content = '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' + "\n".join(urls) + '\n</urlset>'
+        xml_content = (
+            '<?xml version="1.0" encoding="UTF-8"?>\n'
+            '<?xml-stylesheet type="text/xsl" href="/sitemap.xsl"?>\n'
+            '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"\n'
+            '        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">\n'
+            + "\n".join(urls) + '\n</urlset>'
+        )
         return HttpResponse(xml_content, content_type="application/xml")
 
 
