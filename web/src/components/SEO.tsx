@@ -38,7 +38,7 @@ const SEO = ({ title, description, image, url, type = 'website', keywords, schem
     // 3. SEO Data Derivation
     const metaDesc = description || settings?.meta_description || `${baseTitle} - Premium Shopping in Bangladesh`;
     const metaKeywords = keywords || settings?.meta_keywords || `ecommerce, bangladesh, shopping, ${baseTitle}`;
-    const canonicalUrl = url || window.location.href;
+    const canonicalUrl = typeof window !== 'undefined' ? window.location.href : url;
     const ogImage = image ? resolveImageUrl(image) : (settings?.site_logo ? resolveImageUrl(settings.site_logo) : '');
 
     // 4. Update Standard Tags

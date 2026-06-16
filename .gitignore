@@ -17,6 +17,9 @@ out/
 .cache/
 .parcel-cache/
 
+# Django admin migrations
+backend/shop/migrations/00*.py
+
 # Databases & Media
 *.sqlite3
 db.sqlite3
