@@ -98,7 +98,7 @@ const MediaManager = ({ onSelect, onSelectMultiple, selectMode = false }: MediaM
         e.stopPropagation();
         if (window.confirm("Are you sure you want to permanently delete this media file? This cannot be undone.")) {
             try {
-                await api.delete('media-manager/', { data: { path } });
+                await api.delete('media-manager/', { params: { path } });
                 setMedia(prev => prev.filter(item => item.path !== path));
                 if (previewFile?.path === path) setPreviewFile(null);
             } catch (error) {
@@ -190,7 +190,7 @@ const MediaManager = ({ onSelect, onSelectMultiple, selectMode = false }: MediaM
     const handleBulkDelete = async () => {
         if (window.confirm(`Are you sure you want to permanently delete these ${selectedPaths.length} selected files? This cannot be undone.`)) {
             try {
-                await api.delete('media-manager/', { data: { paths: selectedPaths } });
+                await api.delete('media-manager/', { params: { paths: selectedPaths.join(',') } });
                 setMedia(prev => prev.filter(item => !selectedPaths.includes(item.path)));
                 setSelectedPaths([]);
             } catch (error) {

@@ -2132,8 +2132,14 @@ class MediaManagerView(APIView):
         }, status=status.HTTP_201_CREATED)
 
     def delete(self, request):
-        path = request.data.get('path')
-        paths = request.data.get('paths')
+        path = request.data.get('path') or request.query_params.get('path')
+        paths_raw = request.data.get('paths') or request.query_params.get('paths')
+        
+        if isinstance(paths_raw, str):
+            paths = [p.strip() for p in paths_raw.split(',') if p.strip()]
+        else:
+            paths = paths_raw
+
         if not path and not paths:
             return Response({'error': 'Path or paths is required'}, status=status.HTTP_400_BAD_REQUEST)
 
