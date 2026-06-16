@@ -2351,7 +2351,7 @@ class SitemapXslView(View):
   <xsl:template match="/">
     <html xmlns="http://www.w3.org/1999/xhtml">
       <head>
-        <title>XML Sitemap - qbamart</title>
+        <title>XML Sitemap - Qbamart</title>
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
         <style type="text/css">
           body {
@@ -2386,7 +2386,7 @@ class SitemapXslView(View):
             letter-spacing: -0.025em;
           }
           .logo-text span {
-            color: #C35317;
+            color: #3a5bd9;
           }
           h1 {
             color: #0f172a;
@@ -2448,7 +2448,7 @@ class SitemapXslView(View):
             color: #1e293b;
           }
           .search-box:focus {
-            border-color: #C35317;
+            border-color: #3a5bd9;
             box-shadow: 0 0 0 4px rgba(195, 83, 23, 0.12);
           }
           .search-icon {
@@ -2484,7 +2484,7 @@ class SitemapXslView(View):
             background-color: #f8fafc;
           }
           a {
-            color: #C35317;
+            color: #3a5bd9;
             text-decoration: none;
             font-weight: 600;
             transition: color 0.15s;
@@ -2534,7 +2534,7 @@ class SitemapXslView(View):
       <body>
         <div class="container">
           <header>
-            <div class="logo-text">Space<span>Ghor</span> Sitemap</div>
+            <div class="logo-text">Qba<span>Mart</span> Sitemap</div>
             <div class="badge badge-priority">Production Ready</div>
           </header>
           
