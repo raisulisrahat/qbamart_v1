@@ -1108,114 +1108,6 @@ const OrderManager = () => {
                                     </div>
                                 )}
                             </div>
-
-                            {/* Timeline Notes */}
-                            <div className="space-y-4 pb-10">
-                                <h4 className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Order Logs</h4>
-                                <div className="space-y-2">
-                                    {selectedOrder.notes?.map((note) => (
-                                        <div key={note.id} className="p-4 bg-zinc-50 rounded-xl border border-zinc-100 flex flex-col">
-                                            <div className="flex justify-between items-center mb-1">
-                                                <span className="text-[9px] font-bold text-zinc-900 uppercase tracking-widest">{note.username || 'System'}</span>
-                                                <span className="text-[9px] font-bold text-zinc-400 uppercase">{new Date(note.created_at).toLocaleString()}</span>
-                                            </div>
-                                            <p className="text-xs font-semibold text-zinc-600 leading-relaxed">{note.note}</p>
-                                        </div>
-                                    ))}
-                                    <div className="flex gap-2 pt-2">
-                                        <input 
-                                            value={noteText} 
-                                            onChange={e => setNoteText(e.target.value)} 
-                                            placeholder="Add operational note..." 
-                                            className="flex-1 px-4 py-2.5 bg-zinc-50 border border-zinc-200 rounded-lg text-xs font-semibold focus:ring-2 focus:ring-brand/5 outline-none" 
-                                        />
-                                        <button onClick={handleAddNote} disabled={!noteText.trim() || isSubmittingNote} className="px-5 py-2.5 bg-brand text-white rounded-lg text-[10px] font-bold uppercase tracking-widest hover:bg-black transition-all disabled:opacity-30">Add</button>
-                                    </div>
-                                </div>
-                            </div>
-                            {/* Logistics Sync */}
-                            {selectedOrder.status !== 'draft' && (
-                                <div className="space-y-3">
-                                    {!selectedOrder.courier_consignment_id ? (
-                                        !isModerator && (
-                                            <div className="grid grid-cols-2 gap-3">
-                                                <button 
-                                                    onClick={() => handleSendToSteadfast()} 
-                                                    disabled={isDispatching || !selectedOrder.items} 
-                                                    className="py-3 bg-green-700/70 text-white rounded-xl text-[10px] font-bold uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-black transition-all disabled:opacity-30"
-                                                    title="Sync with Steadfast"
-                                                >
-                                                    <Truck size={14} /> Steadfast Sync
-                                                </button>
-                                                <button 
-                                                    onClick={() => handleSendToCarrybee()} 
-                                                    disabled={isDispatching || !selectedOrder.items} 
-                                                    className="py-3 bg-yellow-400/80 text-white rounded-xl text-[10px] font-bold uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-black transition-all disabled:opacity-30"
-                                                    title="Sync with Carrybee"
-                                                >
-                                                    <Truck size={14} /> Carrybee Sync
-                                                </button>
-                                            </div>
-                                        )
-                                    ) : (
-                                        <div className="grid grid-cols-2 gap-3">
-                                            <div className="py-3 bg-zinc-100 border border-zinc-200 text-zinc-700 rounded-xl text-[10px] font-bold uppercase tracking-widest flex items-center justify-center gap-2">
-                                                <Truck size={14} /> {selectedOrder.courier_name === 'carrybee' ? 'Carrybee' : 'Steadfast'}
-                                            </div>
-                                            {selectedOrder.courier_tracking_code ? (
-                                                <a 
-                                                    href={selectedOrder.courier_name === 'carrybee' ? `https://merchant.carrybee.com/order-track/${selectedOrder.courier_consignment_id}` : `https://steadfast.com.bd/tl/${selectedOrder.courier_tracking_code}`} 
-                                                    target="_blank" 
-                                                    rel="noopener noreferrer"
-                                                    className="py-3 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-xl text-[10px] font-bold uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-emerald-100 transition-all"
-                                                >
-                                                    <Truck size={14} /> Track Order
-                                                </a>
-                                            ) : (
-                                                <div className="py-3 bg-zinc-50 border border-zinc-200 text-zinc-400 rounded-xl text-[10px] font-bold uppercase tracking-widest flex items-center justify-center gap-2 cursor-not-allowed">
-                                                    <Truck size={14} /> No Tracking
-                                                </div>
-                                            )}
-                                        </div>
-                                    )}
-                                </div>
-                            )}
-
-                            {selectedOrder.courier_consignment_id && (
-                                <div className="space-y-3">
-                                    <div className="bg-zinc-50 p-5 rounded-2xl border border-zinc-100 flex justify-between items-center animate-in fade-in slide-in-from-top-2 duration-300">
-                                        <div>
-                                            <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest">Consignment ID</p>
-                                            <p className="text-xs font-bold text-zinc-900 font-mono mt-1">{selectedOrder.courier_consignment_id}</p>
-                                        </div>
-                                        <div className="text-right">
-                                            <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest">Tracking Code</p>
-                                            <p className="text-xs font-bold text-zinc-900 font-mono mt-1">{selectedOrder.courier_tracking_code}</p>
-                                        </div>
-                                    </div>
-                                    
-                                    {/* Live Status Overlay */}
-                                    <div className="bg-emerald-50/50 p-4 rounded-xl border border-emerald-100/50 flex items-center justify-between">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600">
-                                                {isFetchingTracking ? <RefreshCw size={14} className="animate-spin" /> : <Globe size={14} />}
-                                            </div>
-                                            <div>
-                                                <p className="text-[9px] font-bold text-emerald-600 uppercase tracking-widest">Courier Status (Live)</p>
-                                                <p className="text-[11px] font-bold text-emerald-900 uppercase mt-0.5 tracking-tight">
-                                                    {isFetchingTracking ? 'Syncing...' : (trackingStatus?.delivery_status || trackingStatus?.error || 'Awaiting status update')}
-                                                </p>
-                                            </div>
-                                        </div>
-                                        {trackingStatus && !isFetchingTracking && (
-                                            <button onClick={() => fetchTrackingStatus(selectedOrder.id)} className="p-2 hover:bg-emerald-100 rounded-lg text-emerald-600 transition-all">
-                                                <RefreshCw size={12} />
-                                            </button>
-                                        )}
-                                    </div>
-                                </div>
-                            )}
-
                             {/* Product List */}
                             <div className="space-y-4">
                                 <div className="flex justify-between items-center">
@@ -1366,9 +1258,117 @@ const OrderManager = () => {
                                 </div>
                             </div>
 
-                                                        {/* Customer Activities & Session Details */}
+                            {/* Logistics Sync */}
+                            {selectedOrder.status !== 'draft' && (
+                                <div className="space-y-3">
+                                    {!selectedOrder.courier_consignment_id ? (
+                                        !isModerator && (
+                                            <div className="grid grid-cols-2 gap-3">
+                                                <button 
+                                                    onClick={() => handleSendToSteadfast()} 
+                                                    disabled={isDispatching || !selectedOrder.items} 
+                                                    className="py-3 bg-green-700/70 text-white rounded-xl text-[10px] font-bold uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-black transition-all disabled:opacity-30"
+                                                    title="Sync with Steadfast"
+                                                >
+                                                    <Truck size={14} /> Steadfast Sync
+                                                </button>
+                                                <button 
+                                                    onClick={() => handleSendToCarrybee()} 
+                                                    disabled={isDispatching || !selectedOrder.items} 
+                                                    className="py-3 bg-yellow-400/80 text-white rounded-xl text-[10px] font-bold uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-black transition-all disabled:opacity-30"
+                                                    title="Sync with Carrybee"
+                                                >
+                                                    <Truck size={14} /> Carrybee Sync
+                                                </button>
+                                            </div>
+                                        )
+                                    ) : (
+                                        <div className="grid grid-cols-2 gap-3">
+                                            <div className="py-3 bg-zinc-100 border border-zinc-200 text-zinc-700 rounded-xl text-[10px] font-bold uppercase tracking-widest flex items-center justify-center gap-2">
+                                                <Truck size={14} /> {selectedOrder.courier_name === 'carrybee' ? 'Carrybee' : 'Steadfast'}
+                                            </div>
+                                            {selectedOrder.courier_tracking_code ? (
+                                                <a 
+                                                    href={selectedOrder.courier_name === 'carrybee' ? `https://merchant.carrybee.com/order-track/${selectedOrder.courier_consignment_id}` : `https://steadfast.com.bd/tl/${selectedOrder.courier_tracking_code}`} 
+                                                    target="_blank" 
+                                                    rel="noopener noreferrer"
+                                                    className="py-3 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-xl text-[10px] font-bold uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-emerald-100 transition-all"
+                                                >
+                                                    <Truck size={14} /> Track Order
+                                                </a>
+                                            ) : (
+                                                <div className="py-3 bg-zinc-50 border border-zinc-200 text-zinc-400 rounded-xl text-[10px] font-bold uppercase tracking-widest flex items-center justify-center gap-2 cursor-not-allowed">
+                                                    <Truck size={14} /> No Tracking
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
+                            {selectedOrder.courier_consignment_id && (
+                                <div className="space-y-3">
+                                    <div className="bg-zinc-50 p-5 rounded-2xl border border-zinc-100 flex justify-between items-center animate-in fade-in slide-in-from-top-2 duration-300">
+                                        <div>
+                                            <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest">Consignment ID</p>
+                                            <p className="text-xs font-bold text-zinc-900 font-mono mt-1">{selectedOrder.courier_consignment_id}</p>
+                                        </div>
+                                        <div className="text-right">
+                                            <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest">Tracking Code</p>
+                                            <p className="text-xs font-bold text-zinc-900 font-mono mt-1">{selectedOrder.courier_tracking_code}</p>
+                                        </div>
+                                    </div>
+                                    
+                                    {/* Live Status Overlay */}
+                                    <div className="bg-emerald-50/50 p-4 rounded-xl border border-emerald-100/50 flex items-center justify-between">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600">
+                                                {isFetchingTracking ? <RefreshCw size={14} className="animate-spin" /> : <Globe size={14} />}
+                                            </div>
+                                            <div>
+                                                <p className="text-[9px] font-bold text-emerald-600 uppercase tracking-widest">Courier Status (Live)</p>
+                                                <p className="text-[11px] font-bold text-emerald-900 uppercase mt-0.5 tracking-tight">
+                                                    {isFetchingTracking ? 'Syncing...' : (trackingStatus?.delivery_status || trackingStatus?.error || 'Awaiting status update')}
+                                                </p>
+                                            </div>
+                                        </div>
+                                        {trackingStatus && !isFetchingTracking && (
+                                            <button onClick={() => fetchTrackingStatus(selectedOrder.id)} className="p-2 hover:bg-emerald-100 rounded-lg text-emerald-600 transition-all">
+                                                <RefreshCw size={12} />
+                                            </button>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Timeline Notes */}
+                            <div className="space-y-4 pb-10">
+                                <h4 className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Order Logs</h4>
+                                <div className="space-y-2">
+                                    {selectedOrder.notes?.map((note) => (
+                                        <div key={note.id} className="p-4 bg-zinc-50 rounded-xl border border-zinc-100 flex flex-col">
+                                            <div className="flex justify-between items-center mb-1">
+                                                <span className="text-[9px] font-bold text-zinc-900 uppercase tracking-widest">{note.username || 'System'}</span>
+                                                <span className="text-[9px] font-bold text-zinc-400 uppercase">{new Date(note.created_at).toLocaleString()}</span>
+                                            </div>
+                                            <p className="text-xs font-semibold text-zinc-600 leading-relaxed">{note.note}</p>
+                                        </div>
+                                    ))}
+                                    <div className="flex gap-2 pt-2">
+                                        <input 
+                                            value={noteText} 
+                                            onChange={e => setNoteText(e.target.value)} 
+                                            placeholder="Add operational note..." 
+                                            className="flex-1 px-4 py-2.5 bg-zinc-50 border border-zinc-200 rounded-lg text-xs font-semibold focus:ring-2 focus:ring-brand/5 outline-none" 
+                                        />
+                                        <button onClick={handleAddNote} disabled={!noteText.trim() || isSubmittingNote} className="px-5 py-2.5 bg-brand text-white rounded-lg text-[10px] font-bold uppercase tracking-widest hover:bg-black transition-all disabled:opacity-30">Add</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Customer Activities & Session Details */}
                             <div className="space-y-4">
-                                <h4 className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Metadata & Activities</h4>
+                                <h4 className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Customer Activities</h4>
                                 <div className="p-6 bg-zinc-50 rounded-2xl border border-zinc-100 space-y-4">
                                     {/* Confirmed by staff info
                                     {(() => {

@@ -246,7 +246,11 @@ class ProductImage(models.Model):
     product = models.ForeignKey(Product, related_name='images', on_delete=models.CASCADE)
     color = models.ForeignKey(Color, on_delete=models.SET_NULL, null=True, blank=True, related_name='product_images')
     image = models.ImageField(upload_to='products/gallery/')
+    order = models.PositiveIntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['order', 'id']
 
     def save(self, *args, **kwargs):
         if self.image and not self.image.name.endswith('.webp'):

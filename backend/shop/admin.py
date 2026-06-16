@@ -1,6 +1,7 @@
 from django.contrib import admin
 from unfold.admin import ModelAdmin, TabularInline, StackedInline
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
+from unfold.forms import AdminPasswordChangeForm, UserChangeForm, UserCreationForm
 from .models import (
     Category, Brand, Tag, Color, Size, Wishlist, PaymentMethod, ShippingZone,
     Product, ProductImage, ProductFunnelSection, Order, OrderItem, OrderNote, Banner, District,
@@ -85,6 +86,9 @@ class SiteSettingsAdmin(ModelAdmin):
         return not SiteSettings.objects.exists()
 
 class CustomUserAdmin(BaseUserAdmin, ModelAdmin):
+    form = UserChangeForm
+    add_form = UserCreationForm
+    change_password_form = AdminPasswordChangeForm
     inlines = (ProfileInline, )
     list_display = ('username', 'email', 'first_name', 'last_name', 'is_staff', 'get_role')
     list_select_related = ('profile', )

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import api, { getMediaUrl } from '../../utils/api';
 import { Edit, Trash2, Plus, Search, Eye, MoreHorizontal, Image as ImageIcon, Download, Upload, X, Zap, Target, Activity, Shield, Package, AlertTriangle, Layers, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
@@ -7,6 +7,7 @@ import ProductForm from './ProductForm';
 
 const ProductManager = ({ resetKey }) => {
     const location = useLocation();
+    const navigate = useNavigate();
     const { token } = useAuth();
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -16,15 +17,38 @@ const ProductManager = ({ resetKey }) => {
     const [page, setPage] = useState(1);
     const [selectedIds, setSelectedIds] = useState([]);
 
-    // Reset view to list when navigating back to the base products URL or via sidebar click
+    // URL slug-aware effect: automatically opens edit/create view if URL contains =slug
     useEffect(() => {
-        // Match /staff/admin/products or /staff/moderator/products (with or without trailing slash)
-        const isProductsBase = /^\/staff\/(admin|moderator)\/products\/?$/.test(location.pathname);
-        if (isProductsBase) {
+        const path = location.pathname;
+        const match = path.match(/\/products=(.+)$/);
+        if (match) {
+            const slug = match[1];
+            if (slug === 'new') {
+                setView('create');
+                setSelectedProduct(null);
+            } else {
+                if (selectedProduct && selectedProduct.slug === slug) {
+                    setView('edit');
+                    return;
+                }
+                const loadProduct = async () => {
+                    try {
+                        const res = await api.get(`products/${slug}/`);
+                        setSelectedProduct(res.data);
+                        setView('edit');
+                    } catch (err) {
+                        console.error("Failed to load product for editing", err);
+                        setView('list');
+                        navigate('/staff/admin/products');
+                    }
+                };
+                loadProduct();
+            }
+        } else {
             setView('list');
             setSelectedProduct(null);
         }
-    }, [resetKey, location.pathname]);
+    }, [location.pathname, resetKey]);
 
     // Fetch Products
     const fetchProducts = async () => {
@@ -62,16 +86,24 @@ const ProductManager = ({ resetKey }) => {
     const handleEdit = (product) => {
         setSelectedProduct(product);
         setView('edit');
+        navigate(`/staff/admin/products=${product.slug}`);
     };
 
     const handleCreate = () => {
         setSelectedProduct(null);
         setView('create');
+        navigate(`/staff/admin/products=new`);
     };
 
     const handleSave = () => {
         setView('list');
+        navigate(`/staff/admin/products`);
         fetchProducts();
+    };
+
+    const handleCancel = () => {
+        setView('list');
+        navigate(`/staff/admin/products`);
     };
 
     const handleSelectAll = (e) => {
@@ -159,7 +191,7 @@ const ProductManager = ({ resetKey }) => {
     };
 
     if (view === 'create' || view === 'edit') {
-        return <ProductForm product={selectedProduct} onSave={handleSave} onCancel={() => setView('list')} />;
+        return <ProductForm product={selectedProduct} onSave={handleSave} onCancel={handleCancel} />;
     }
 
     return (

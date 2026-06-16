@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import api, { BASE_URL } from '../../utils/api';
 import { useAuth } from '../../context/AuthContext';
-import { useNavigate, useLocation, Routes, Route, Navigate } from 'react-router-dom';
+import { useNavigate, useLocation, Navigate } from 'react-router-dom';
 import {
     LayoutDashboard, ShoppingBag, Users, DollarSign, Package, Shield, UserCheck,
     Image, FileText, Tag, Map, Zap, Bell, CreditCard, Truck, Settings, PenTool,
@@ -50,7 +50,8 @@ const StaffDashboard = ({ role }) => {
         // pathParts[1] = "staff"
         // pathParts[2] = role (admin/moderator)
         // pathParts[3] = tab
-        return pathParts[3] || 'dashboard';
+        const rawTab = pathParts[3] || 'dashboard';
+        return rawTab.split('=')[0];
     };
 
     const activeTab = getActiveTab();
@@ -204,6 +205,80 @@ const StaffDashboard = ({ role }) => {
             </div>
         </div>
     );
+
+    const renderTabContent = () => {
+        if (role === 'admin') {
+            switch (activeTab) {
+                case 'dashboard':
+                    return (
+                        <DashboardStats
+                            stats={stats}
+                            role={role}
+                            user={user}
+                            navigate={navigate}
+                            handleNavigate={handleNavigate}
+                            dateRange={dateRange}
+                            setDateRange={setDateRange}
+                            customStart={customStart}
+                            setCustomStart={setCustomStart}
+                            customEnd={customEnd}
+                            setCustomEnd={setCustomEnd}
+                            activeTab={activeTab}
+                        />
+                    );
+                case 'users':
+                    return <UserManager />;
+                case 'media_manager':
+                    return <MediaManager />;
+                case 'products':
+                    return <ProductManager resetKey={navKey} />;
+                case 'orders':
+                    return <OrderManager />;
+                case 'banners':
+                    return <BannerManager />;
+                case 'flash_sales':
+                    return <FlashSaleManager />;
+                case 'funnels':
+                    return <FunnelManager />;
+                case 'meta_campaigns':
+                    return <MetaManager />;
+                case 'blog_posts':
+                    return <BlogPostManager />;
+                case 'blog_categories':
+                    return <BlogCategoryManager />;
+                case 'brands':
+                    return <BrandManager />;
+                case 'categories':
+                    return <CategoryManager />;
+                case 'reviews':
+                    return <ReviewManager />;
+                case 'notices':
+                    return <NoticeManager />;
+                case 'settings':
+                    return <ConfigManager />;
+                case 'security':
+                    return <SecurityManager />;
+                case 'seo_manager':
+                    return <SeoManager />;
+                default:
+                    return <Navigate to={`/staff/${role}`} replace />;
+            }
+        } else if (role === 'ads_manager') {
+            switch (activeTab) {
+                case 'meta_campaigns':
+                    return <MetaManager />;
+                default:
+                    return <Navigate to={`/staff/${role}/meta_campaigns`} replace />;
+            }
+        } else {
+            switch (activeTab) {
+                case 'orders':
+                    return <OrderManager />;
+                default:
+                    return <Navigate to={`/staff/${role}/orders`} replace />;
+            }
+        }
+    };
 
     return (
         <div className="flex h-screen bg-[#FBFBFB] font-sans overflow-hidden">
@@ -387,56 +462,7 @@ const StaffDashboard = ({ role }) => {
                 </header>
 
                 <div className="flex-1 p-4 md:p-8 lg:p-12 max-w-[1600px] mx-auto w-full">
-                    <Routes>
-                        {role === 'admin' ? (
-                            <>
-                                <Route path="/" element={<DashboardStats
-                                    stats={stats}
-                                    role={role}
-                                    user={user}
-                                    navigate={navigate}
-                                    handleNavigate={handleNavigate}
-                                    dateRange={dateRange}
-                                    setDateRange={setDateRange}
-                                    customStart={customStart}
-                                    setCustomStart={setCustomStart}
-                                    customEnd={customEnd}
-                                    setCustomEnd={setCustomEnd}
-                                    activeTab={activeTab}
-                                />} />
-                                <Route path="users" element={<UserManager />} />
-                                <Route path="media_manager" element={<MediaManager />} />
-                                <Route path="products/*" element={<ProductManager resetKey={navKey} />} />
-                                <Route path="orders" element={<OrderManager />} />
-                                <Route path="banners" element={<BannerManager />} />
-                                <Route path="flash_sales" element={<FlashSaleManager />} />
-                                <Route path="funnels" element={<FunnelManager />} />
-                                <Route path="meta_campaigns" element={<MetaManager />} />
-                                <Route path="blog_posts" element={<BlogPostManager />} />
-                                <Route path="blog_categories" element={<BlogCategoryManager />} />
-                                <Route path="brands" element={<BrandManager />} />
-                                <Route path="categories" element={<CategoryManager />} />
-                                <Route path="reviews" element={<ReviewManager />} />
-                                <Route path="notices" element={<NoticeManager />} />
-                                <Route path="settings" element={<ConfigManager />} />
-                                <Route path="security" element={<SecurityManager />} />
-                                <Route path="seo_manager" element={<SeoManager />} />
-                                <Route path="*" element={<Navigate to={`/staff/${role}`} replace />} />
-                            </>
-                        ) : role === 'ads_manager' ? (
-                            <>
-                                <Route path="/" element={<Navigate to={`/staff/${role}/meta_campaigns`} replace />} />
-                                <Route path="meta_campaigns" element={<MetaManager />} />
-                                <Route path="*" element={<Navigate to={`/staff/${role}/meta_campaigns`} replace />} />
-                            </>
-                        ) : (
-                            <>
-                                <Route path="/" element={<Navigate to={`/staff/${role}/orders`} replace />} />
-                                <Route path="orders" element={<OrderManager />} />
-                                <Route path="*" element={<Navigate to={`/staff/${role}/orders`} replace />} />
-                            </>
-                        )}
-                    </Routes>
+                    {renderTabContent()}
                 </div>
             </main>
         </div>

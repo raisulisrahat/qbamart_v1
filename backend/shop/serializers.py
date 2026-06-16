@@ -110,7 +110,7 @@ class ProductImageSerializer(serializers.ModelSerializer):
     image = HybridImageField(required=False, allow_null=True)
     class Meta:
         model = ProductImage
-        fields = ['id', 'product', 'color', 'color_details', 'image', 'created_at']
+        fields = ['id', 'product', 'color', 'color_details', 'image', 'order', 'created_at']
 
 class ProductVideoSerializer(serializers.ModelSerializer):
     video = HybridFileField(required=False, allow_null=True)

@@ -100,7 +100,6 @@ const ProductForm = ({ product, onSave, onCancel }) => {
     const [activeModalTab, setActiveModalTab] = useState<'upload' | 'library'>('upload');
     const [uploadingImage, setUploadingImage] = useState(false);
     const [galleryTarget, setGalleryTarget] = useState<'thumbnail' | 'gallery_image' | 'gallery_video' | null>(null);
-    const [galleryImagesFromLibrary, setGalleryImagesFromLibrary] = useState<{ url: string; color: any }[]>([]);
     const [galleryVideosFromLibrary, setGalleryVideosFromLibrary] = useState<string[]>([]);
 
     const handleGallerySelect = (url: string) => {
@@ -110,7 +109,7 @@ const ProductForm = ({ product, onSave, onCancel }) => {
             setMediaModalOpen(false);
             setGalleryTarget(null);
         } else if (galleryTarget === 'gallery_image') {
-            setGalleryImagesFromLibrary(prev => [...prev, { url, color: null }]);
+            setGalleryItems(prev => [...prev, { url, color: null, type: 'library' }]);
             // Don't close modal — allow further single selections
         } else if (galleryTarget === 'gallery_video') {
             setGalleryVideosFromLibrary(prev => [...prev, url]);
@@ -122,7 +121,7 @@ const ProductForm = ({ product, onSave, onCancel }) => {
             setThumbnail(urls[0]);
             setThumbnailPreview(urls[0]);
         } else if (galleryTarget === 'gallery_image') {
-            setGalleryImagesFromLibrary(prev => [...prev, ...urls.map(url => ({ url, color: null }))]);
+            setGalleryItems(prev => [...prev, ...urls.map(url => ({ url, color: null, type: 'library' as const }))]);
         } else if (galleryTarget === 'gallery_video') {
             setGalleryVideosFromLibrary(prev => [...prev, ...urls]);
         }
@@ -236,11 +235,14 @@ const ProductForm = ({ product, onSave, onCancel }) => {
 
     const [thumbnailPreview, setThumbnailPreview] = useState(null);
 
-    const [galleryImages, setGalleryImages] = useState([]); // List of new files
-
-    const [galleryPreviews, setGalleryPreviews] = useState([]);
-
-    const [existingGalleryImages, setExistingGalleryImages] = useState([]); // List of {id, image} from backend
+    const [galleryItems, setGalleryItems] = useState<{
+        id?: number;
+        image?: string;
+        file?: File;
+        url?: string;
+        color?: number | null;
+        type: 'existing' | 'new' | 'library';
+    }[]>([]);
 
     const [galleryVideos, setGalleryVideos] = useState([]); // List of new video files
 
@@ -338,7 +340,7 @@ const ProductForm = ({ product, onSave, onCancel }) => {
         setSelectedFlashSale('');
         setFunnelSections([]);
         setThumbnailPreview(null);
-        setExistingGalleryImages([]);
+        setGalleryItems([]);
         setExistingGalleryVideos([]);
         setSpecsList([]);
 
@@ -388,13 +390,15 @@ const ProductForm = ({ product, onSave, onCancel }) => {
 
             setThumbnailPreview(getMediaUrl(product.image));
 
-            setExistingGalleryImages(product.images?.map(img => ({
-
-                ...img,
-
-                image: getMediaUrl(img.image)
-
-            })) || []);
+            if (product.images) {
+                const sortedImages = [...product.images].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+                setGalleryItems(sortedImages.map(img => ({
+                    id: img.id,
+                    image: getMediaUrl(img.image),
+                    color: img.color,
+                    type: 'existing' as const
+                })));
+            }
 
             setExistingGalleryVideos(product.videos?.map(vid => ({
 
@@ -743,222 +747,78 @@ const ProductForm = ({ product, onSave, onCancel }) => {
 
 
     const handleGalleryChange = (e) => {
-
-        const files = Array.from(e.target.files);
-
+        const files = Array.from(e.target.files || []) as File[];
         if (files.length > 0) {
-
-            const newFilesWithColor = files.map(f => ({ file: f, color: null }));
-
-            setGalleryImages(prev => [...prev, ...newFilesWithColor]);
-
-            const newPreviews = files.map((file: any) => ({
-
+            const newItems = files.map(file => ({
+                file,
                 url: URL.createObjectURL(file as Blob),
-
-                file: file,
-
-                color: null
-
+                color: null,
+                type: 'new' as const
             }));
-
-            setGalleryPreviews(prev => [...prev, ...newPreviews]);
-
+            setGalleryItems(prev => [...prev, ...newItems]);
         }
-
     };
 
-
-
-    const removeGalleryImage = (index) => {
-
-        setGalleryImages(prev => prev.filter((_, i) => i !== index));
-
-        setGalleryPreviews(prev => prev.filter((_, i) => i !== index));
-
-    };
-
-
-
-    const handleVideoChange = (e) => {
-
-        const files = Array.from(e.target.files);
-
-        if (files.length > 0) {
-
-            setGalleryVideos(prev => [...prev, ...files]);
-
-            const newPreviews = files.map((file: any) => ({
-
-                url: URL.createObjectURL(file as Blob),
-
-                file: file
-
-            }));
-
-            setGalleryVideoPreviews(prev => [...prev, ...newPreviews]);
-
-        }
-
-    };
-
-
-
-    const removeGalleryVideo = (index) => {
-
-        setGalleryVideos(prev => prev.filter((_, i) => i !== index));
-
-        setGalleryVideoPreviews(prev => prev.filter((_, i) => i !== index));
-
-    };
-
-
-
-    const handleRemoveExistingVideo = async (videoId, index) => {
-
-        if (!confirm("Are you sure you want to delete this video?")) return;
-
-        try {
-
-            await api.delete(`product-videos/${videoId}/`);
-
-            setExistingGalleryVideos(prev => prev.filter((_, i) => i !== index));
-
-        } catch (error) {
-
-            console.error("Failed to delete video", error);
-
-            alert("Failed to delete video");
-
-        }
-
-    };
-
-
-
-    const updateNewGalleryImageColor = (index, colorId) => {
-
-        setGalleryImages(prev => prev.map((item, i) => i === index ? { ...item, color: colorId } : item));
-
-        setGalleryPreviews(prev => prev.map((item, i) => i === index ? { ...item, color: colorId } : item));
-
-        
-
-        if (colorId) {
-
-            setFormData(prev => {
-
-                const idNum = parseInt(colorId);
-
-                if (!prev.colors.includes(idNum)) {
-
-                    return { ...prev, colors: [...prev.colors, idNum] };
-
-                }
-
-                return prev;
-
-            });
-
-        }
-
-    };
-
-
-
-    const handleRemoveExistingGalleryImage = async (imageId, index) => {
-
-        if (!confirm("Are you sure you want to delete this image?")) return;
-
-        try {
-
-            await api.delete(`product-images/${imageId}/`);
-
-            setExistingGalleryImages(prev => prev.filter((_, i) => i !== index));
-
-        } catch (error) {
-
-            console.error("Failed to delete image", error);
-
-            alert("Failed to delete image");
-
-        }
-
-    };
-
-
-
-    const handleExistingGalleryImageColorChange = async (imageId, index, newColor) => {
-
-        try {
-
-            await api.patch(`product-images/${imageId}/`, { color: newColor || null });
-
-            setExistingGalleryImages(prev => prev.map((img, i) => i === index ? { ...img, color: newColor || null } : img));
-
-            
-
-            if (newColor) {
-
-                setFormData(prev => {
-
-                    const idNum = parseInt(newColor);
-
-                    if (!prev.colors.includes(idNum)) {
-
-                        return { ...prev, colors: [...prev.colors, idNum] };
-
-                    }
-
-                    return prev;
-
-                });
-
+    const handleRemoveGalleryItem = async (item, index) => {
+        if (item.type === 'existing') {
+            if (!confirm("Are you sure you want to delete this image?")) return;
+            try {
+                await api.delete(`product-images/${item.id}/`);
+                setGalleryItems(prev => prev.filter((_, i) => i !== index));
+            } catch (error) {
+                console.error("Failed to delete image", error);
+                alert("Failed to delete image");
             }
-
-        } catch (error) {
-
-            console.error("Failed to update image color", error);
-
-            alert("Failed to update image color");
-
+        } else {
+            setGalleryItems(prev => prev.filter((_, i) => i !== index));
         }
-
     };
-
-
 
     const associateColorWithImage = (colorId, imageSrc) => {
-
         if (!imageSrc) return;
 
-        
+        const idx = galleryItems.findIndex(img => 
+            (img.type === 'existing' ? img.image : img.url) === imageSrc
+        );
 
-        // Check if it's an existing gallery image
-
-        const existingIdx = existingGalleryImages.findIndex(img => (img.image || img) === imageSrc);
-
-        if (existingIdx !== -1) {
-
-            handleExistingGalleryImageColorChange(existingGalleryImages[existingIdx].id, existingIdx, colorId);
-
-        } else {
-
-            // Check if it's a new gallery preview
-
-            const newIdx = galleryPreviews.findIndex(img => img.url === imageSrc);
-
-            if (newIdx !== -1) {
-
-                updateNewGalleryImageColor(newIdx, colorId);
-
+        if (idx !== -1) {
+            const item = galleryItems[idx];
+            setGalleryItems(prev => prev.map((img, i) => i === idx ? { ...img, color: colorId ? parseInt(colorId) : null } : img));
+            if (item.type === 'existing') {
+                api.patch(`product-images/${item.id}/`, { color: colorId || null }).catch(err => {
+                    console.error("Failed to update color on backend", err);
+                });
             }
-
         }
-
     };
 
+    const handleVideoChange = (e) => {
+        const files = Array.from(e.target.files);
+        if (files.length > 0) {
+            setGalleryVideos(prev => [...prev, ...files]);
+            const newPreviews = files.map((file: any) => ({
+                url: URL.createObjectURL(file as Blob),
+                file: file
+            }));
+            setGalleryVideoPreviews(prev => [...prev, ...newPreviews]);
+        }
+    };
 
+    const removeGalleryVideo = (index) => {
+        setGalleryVideos(prev => prev.filter((_, i) => i !== index));
+        setGalleryVideoPreviews(prev => prev.filter((_, i) => i !== index));
+    };
+
+    const handleRemoveExistingVideo = async (videoId, index) => {
+        if (!confirm("Are you sure you want to delete this video?")) return;
+        try {
+            await api.delete(`product-videos/${videoId}/`);
+            setExistingGalleryVideos(prev => prev.filter((_, i) => i !== index));
+        } catch (error) {
+            console.error("Failed to delete video", error);
+            alert("Failed to delete video");
+        }
+    };
 
     const handleCreateColor = async () => {
 
@@ -1310,16 +1170,9 @@ const ProductForm = ({ product, onSave, onCancel }) => {
             }
         }
 
-        galleryImages.forEach(item => {
-
+        const newFiles = galleryItems.filter(item => item.type === 'new');
+        newFiles.forEach(item => {
             data.append('uploaded_images', item.file);
-
-            // Append color logic later if needed via separate API call or a complex JSON payload.
-
-            // Currently the backend accepts a list of uploaded_images but not their corresponding colors in the same field.
-
-            // We will upload them, get the resulting objects, and assign colors as a follow-up step.
-
         });
 
         galleryVideos.forEach(file => {
@@ -1460,67 +1313,50 @@ const ProductForm = ({ product, onSave, onCancel }) => {
 
 
 
-                // If we uploaded new gallery images with associated colors, we need to map them backward.
-
-                // Since our current backend logic in Serializer just iterates and creates ProductImages, 
-
-                // we'll update the colors for these newly uploaded images.
-
-                if (galleryImages.some(img => img.color)) {
-
-                    // Refetch product to get the newly created ProductImage IDs
-
-                    const updatedProductRes = await api.get(`products/${savedProduct.slug}/`);
-
-                    const finalProduct = updatedProductRes.data;
-
-                    const finalImages = finalProduct.images || [];
-
-
-
-                    // Basic heuristic: match the number of new files to the latest added images. 
-
-                    // This is rough; a robust solution requires changing the bulk upload endpoint.
-
-                    // For now, we'll iterate through `galleryImages` and find matching images by filename.
-
-                    for (const g_img of galleryImages) {
-
-                        if (g_img.color) {
-
-                            const matchedImg = finalImages.find(fi => fi.image.includes(g_img.file.name));
-
-                            if (matchedImg) {
-
-                                await api.patch(`product-images/${matchedImg.id}/`, { color: g_img.color });
-
-                            }
-
-                        }
-
-                    }
-
+                // Save gallery images from library
+                const libraryItems = galleryItems.filter(item => item.type === 'library');
+                for (const item of libraryItems) {
+                    await api.post('product-images/', {
+                        product: savedProduct.id,
+                        image: item.url,
+                        color: item.color || null
+                    }, config);
                 }
 
-            }
+                // Save gallery videos from library
+                for (const vidUrl of galleryVideosFromLibrary) {
+                    await api.post('product-videos/', {
+                        product: savedProduct.id,
+                        video: vidUrl
+                    }, config);
+                }
 
+                // Refetch product to get the newly created/added images
+                const updatedProductRes = await api.get(`products/${savedProduct.slug}/`);
+                const finalProduct = updatedProductRes.data;
+                const finalImages = finalProduct.images || [];
 
+                // Update order and color for ALL gallery items
+                for (let i = 0; i < galleryItems.length; i++) {
+                    const item = galleryItems[i];
+                    let matchedImg = null;
 
-            // Save gallery images from library
-            for (const img of galleryImagesFromLibrary) {
-                await api.post('product-images/', {
-                    product: savedProduct.id,
-                    image: img.url,
-                    color: img.color || null
-                }, config);
-            }
+                    if (item.type === 'existing') {
+                        matchedImg = finalImages.find(fi => fi.id === item.id);
+                    } else if (item.type === 'library') {
+                        const filename = item.url.split('/').pop();
+                        matchedImg = finalImages.find(fi => fi.image && fi.image.includes(filename));
+                    } else if (item.type === 'new') {
+                        matchedImg = finalImages.find(fi => fi.image && fi.image.includes(item.file.name));
+                    }
 
-            // Save gallery videos from library
-            for (const vidUrl of galleryVideosFromLibrary) {
-                await api.post('product-videos/', {
-                    product: savedProduct.id,
-                    video: vidUrl
-                }, config);
+                    if (matchedImg) {
+                        await api.patch(`product-images/${matchedImg.id}/`, {
+                            color: item.color || null,
+                            order: i
+                        });
+                    }
+                }
             }
 
             onSave();
@@ -2596,152 +2432,65 @@ const ProductForm = ({ product, onSave, onCancel }) => {
 
                         </div>
 
-                        {(galleryPreviews.length > 0 || existingGalleryImages.length > 0) && (
+                        {galleryItems.length > 0 && (
+                            <div className="space-y-3">
+                                <span className="text-xs font-bold text-zinc-400 uppercase tracking-widest block mb-2">
+                                    Drag and drop to reorder gallery images
+                                </span>
+                                <Reorder.Group axis="y" values={galleryItems} onReorder={setGalleryItems} className="space-y-2">
+                                    {galleryItems.map((item, index) => (
+                                        <Reorder.Item key={item.id || item.url || `temp-${index}`} value={item}>
+                                            <div className="group bg-white rounded-xl border border-zinc-200 shadow-sm hover:border-zinc-300 hover:shadow transition-all overflow-hidden p-2">
+                                                <div className="flex items-center gap-2 w-full">
+                                                    {/* Drag Handle */}
+                                                    <div className="cursor-grab active:cursor-grabbing p-1 text-zinc-400 hover:text-zinc-900 transition-colors shrink-0">
+                                                        <GripVertical size={16} />
+                                                    </div>
 
-                            <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
+                                                    {/* Media Preview */}
+                                                    <div className="w-12 h-12 rounded-lg border border-zinc-100 overflow-hidden shrink-0 bg-zinc-50 relative flex items-center justify-center">
+                                                        <img src={getMediaUrl(item.type === 'existing' ? item.image : item.url)} alt="" className="max-w-full max-h-full object-contain" />
+                                                        
+                                                        <div className={`absolute top-0 right-0 text-[7px] font-black uppercase tracking-wider px-1 py-0.5 rounded-bl text-white ${
+                                                            item.type === 'existing' ? 'bg-emerald-500' : item.type === 'library' ? 'bg-amber-500' : 'bg-blue-500'
+                                                        }`}>
+                                                            {item.type === 'existing' ? 'Saved' : item.type === 'library' ? 'Lib' : 'New'}
+                                                        </div>
+                                                    </div>
 
-                                {existingGalleryImages.map((img, i) => (
+                                                    {/* Content Area */}
+                                                    <div className="flex-grow min-w-0 flex flex-col gap-1">
+                                                        <span className="text-[9px] font-bold text-zinc-400 uppercase tracking-wider">Color Variant</span>
+                                                        <select
+                                                            value={item.color || ''}
+                                                            onChange={(e) => {
+                                                                const val = e.target.value;
+                                                                setGalleryItems(prev => prev.map((img, i) => i === index ? { ...img, color: val ? parseInt(val) : null } : img));
+                                                            }}
+                                                            className="w-full px-1.5 py-0.5 text-xs border border-zinc-200 rounded bg-zinc-50 font-semibold text-zinc-800 outline-none focus:ring-1 focus:ring-brand"
+                                                        >
+                                                            <option value="">No Color</option>
+                                                            {availableColors.map(c => (
+                                                                    <option key={c.id} value={c.id}>{c.name}</option>
+                                                            ))}
+                                                        </select>
+                                                    </div>
 
-                                    <div key={`existing-${img.id || i}`} className="relative group bg-zinc-50 border border-zinc-200 rounded-xl p-2 flex flex-col gap-2">
-
-                                        <div className="relative h-24 rounded-lg overflow-hidden flex-shrink-0 bg-white">
-
-                                            <img src={getMediaUrl(img.image || img)} alt="" className="h-full w-full object-contain" />
-
-                                            {img.id && (
-
-                                                <button
-
-                                                    type="button"
-
-                                                    onClick={() => handleRemoveExistingGalleryImage(img.id, i)}
-
-                                                    className="absolute top-1 right-1 bg-brand/90 hover:bg-brand text-white rounded-full p-1 opacity-100 transition-all shadow-sm z-10"
-
-                                                    title="Delete Image"
-
-                                                >
-
-                                                    <X size={14} />
-
-                                                </button>
-
-                                            )}
-
-                                        </div>
-
-                                        <select
-
-                                            value={img.color || ''}
-
-                                            onChange={(e) => handleExistingGalleryImageColorChange(img.id, i, e.target.value)}
-
-                                            className="w-full px-2 py-1 text-xs border border-zinc-200 rounded bg-white"
-
-                                        >
-
-                                            <option value="">No Color</option>
-
-                                            {availableColors.map(c => (
-
-                                                <option key={c.id} value={c.id}>{c.name}</option>
-
-                                            ))}
-
-                                        </select>
-
-                                    </div>
-
-                                ))}
-
-                                {galleryImagesFromLibrary.map((img, idx) => (
-                                    <div key={`lib-img-${idx}`} className="relative group bg-zinc-50 border border-zinc-200 rounded-xl p-2 flex flex-col gap-2">
-                                        <div className="relative h-24 rounded-lg overflow-hidden flex-shrink-0 bg-white">
-                                            <img src={img.url} alt="" className="h-full w-full object-contain" />
-                                            <button
-                                                type="button"
-                                                onClick={() => {
-                                                    setGalleryImagesFromLibrary(prev => prev.filter((_, i) => i !== idx));
-                                                }}
-                                                className="absolute top-1 right-1 bg-brand/90 hover:bg-brand text-white rounded-full p-1 opacity-100 transition-all shadow-sm z-10"
-                                            >
-                                                <X size={14} />
-                                            </button>
-                                            <div className="absolute inset-x-0 bottom-0 bg-brand text-white text-[9px] text-center p-0.5 opacity-90 uppercase tracking-widest font-black z-10">
-                                                Gallery
+                                                    {/* Action Button */}
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => handleRemoveGalleryItem(item, index)}
+                                                        className="p-1.5 text-zinc-400 hover:text-rose-600 hover:bg-rose-50 rounded transition-all shrink-0"
+                                                        title="Delete Image"
+                                                    >
+                                                        <Trash2 size={16} />
+                                                    </button>
+                                                </div>
                                             </div>
-                                        </div>
-                                        <select
-                                            value={img.color || ''}
-                                            onChange={(e) => {
-                                                const newColor = e.target.value;
-                                                setGalleryImagesFromLibrary(prev => prev.map((item, i) => i === idx ? { ...item, color: newColor || null } : item));
-                                            }}
-                                            className="w-full px-2 py-1 text-xs border border-zinc-200 rounded bg-white font-semibold"
-                                        >
-                                            <option value="">No Color</option>
-                                            {availableColors.map(c => (
-                                                <option key={c.id} value={c.id}>{c.name}</option>
-                                            ))}
-                                        </select>
-                                    </div>
-                                ))}
-                                {galleryPreviews.map((img, idx) => (
-
-                                    <div key={`new-${idx}`} className="relative group bg-zinc-50 border border-zinc-200 rounded-xl p-2 flex flex-col gap-2">
-
-                                        <div className="relative h-24 rounded-lg overflow-hidden flex-shrink-0 bg-white">
-
-                                            <img src={getMediaUrl(img.url)} alt="" className="h-full w-full object-contain" />
-
-                                            <button
-
-                                                type="button"
-
-                                                onClick={() => removeGalleryImage(idx)}
-
-                                                className="absolute top-1 right-1 bg-brand/90 hover:bg-brand text-white rounded-full p-1 opacity-100 transition-all shadow-sm z-10"
-
-                                            >
-
-                                                <X size={14} />
-
-                                            </button>
-
-                                            <div className="absolute inset-x-0 bottom-0 bg-blue-500 text-white text-[10px] text-center p-0.5 opacity-90">
-
-                                                New
-
-                                            </div>
-
-                                        </div>
-
-                                        <select
-
-                                            value={img.color || ''}
-
-                                            onChange={(e) => updateNewGalleryImageColor(idx, e.target.value)}
-
-                                            className="w-full px-2 py-1 text-xs border border-zinc-200 rounded bg-white"
-
-                                        >
-
-                                            <option value="">No Color</option>
-
-                                            {availableColors.map(c => (
-
-                                                <option key={c.id} value={c.id}>{c.name}</option>
-
-                                            ))}
-
-                                        </select>
-
-                                    </div>
-
-                                ))}
-
+                                        </Reorder.Item>
+                                    ))}
+                                </Reorder.Group>
                             </div>
-
                         )}
 
                     </div>
@@ -2802,7 +2551,7 @@ const ProductForm = ({ product, onSave, onCancel }) => {
 
                                         <div className="relative h-32 rounded-lg overflow-hidden flex-shrink-0 bg-black">
 
-                                            <video src={getMediaUrl(vid.video || vid)} className="h-full w-full object-contain" controls />
+                                            <video src={getMediaUrl(vid.video || vid)} className="h-full w-full object-contain pointer-events-none" />
 
                                             <button
 
@@ -2829,7 +2578,7 @@ const ProductForm = ({ product, onSave, onCancel }) => {
                                 {galleryVideosFromLibrary.map((vidUrl, idx) => (
                                     <div key={`lib-vid-${idx}`} className="relative group bg-zinc-50 border border-zinc-200 rounded-xl p-2">
                                         <div className="relative h-32 rounded-lg overflow-hidden flex-shrink-0 bg-black">
-                                            <video src={vidUrl} className="h-full w-full object-contain" controls />
+                                            <video src={vidUrl} className="h-full w-full object-contain pointer-events-none" />
                                             <button
                                                 type="button"
                                                 onClick={() => {
@@ -2851,7 +2600,7 @@ const ProductForm = ({ product, onSave, onCancel }) => {
 
                                         <div className="relative h-32 rounded-lg overflow-hidden flex-shrink-0 bg-black">
 
-                                            <video src={getMediaUrl(vid.url)} className="h-full w-full object-contain" controls />
+                                            <video src={getMediaUrl(vid.url)} className="h-full w-full object-contain pointer-events-none" />
 
                                             <button
 
@@ -3051,10 +2800,10 @@ const ProductForm = ({ product, onSave, onCancel }) => {
                                         // Default to main image, or first existing gallery, or first new gallery
 
                                         let defaultImg = thumbnailPreview;
-
-                                        if (!defaultImg && existingGalleryImages.length > 0) defaultImg = existingGalleryImages[0].image || existingGalleryImages[0];
-
-                                        if (!defaultImg && galleryPreviews.length > 0) defaultImg = galleryPreviews[0].url;
+                                         if (!defaultImg && galleryItems.length > 0) {
+                                             const firstItem = galleryItems[0];
+                                             defaultImg = firstItem.type === 'existing' ? getMediaUrl(firstItem.image) : firstItem.url;
+                                         }
 
 
 
@@ -3212,136 +2961,44 @@ const ProductForm = ({ product, onSave, onCancel }) => {
 
                                     <div className="space-y-5">
 
-                                        {(thumbnailPreview || galleryPreviews.length > 0 || existingGalleryImages.length > 0) && (
-
+                                        {(thumbnailPreview || galleryItems.length > 0) && (
                                             <div className="bg-zinc-50 border border-zinc-200 p-4 rounded-xl text-center">
-
                                                 <p className="text-xs font-medium text-zinc-500 mb-3 uppercase tracking-wider">Pick from Image</p>
 
-
-
                                                 {/* Image Selector */}
-
                                                 <div className="flex gap-2 overflow-x-auto pb-2 mb-2 justify-center px-2">
-
                                                     {thumbnailPreview && (
-
                                                         <img
-
                                                             src={thumbnailPreview}
-
                                                             onClick={() => setColorPickerImage(thumbnailPreview)}
-
                                                             className={`h-12 w-12 object-cover rounded cursor-pointer border-2 flex-shrink-0 ${colorPickerImage === thumbnailPreview ? 'border-blue-500' : 'border-transparent'}`}
-
                                                             title="Main Image"
-
                                                             alt="main"
-
                                                         />
-
                                                     )}
-
-                                                    {/* Existing Gallery Images */}
-
-                                                    {existingGalleryImages.map((img, i) => {
-
-                                                        const imgSrc = img.image || img;
-
+                                                    {/* Gallery Images */}
+                                                    {galleryItems.map((item, i) => {
+                                                        const imgSrc = getMediaUrl(item.type === 'existing' ? item.image : item.url);
                                                         return (
-
                                                             <img
-
-                                                                key={`existing-${img.id || i}`}
-
+                                                                key={`picker-gallery-${i}`}
                                                                 src={imgSrc}
-
                                                                 onClick={() => setColorPickerImage(imgSrc)}
-
                                                                 className={`h-12 w-12 object-cover rounded cursor-pointer border-2 flex-shrink-0 ${colorPickerImage === imgSrc ? 'border-blue-500' : 'border-transparent'}`}
-
-                                                                title={`Gallery Image`}
-
+                                                                title={item.type === 'existing' ? `Gallery Image` : `New Gallery Image`}
                                                                 alt="gallery"
-
                                                             />
-
                                                         );
-
                                                     })}
-
-                                                    {/* New Gallery Previews */}
-
-                                                    {galleryImagesFromLibrary.map((img, idx) => (
-                                    <div key={`lib-img-${idx}`} className="relative group bg-zinc-50 border border-zinc-200 rounded-xl p-2 flex flex-col gap-2">
-                                        <div className="relative h-24 rounded-lg overflow-hidden flex-shrink-0 bg-white">
-                                            <img src={img.url} alt="" className="h-full w-full object-contain" />
-                                            <button
-                                                type="button"
-                                                onClick={() => {
-                                                    setGalleryImagesFromLibrary(prev => prev.filter((_, i) => i !== idx));
-                                                }}
-                                                className="absolute top-1 right-1 bg-brand/90 hover:bg-brand text-white rounded-full p-1 opacity-100 transition-all shadow-sm z-10"
-                                            >
-                                                <X size={14} />
-                                            </button>
-                                            <div className="absolute inset-x-0 bottom-0 bg-brand text-white text-[9px] text-center p-0.5 opacity-90 uppercase tracking-widest font-black z-10">
-                                                Gallery
-                                            </div>
-                                        </div>
-                                        <select
-                                            value={img.color || ''}
-                                            onChange={(e) => {
-                                                const newColor = e.target.value;
-                                                setGalleryImagesFromLibrary(prev => prev.map((item, i) => i === idx ? { ...item, color: newColor || null } : item));
-                                            }}
-                                            className="w-full px-2 py-1 text-xs border border-zinc-200 rounded bg-white font-semibold"
-                                        >
-                                            <option value="">No Color</option>
-                                            {availableColors.map(c => (
-                                                <option key={c.id} value={c.id}>{c.name}</option>
-                                            ))}
-                                        </select>
-                                    </div>
-                                ))}
-                                {galleryPreviews.map((img, idx) => (
-
-                                                        <img
-
-                                                            key={`new-${idx}`}
-
-                                                            src={img.url}
-
-                                                            onClick={() => setColorPickerImage(img.url)}
-
-                                                            className={`h-12 w-12 object-cover rounded cursor-pointer border-2 flex-shrink-0 ${colorPickerImage === img.url ? 'border-blue-500' : 'border-transparent'}`}
-
-                                                            title={`New Gallery Image ${idx + 1}`}
-
-                                                            alt="new-gallery"
-
-                                                        />
-
-                                                    ))}
-
                                                 </div>
 
-
-
                                                 <div className="flex justify-center gap-4 items-center">
-
                                                     <img
-
                                                         id="preview-img-for-color"
-
-                                                        src={colorPickerImage || thumbnailPreview || (existingGalleryImages[0]?.image || existingGalleryImages[0]) || (galleryPreviews[0]?.url)}
-
+                                                        src={colorPickerImage || thumbnailPreview || (galleryItems[0]?.type === 'existing' ? getMediaUrl(galleryItems[0].image) : galleryItems[0]?.url)}
                                                         className="h-24 w-auto object-contain bg-white border"
-
                                                         crossOrigin="anonymous"
-
                                                         alt="preview"
-
                                                     />
 
                                                     <button

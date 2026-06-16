@@ -111,37 +111,7 @@ const NotFound = () => {
                   transform: "translateZ(30px)"
                 }}
               />
-              
-              {/* Right eye pupil (our left) */}
-              <motion.div 
-                className="absolute w-[0.8%] h-[1.8%] bg-[#1a173d] rounded-full"
-                style={{
-                  top: '34.0%',
-                  left: '41.8%',
-                  x: pupilX,
-                  y: pupilY,
-                  z: 30.1,
-                  translateX: '-50%',
-                  translateY: '-50%',
-                  filter: 'blur(0.2px)',
-                  boxShadow: '0 0 2px rgba(26,23,61,0.5)'
-                }}
-              />
-              {/* Left eye pupil (our right) */}
-              <motion.div 
-                className="absolute w-[0.8%] h-[1.8%] bg-[#1a173d] rounded-full"
-                style={{
-                  top: '34.0%',
-                  left: '43.2%',
-                  x: pupilX,
-                  y: pupilY,
-                  z: 30.1,
-                  translateX: '-50%',
-                  translateY: '-50%',
-                  filter: 'blur(0.2px)',
-                  boxShadow: '0 0 2px rgba(26,23,61,0.5)'
-                }}
-              />
+
             </div>
           </motion.div>
           {/* Shadow/Reflection */}
@@ -162,8 +132,8 @@ const NotFound = () => {
           </motion.div>
           
           <h1 className="text-5xl md:text-7xl font-black text-neutral-900 leading-[0.9] tracking-tighter">
-            Lost in <br />
-            <span className="bg-gradient-to-r from-brand to-[#8551FB] bg-clip-text text-transparent block mt-2">Hyperspace?</span>
+            Lost in Your<br />
+            <span className="bg-gradient-to-r from-brand to-[#8551FB] bg-clip-text text-transparent block mt-2">Parcels?</span>
           </h1>
           
           <p className="text-neutral-500 font-medium text-lg max-w-md mx-auto md:mx-0 leading-relaxed">
