@@ -101,7 +101,9 @@ const Checkout = () => {
 
         if (isDhakaCity) {
             // Inside Dhaka City Corporation - ৳50
-            const zone = shippingZones.find(z => z.name.toLowerCase().includes('dhaka city'));
+            // Must match 'inside dhaka city' specifically, NOT 'outside dhaka city'
+            const zone = shippingZones.find(z => z.name.toLowerCase().includes('inside dhaka city'))
+                      ?? shippingZones.find(z => z.name.toLowerCase().includes('inside'));
             if (zone) {
                 setShippingCost(parseFloat(zone.shipping_cost));
                 setShippingZoneId(zone.id);
@@ -110,11 +112,10 @@ const Checkout = () => {
                 setShippingZoneId(shippingZones[0]?.id || 1);
             }
         } else if (formData.district) {
-            // Outside Dhaka City: other districts, OR Dhaka district upazilas not in city list - ৳100
-            const zone = shippingZones.find(z =>
-              z.name.toLowerCase().includes('outside dhaka city') ||
-              (z.name.toLowerCase().includes('dhaka') && !z.name.toLowerCase().includes('inside dhaka city'))
-            );
+            // Outside Dhaka City: other districts, OR Dhaka district non-city upazilas - ৳100
+            // Must match 'outside dhaka city' specifically, NOT 'inside dhaka city'
+            const zone = shippingZones.find(z => z.name.toLowerCase().includes('outside dhaka city'))
+                      ?? shippingZones.find(z => z.name.toLowerCase().includes('outside'));
             if (zone) {
                 setShippingCost(parseFloat(zone.shipping_cost));
                 setShippingZoneId(zone.id);
@@ -124,10 +125,8 @@ const Checkout = () => {
             }
         } else {
             // No district selected — default to Outside/100 TK zone
-            const zone = shippingZones.find(z =>
-              z.name.toLowerCase().includes('outside') ||
-              (z.name.toLowerCase().includes('dhaka') && !z.name.toLowerCase().includes('inside') && !z.name.toLowerCase().includes('city'))
-            );
+            const zone = shippingZones.find(z => z.name.toLowerCase().includes('outside dhaka city'))
+                      ?? shippingZones.find(z => z.name.toLowerCase().includes('outside'));
             if (zone) {
                 setShippingCost(parseFloat(zone.shipping_cost));
                 setShippingZoneId(zone.id);
