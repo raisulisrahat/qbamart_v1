@@ -144,6 +144,9 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
+# Path to the built Vite frontend (index.html lives here)
+FRONTEND_DIST_DIR = BASE_DIR.parent / 'web' / 'dist'
+
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
