@@ -85,13 +85,17 @@ const Checkout = () => {
   useEffect(() => {
     if (settings?.enable_district_upazila !== false && shippingZones.length > 0) {
         const isDhakaDistrict = formData.district.toLowerCase().includes('dhaka');
-        const isDhakaCity = isDhakaDistrict && (
-          !formData.upazila ||
-          DHAKA_CITY_UPAZILAS.some(u => formData.upazila.toLowerCase().includes(u.toLowerCase()))
-        );
+
+        // Only apply Dhaka City rate if:
+        // 1. District is Dhaka AND
+        // 2. An upazila has been selected AND
+        // 3. That upazila is in the city corporation area list
+        const isDhakaCity = isDhakaDistrict &&
+          !!formData.upazila &&
+          DHAKA_CITY_UPAZILAS.some(u => formData.upazila.toLowerCase().includes(u.toLowerCase()));
 
         if (isDhakaCity) {
-            // Dhaka City - ৳50
+            // Inside Dhaka City Corporation - ৳50
             const zone = shippingZones.find(z => z.name.toLowerCase().includes('dhaka city'));
             if (zone) {
                 setShippingCost(parseFloat(zone.shipping_cost));
@@ -101,7 +105,7 @@ const Checkout = () => {
                 setShippingZoneId(shippingZones[0]?.id || 1);
             }
         } else if (formData.district) {
-            // Outside Dhaka City (other districts or Dhaka district sub-areas) - ৳100
+            // Outside Dhaka City: other districts, OR Dhaka district upazilas not in city list - ৳100
             const zone = shippingZones.find(z =>
               z.name.toLowerCase().includes('outside dhaka city') ||
               (z.name.toLowerCase().includes('dhaka') && !z.name.toLowerCase().includes('inside dhaka city'))
@@ -114,7 +118,7 @@ const Checkout = () => {
                 setShippingZoneId(shippingZones[1]?.id || 2);
             }
         } else {
-            // No district selected — default to Outside Dhaka zone
+            // No district selected — default to Outside/100 TK zone
             const zone = shippingZones.find(z =>
               z.name.toLowerCase().includes('outside') ||
               (z.name.toLowerCase().includes('dhaka') && !z.name.toLowerCase().includes('inside') && !z.name.toLowerCase().includes('city'))
@@ -687,9 +691,9 @@ const Checkout = () => {
                             <option value="">শিপিং এলাকা সিলেক্ট করুন</option>
                             {shippingZones.map(z => {
                                 const displayName = z.name.toLowerCase().includes('inside dhaka')
-                                    ? 'ঢাকা সিটির ভেতরে (Inside Dhaka)'
+                                    ? 'ঢাকা সিটির ভেতরে'
                                     : z.name.toLowerCase().includes('outside dhaka')
-                                        ? 'ঢাকা সিটির বাইরে (Outside Dhaka)'
+                                        ? 'ঢাকা সিটির বাইরে'
                                         : z.name;
                                 return (
                                     <option key={z.id} value={z.id}>{displayName} - ৳{parseFloat(z.shipping_cost).toLocaleString()}</option>
@@ -851,23 +855,6 @@ const Checkout = () => {
                     </>
                   )}
                 </button>
-              </div>
-
-              <div className="flex items-center justify-center space-x-4 pt-2">
-                 <div className="flex flex-col items-center space-y-0.5">
-                    <ShieldCheck className="w-4 h-4 text-neutral-300" />
-                    <span className="text-[8px] font-bold text-neutral-400 uppercase tracking-widest">SSL</span>
-                 </div>
-                 <div className="w-[1px] h-4 bg-neutral-100" />
-                 <div className="flex flex-col items-center space-y-0.5">
-                    <CreditCard className="w-4 h-4 text-neutral-300" />
-                    <span className="text-[8px] font-bold text-neutral-400 uppercase tracking-widest">Secure</span>
-                 </div>
-                 <div className="w-[1px] h-4 bg-neutral-100" />
-                 <div className="flex flex-col items-center space-y-0.5">
-                    <CheckCircle className="w-4 h-4 text-neutral-300" />
-                    <span className="text-[8px] font-bold text-neutral-400 uppercase tracking-widest">Original</span>
-                 </div>
               </div>
             </div>
             

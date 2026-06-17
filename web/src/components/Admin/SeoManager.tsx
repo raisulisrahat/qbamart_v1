@@ -73,6 +73,8 @@ const SeoEditor = ({
     onSave: (updated: SeoEntity) => void;
     onClose: () => void;
 }) => {
+    const { settings: siteSettings } = useSettings();
+    const siteDomain = (siteSettings as any)?.site_url || 'qbamart.com';
     const displayName = entity.name || entity.title || '';
     const [form, setForm] = useState({
         seo_title: entity.seo_title || '',
@@ -82,7 +84,10 @@ const SeoEditor = ({
     const [saving, setSaving] = useState(false);
     const [msg, setMsg] = useState<Message | null>(null);
 
-    const endpoint = entityType === 'product' ? `products/${entity.id}/` : `blog-posts/${entity.id}/`;
+    // ProductViewSet uses lookup_field='slug', BlogPostViewSet uses lookup_field='slug' too
+    const endpoint = entityType === 'product'
+        ? `products/${entity.slug}/`
+        : `blog-posts/${entity.slug}/`;
 
     const handleSave = async () => {
         setSaving(true);
@@ -120,7 +125,7 @@ const SeoEditor = ({
                         </p>
                         <h3 className="text-base font-bold text-zinc-900 leading-tight">{displayName}</h3>
                         {entity.slug && (
-                            <a href={entityType === 'product' ? `/products/${entity.slug}` : `/blog/${entity.slug}`}
+                            <a href={entityType === 'product' ? `/product/${entity.slug}` : `/blog/${entity.slug}`}
                                 target="_blank" rel="noopener noreferrer"
                                 className="flex items-center gap-1 text-[10px] text-zinc-400 hover:text-brand transition-colors mt-0.5">
                                 <ExternalLink size={10} />/{entity.slug}
@@ -138,7 +143,7 @@ const SeoEditor = ({
                     {form.seo_title || displayName}
                 </p>
                 <p className="text-[11px] text-green-700 font-medium">
-                    {`yourdomain.com/${entityType === 'product' ? 'products' : 'blog'}/${entity.slug || ''}`}
+                    {`qbamart.com/${entityType === 'product' ? 'product' : 'blog'}/${entity.slug || ''}`}
                 </p>
                 <p className="text-[11px] text-zinc-500 leading-relaxed line-clamp-2">
                     {form.seo_description || 'No meta description set. Search engines will use page content instead.'}
