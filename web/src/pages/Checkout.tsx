@@ -71,28 +71,33 @@ const Checkout = () => {
     }
   }, [shippingZones]);
 
-  // Dhaka City upazilas (inside city corporation area)
+  // Dhaka City upazilas (only used when district is "Dhaka" without "City" suffix)
   const DHAKA_CITY_UPAZILAS = [
     'Dhaka Sadar', 'Demra', 'Dhanmondi', 'Gulshan', 'Jatrabari',
     'Khilgaon', 'Khilkhet', 'Kotwali', 'Lalbagh', 'Mirpur',
     'Mohammadpur', 'Motijheel', 'Pallabi', 'Ramna', 'Rayer Bazar',
     'Sabujbagh', 'Shah Ali', 'Sher-e-Bangla Nagar', 'Sutrapur',
     'Tejgaon', 'Turag', 'Uttara', 'Badda', 'Cantonment',
-    'Dakshinkhan', 'Uttarkhan', 'Vatara'
+    'Dakshinkhan', 'Uttarkhan', 'Vatara', 'Darus Salam',
+    'Adabor', 'Bangshal', 'Chawk Bazar', 'Gandaria', 'Hazaribag',
+    'Kafrul', 'Kalabagan', 'Kamrangirchar', 'Mugda', 'Nawabganj',
+    'Wari',
   ];
 
   // Update shipping cost and zone when district/upazila changes
   useEffect(() => {
     if (settings?.enable_district_upazila !== false && shippingZones.length > 0) {
-        const isDhakaDistrict = formData.district.toLowerCase().includes('dhaka');
+        const districtLower = formData.district.toLowerCase();
+        const isDhakaDistrict = districtLower.includes('dhaka');
 
-        // Only apply Dhaka City rate if:
-        // 1. District is Dhaka AND
-        // 2. An upazila has been selected AND
-        // 3. That upazila is in the city corporation area list
-        const isDhakaCity = isDhakaDistrict &&
-          !!formData.upazila &&
-          DHAKA_CITY_UPAZILAS.some(u => formData.upazila.toLowerCase().includes(u.toLowerCase()));
+        // If district is explicitly "Dhaka City" (contains 'city'), every upazila under it
+        // belongs to the city corporation → always 50 TK, no upazila check needed.
+        // If district is plain "Dhaka" (no 'city'), check the upazila list.
+        const isDhakaCity = isDhakaDistrict && (
+          districtLower.includes('city') ||
+          (!!formData.upazila &&
+            DHAKA_CITY_UPAZILAS.some(u => formData.upazila.toLowerCase().includes(u.toLowerCase())))
+        );
 
         if (isDhakaCity) {
             // Inside Dhaka City Corporation - ৳50
@@ -130,6 +135,7 @@ const Checkout = () => {
                 setShippingCost(100);
                 setShippingZoneId(shippingZones[shippingZones.length - 1]?.id || 2);
             }
+
         }
     }
   }, [formData.district, formData.upazila, settings?.enable_district_upazila, shippingZones]);
