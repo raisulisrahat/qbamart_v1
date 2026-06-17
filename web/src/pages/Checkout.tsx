@@ -610,7 +610,7 @@ const Checkout = () => {
                     <input 
                       required
                       type="text" 
-                      placeholder="যেমন: রহিম আহমেদ" 
+                      placeholder="আপনার নাম" 
                       className="w-full px-4 py-2.5 bg-neutral-50 border border-neutral-200 rounded-lg text-sm transition-all focus:bg-white focus:border-brand focus:ring-2 focus:ring-red-100/50 outline-none placeholder:text-neutral-400"
                       value={formData.name}
                       onChange={e => setFormData({...formData, name: e.target.value})}
@@ -623,7 +623,7 @@ const Checkout = () => {
                     <input 
                       required
                       type="tel" 
-                      placeholder="যেমন: 01XXXXXXXXX" 
+                      placeholder="01XXXXXXXXX" 
                       className="w-full px-4 py-2.5 bg-neutral-50 border border-neutral-200 rounded-lg text-sm transition-all focus:bg-white focus:border-brand focus:ring-2 focus:ring-red-100/50 outline-none placeholder:text-neutral-400"
                       value={formData.phone}
                       onChange={e => setFormData({...formData, phone: e.target.value.replace(/\D/g, '').slice(0, 11)})}
