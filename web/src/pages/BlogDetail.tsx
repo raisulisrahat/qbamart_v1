@@ -61,8 +61,9 @@ const BlogDetail = () => {
   return (
     <div className="bg-[#FAF9F6] min-h-screen pb-32 font-sans selection:bg-brand/10 selection:text-brand overflow-x-hidden">
       <SEO 
-        title={post.title} 
-        description={post.summary || post.content?.replace(/<[^>]*>?/gm, '').slice(0, 160)}
+        title={post.seo_title || post.title} 
+        description={post.seo_description || post.summary || post.content?.replace(/<[^>]*>?/gm, '').slice(0, 160)}
+        keywords={post.seo_keywords || undefined}
         image={post.image}
         type="article"
         schema={{
@@ -75,7 +76,7 @@ const BlogDetail = () => {
             "@type": "Organization",
             "name": siteTitle
           },
-          "description": post.summary || post.content?.replace(/<[^>]*>?/gm, '').slice(0, 160)
+          "description": post.seo_description || post.summary || post.content?.replace(/<[^>]*>?/gm, '').slice(0, 160)
         }}
       />
       

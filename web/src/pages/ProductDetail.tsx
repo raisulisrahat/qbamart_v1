@@ -329,8 +329,9 @@ const ProductDetail = () => {
     return (
         <div className="pb-20">
             <SEO
-                title={product.name}
-                description={product.short_description || product.description_html?.replace(/<[^>]*>?/gm, '').slice(0, 160)}
+                title={product.seo_title || product.name}
+                description={product.seo_description || product.short_description || product.description_html?.replace(/<[^>]*>?/gm, '').slice(0, 160)}
+                keywords={product.seo_keywords || undefined}
                 image={product.image}
                 type="product"
                 schema={{
@@ -338,7 +339,7 @@ const ProductDetail = () => {
                     "@type": "Product",
                     "name": product.name,
                     "image": resolveImageUrl(product.image),
-                    "description": product.short_description || product.description_html?.replace(/<[^>]*>?/gm, '').slice(0, 160),
+                    "description": product.seo_description || product.short_description || product.description_html?.replace(/<[^>]*>?/gm, '').slice(0, 160),
                     "brand": {
                         "@type": "Brand",
                         "name": product.brand?.name || siteTitle

@@ -152,7 +152,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
           {isAvailable ? (
             <Link 
               to={`/product/${product.slug}`}
-              className="w-full bg-brand hover:bg-brand-hover text-white text-[10px] md:text-[11px] font-black py-2 rounded-lg transition-colors flex items-center justify-center animate-glow uppercase tracking-wider"
+              className="w-full bg-brand hover:bg-brand-hover text-white text-[10px] md:text-[11px] font-black py-2 rounded-lg transition-colors flex items-center justify-center uppercase tracking-wider"
             >
               Order Now
             </Link>

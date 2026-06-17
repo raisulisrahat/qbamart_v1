@@ -764,7 +764,7 @@ class BlogPostSerializer(serializers.ModelSerializer):
     image = HybridImageField(required=False, allow_null=True)
     class Meta:
         model = BlogPost
-        fields = ['id', 'title', 'slug', 'category', 'category_name', 'content', 'image', 'created_at', 'is_published', 'views']
+        fields = ['id', 'title', 'slug', 'category', 'category_name', 'content', 'image', 'created_at', 'is_published', 'views', 'seo_title', 'seo_description', 'seo_keywords']
 
 class FunnelReviewImageSerializer(serializers.ModelSerializer):
     class Meta:

@@ -1,426 +1,522 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import api from '../../services/api';
 import { useSettings } from '../../context/SettingsContext';
-import { 
-    Search, Save, RefreshCw, AlertCircle, CheckCircle, TrendingUp, 
-    Globe, Activity, Sparkles, Settings, Check, CheckSquare, 
-    Layers, Link2, Terminal, ArrowRight 
+import {
+    Search, Save, RefreshCw, AlertCircle, CheckCircle, Globe,
+    Package, FileText, ChevronRight, X, Tag, Edit3,
+    ArrowLeft, BarChart2, ExternalLink
 } from 'lucide-react';
 
-const SeoManager = () => {
-    const { settings: siteSettings } = useSettings();
-    const [config, setConfig] = useState<any>(null);
-    const [loading, setLoading] = useState(true);
+// ─── Types ────────────────────────────────────────────────────────────────────
+interface SeoEntity {
+    id: number;
+    name?: string;   // product
+    title?: string;  // blog
+    slug?: string;
+    image?: string;
+    seo_title?: string | null;
+    seo_description?: string | null;
+    seo_keywords?: string | null;
+}
+
+interface Message { type: 'success' | 'error'; text: string; }
+
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+const thumb = (url?: string) =>
+    url
+        ? url.startsWith('http')
+            ? url
+            : `${import.meta.env.VITE_API_URL?.replace('/api', '') || ''}/media/${url}`
+        : null;
+
+const descLen = (s?: string | null) => (s || '').length;
+
+// ─── Sub-components ───────────────────────────────────────────────────────────
+const SeoScore = ({ entity }: { entity: SeoEntity }) => {
+    let score = 0;
+    if (entity.seo_title) score += 35;
+    if (entity.seo_description && descLen(entity.seo_description) >= 100) score += 45;
+    else if (entity.seo_description) score += 20;
+    if (entity.seo_keywords) score += 20;
+    const color = score >= 80 ? '#10b981' : score >= 50 ? '#f59e0b' : '#ef4444';
+    const label = score >= 80 ? 'Good' : score >= 50 ? 'Fair' : 'Needs Work';
+    return (
+        <div className="flex items-center gap-2">
+            <div className="relative w-8 h-8">
+                <svg viewBox="0 0 36 36" className="w-full h-full -rotate-90">
+                    <circle cx="18" cy="18" r="15" stroke="#f4f4f5" strokeWidth="3" fill="none" />
+                    <circle cx="18" cy="18" r="15" stroke={color} strokeWidth="3" fill="none"
+                        strokeDasharray="94.2" strokeDashoffset={94.2 - (94.2 * score / 100)}
+                        className="transition-all duration-500" />
+                </svg>
+                <span className="absolute inset-0 flex items-center justify-center text-[8px] font-black text-zinc-900">{score}</span>
+            </div>
+            <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color }}>{label}</span>
+        </div>
+    );
+};
+
+const MsgBanner = ({ msg, onClose }: { msg: Message; onClose: () => void }) => (
+    <div className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold animate-in slide-in-from-top-2 duration-300 ${msg.type === 'error' ? 'bg-rose-50 text-rose-700 border border-rose-100' : 'bg-emerald-50 text-emerald-700 border border-emerald-100'}`}>
+        {msg.type === 'error' ? <AlertCircle size={13} /> : <CheckCircle size={13} />}
+        {msg.text}
+        <button onClick={onClose} className="ml-2 opacity-60 hover:opacity-100"><X size={12} /></button>
+    </div>
+);
+
+// ─── Inline SEO Editor Panel ──────────────────────────────────────────────────
+const SeoEditor = ({
+    entity, entityType, onSave, onClose
+}: {
+    entity: SeoEntity;
+    entityType: 'product' | 'blog';
+    onSave: (updated: SeoEntity) => void;
+    onClose: () => void;
+}) => {
+    const displayName = entity.name || entity.title || '';
+    const [form, setForm] = useState({
+        seo_title: entity.seo_title || '',
+        seo_description: entity.seo_description || '',
+        seo_keywords: entity.seo_keywords || '',
+    });
     const [saving, setSaving] = useState(false);
-    const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
+    const [msg, setMsg] = useState<Message | null>(null);
 
-    // Auto SEO Engine States
-    const [isOptimizing, setIsOptimizing] = useState(false);
-    const [optProgress, setOptProgress] = useState(0);
-    const [optLogs, setOptLogs] = useState<string[]>([]);
-    const [seoScore, setSeoScore] = useState(74);
-    const [showLogs, setShowLogs] = useState(false);
+    const endpoint = entityType === 'product' ? `products/${entity.id}/` : `blog-posts/${entity.id}/`;
 
-    // Keyword Analyzer States
-    const [keyword, setKeyword] = useState('');
-    const [analyzingKeyword, setAnalyzingKeyword] = useState(false);
-    const [analysisResult, setAnalysisResult] = useState<any>(null);
-
-    useEffect(() => {
-        if (siteSettings) {
-            setConfig({
-                id: siteSettings.id,
-                site_title: siteSettings.site_title,
-                meta_description: siteSettings.meta_description,
-                meta_keywords: siteSettings.meta_keywords,
-                google_tag_id: siteSettings.google_tag_id
-            });
-            setLoading(false);
-        } else {
-            fetchConfig();
-        }
-    }, [siteSettings]);
-
-    const fetchConfig = async () => {
-        try {
-            const response = await api.get('site-settings/');
-            const data = Array.isArray(response.data) ? response.data[0] : response.data;
-            if (data) {
-                setConfig({
-                    id: data.id,
-                    site_title: data.site_title,
-                    meta_description: data.meta_description,
-                    meta_keywords: data.meta_keywords,
-                    google_tag_id: data.google_tag_id
-                });
-            }
-        } catch (error) {
-            console.error('Error fetching settings for SEO manager:', error);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-        const { name, value } = e.target;
-        setConfig((prev: any) => ({ ...prev, [name]: value }));
-    };
-
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
+    const handleSave = async () => {
         setSaving(true);
-        setMessage(null);
-
+        setMsg(null);
         try {
-            const formData = new FormData();
-            formData.append('meta_description', config.meta_description || '');
-            formData.append('meta_keywords', config.meta_keywords || '');
-
-            const response = await api.patch(`site-settings/${config.id || 1}/`, formData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data'
-                }
-            });
-
-            const data = Array.isArray(response.data) ? response.data[0] : response.data;
-            if (data) {
-                setConfig({
-                    id: data.id,
-                    site_title: data.site_title,
-                    meta_description: data.meta_description,
-                    meta_keywords: data.meta_keywords,
-                    google_tag_id: data.google_tag_id
-                });
-            }
-            setMessage({ type: 'success', text: 'SEO configuration saved successfully!' });
-            setTimeout(() => setMessage(null), 3000);
-        } catch (err: any) {
-            console.error(err);
-            setMessage({ type: 'error', text: 'Failed to save SEO settings.' });
+            const fd = new FormData();
+            fd.append('seo_title', form.seo_title);
+            fd.append('seo_description', form.seo_description);
+            fd.append('seo_keywords', form.seo_keywords);
+            const res = await api.patch(endpoint, fd, { headers: { 'Content-Type': 'multipart/form-data' } });
+            onSave({ ...entity, ...res.data });
+            setMsg({ type: 'success', text: 'SEO saved!' });
+            setTimeout(() => setMsg(null), 2500);
+        } catch {
+            setMsg({ type: 'error', text: 'Failed to save SEO.' });
         } finally {
             setSaving(false);
         }
     };
 
-    // Run Auto-Ranking Optimization Engine Simulation
-    const runSeoEngine = () => {
-        if (isOptimizing) return;
-        setIsOptimizing(true);
-        setOptProgress(0);
-        setShowLogs(true);
-        setOptLogs([]);
-
-        const steps = [
-            { text: '🔍 Initializing SEO Ranking audit for Qbamart...', delay: 600 },
-            { text: '🌐 Dynamic XML sitemap compiled at /sitemap.xml.', delay: 1300 },
-            { text: '🤖 Crawl instructions loaded into virtual robots.txt file.', delay: 2000 },
-            { text: '📝 Missing img alt descriptions automatically resolved.', delay: 2800 },
-            { text: '📦 Structured JSON-LD product markup injected for Google Rich Results.', delay: 3600 },
-            { text: '⚡ Ping search registry: Google Search Console notified of sitemap.', delay: 4500 },
-            { text: '🚀 Pinging Bing Webmaster index... Success.', delay: 5200 },
-            { text: '🎉 High-performance ranking optimization finished!', delay: 6000 }
-        ];
-
-        steps.forEach((step, idx) => {
-            setTimeout(() => {
-                setOptLogs(prev => [...prev, step.text]);
-                const newProgress = Math.floor(((idx + 1) / steps.length) * 100);
-                setOptProgress(newProgress);
-                
-                if (idx === steps.length - 1) {
-                    setIsOptimizing(false);
-                    setSeoScore(98);
-                }
-            }, step.delay);
-        });
-    };
-
-    // Keyword density and focus helper
-    const analyzeKeyword = () => {
-        if (!keyword.trim()) return;
-        setAnalyzingKeyword(true);
-        
-        setTimeout(() => {
-            const hasInTitle = config?.site_title?.toLowerCase().includes(keyword.toLowerCase());
-            const hasInDesc = config?.meta_description?.toLowerCase().includes(keyword.toLowerCase());
-            const hasInKeywords = config?.meta_keywords?.toLowerCase().includes(keyword.toLowerCase());
-
-            setAnalysisResult({
-                keyword: keyword,
-                densityScore: (hasInTitle ? 35 : 0) + (hasInDesc ? 40 : 0) + (hasInKeywords ? 20 : 0) + 5,
-                inTitle: hasInTitle,
-                inDesc: hasInDesc,
-                inKeywords: hasInKeywords,
-                recommendations: [
-                    !hasInTitle && `Insert target keyword "${keyword}" in your page title pattern.`,
-                    !hasInDesc && `Incorporate "${keyword}" naturally inside your meta description.`,
-                    !hasInKeywords && `Add "${keyword}" to your site settings search keywords list.`,
-                    "Verify image filenames match product SEO slugs before uploading.",
-                    "Include heading structure with at least one h1 tag on the homepage."
-                ].filter(Boolean)
-            });
-            setAnalyzingKeyword(false);
-        }, 1200);
-    };
-
-    if (loading) {
-        return (
-            <div className="flex h-64 items-center justify-center">
-                <div className="w-8 h-8 border-2 border-zinc-200 border-t-zinc-900 rounded-full animate-spin"></div>
-            </div>
-        );
-    }
+    const titleLen = form.seo_title.length;
+    const descLn = form.seo_description.length;
 
     return (
-        <div className="animate-in fade-in duration-500 max-w-5xl mx-auto space-y-8 pb-24">
+        <div className="animate-in slide-in-from-right-4 duration-300 space-y-6">
             {/* Header */}
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
-                <div>
-                    <h2 className="text-2xl font-bold tracking-tight text-zinc-900">SEO Automation Center</h2>
-                    <p className="text-sm text-zinc-500 mt-1 font-medium">Auto-advance search engine ranking process and configure metadata index.</p>
-                </div>
-                
-                {message && (
-                    <div className={`px-4 py-2 rounded-lg flex items-center gap-2 text-xs font-bold uppercase tracking-wider animate-in slide-in-from-right-4 duration-300 ${message.type === 'error' ? 'bg-rose-50 text-rose-700 border border-rose-100' : 'bg-emerald-50 text-emerald-700 border border-emerald-100'}`}>
-                        {message.type === 'error' ? <AlertCircle size={14} /> : <CheckCircle size={14} />}
-                        {message.text}
-                    </div>
-                )}
-            </div>
-
-            {/* Quick SEO Health Dashboard */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {/* Score Panel */}
-                <div className="next-panel p-6 flex flex-col items-center justify-center relative overflow-hidden bg-gradient-to-tr from-white to-indigo-50/20">
-                    <div className="absolute top-3 left-3 flex items-center gap-1.5 text-zinc-400">
-                        <Activity size={14} />
-                        <span className="text-[10px] font-bold uppercase tracking-wider">Health Index</span>
-                    </div>
-
-                    <div className="relative flex items-center justify-center w-36 h-36 mt-4">
-                        <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
-                            <circle cx="50" cy="50" r="40" stroke="#f4f4f5" strokeWidth="8" fill="transparent" />
-                            <circle 
-                                cx="50" 
-                                cy="50" 
-                                r="40" 
-                                stroke={seoScore > 90 ? "#10b981" : "#5173FB"} 
-                                strokeWidth="8" 
-                                fill="transparent" 
-                                strokeDasharray="251.2" 
-                                strokeDashoffset={251.2 - (251.2 * seoScore) / 100}
-                                className="transition-all duration-1000 ease-out"
-                            />
-                        </svg>
-                        <div className="absolute flex flex-col items-center">
-                            <span className="text-3xl font-black tracking-tight text-zinc-950">{seoScore}%</span>
-                            <span className="text-[9px] font-bold uppercase tracking-widest text-zinc-400 mt-0.5">Optimized</span>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Automation Panel (The Rank Engine) */}
-                <div className="next-panel p-6 md:col-span-2 flex flex-col justify-between">
+            <div className="flex items-start justify-between gap-4">
+                <div className="flex items-center gap-3">
+                    <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-zinc-100 text-zinc-400 hover:text-zinc-900 transition-colors">
+                        <ArrowLeft size={16} />
+                    </button>
                     <div>
-                        <div className="flex items-center gap-2 mb-2">
-                            <Sparkles size={16} className="text-amber-500 fill-amber-500" />
-                            <h3 className="text-xs font-bold text-zinc-900 uppercase tracking-widest">Auto SEO Ranking Engine</h3>
-                        </div>
-                        <p className="text-xs text-zinc-500 leading-relaxed max-w-lg">
-                            Instantly deploy sitemaps, generate product schema markup, ping major search crawlers, and fix meta indexing configurations automatically in a single click.
+                        <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-0.5">
+                            {entityType === 'product' ? 'Product SEO' : 'Blog Post SEO'}
                         </p>
-                    </div>
-
-                    <div className="mt-6">
-                        {isOptimizing ? (
-                            <div className="space-y-3">
-                                <div className="flex justify-between items-center text-[10px] font-bold text-zinc-500 uppercase tracking-wider">
-                                    <span>Running Optimizer...</span>
-                                    <span>{optProgress}%</span>
-                                </div>
-                                <div className="w-full bg-zinc-100 h-2 rounded-full overflow-hidden">
-                                    <div 
-                                        className="h-full bg-indigo-600 rounded-full transition-all duration-300"
-                                        style={{ width: `${optProgress}%` }}
-                                    />
-                                </div>
-                            </div>
-                        ) : (
-                            <button
-                                type="button"
-                                onClick={runSeoEngine}
-                                className="w-full md:w-auto bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all duration-200 flex items-center justify-center gap-2 hover:shadow-lg hover:shadow-indigo-500/10 active:scale-95"
-                            >
-                                <Sparkles size={14} className="fill-white" />
-                                Run Auto-Ranking Optimization
-                            </button>
+                        <h3 className="text-base font-bold text-zinc-900 leading-tight">{displayName}</h3>
+                        {entity.slug && (
+                            <a href={entityType === 'product' ? `/products/${entity.slug}` : `/blog/${entity.slug}`}
+                                target="_blank" rel="noopener noreferrer"
+                                className="flex items-center gap-1 text-[10px] text-zinc-400 hover:text-brand transition-colors mt-0.5">
+                                <ExternalLink size={10} />/{entity.slug}
+                            </a>
                         )}
                     </div>
                 </div>
+                {msg && <MsgBanner msg={msg} onClose={() => setMsg(null)} />}
             </div>
 
-            {/* Run Logs Console */}
-            {showLogs && (
-                <div className="next-panel p-6 border-zinc-900 bg-zinc-950 text-zinc-100 font-mono text-[11px] rounded-xl relative overflow-hidden animate-in slide-in-from-top-4 duration-300">
-                    <div className="absolute top-3 right-3 flex items-center gap-2">
-                        <div className="w-2.5 h-2.5 rounded-full bg-red-500" />
-                        <div className="w-2.5 h-2.5 rounded-full bg-yellow-500" />
-                        <div className="w-2.5 h-2.5 rounded-full bg-green-500" />
+            {/* SERP Preview */}
+            <div className="next-panel p-5 space-y-1.5 bg-white">
+                <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-3">Google Preview</p>
+                <p className="text-[13px] text-blue-600 font-medium truncate">
+                    {form.seo_title || displayName}
+                </p>
+                <p className="text-[11px] text-green-700 font-medium">
+                    {`yourdomain.com/${entityType === 'product' ? 'products' : 'blog'}/${entity.slug || ''}`}
+                </p>
+                <p className="text-[11px] text-zinc-500 leading-relaxed line-clamp-2">
+                    {form.seo_description || 'No meta description set. Search engines will use page content instead.'}
+                </p>
+            </div>
+
+            {/* Form Fields */}
+            <div className="next-panel p-6 space-y-5">
+                {/* SEO Title */}
+                <div className="space-y-1.5">
+                    <div className="flex justify-between items-center">
+                        <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">SEO Title</label>
+                        <span className={`text-[10px] font-bold ${titleLen > 60 ? 'text-rose-500' : titleLen > 50 ? 'text-amber-500' : 'text-zinc-400'}`}>
+                            {titleLen}/60
+                        </span>
                     </div>
-                    <div className="flex items-center gap-2 mb-4 border-b border-zinc-800 pb-2 text-zinc-400 font-bold uppercase tracking-widest text-[9px]">
-                        <Terminal size={14} />
-                        <span>SEO Engine Log Terminal</span>
-                    </div>
-                    <div className="space-y-1.5 max-h-48 overflow-y-auto luxury-scrollbar">
-                        {optLogs.map((log, idx) => (
-                            <div key={idx} className="flex items-start gap-2">
-                                <span className="text-zinc-500 shrink-0">[{new Date().toLocaleTimeString()}]</span>
-                                <span className={idx === optLogs.length - 1 && log.includes('Complete') ? 'text-emerald-400 font-bold' : ''}>
-                                    {log}
-                                </span>
-                            </div>
-                        ))}
-                        {isOptimizing && (
-                            <div className="flex items-center gap-1.5 text-zinc-400 italic animate-pulse">
-                                <RefreshCw size={10} className="animate-spin" />
-                                <span>optimizing pipeline rules...</span>
-                            </div>
-                        )}
-                    </div>
+                    <input
+                        type="text"
+                        value={form.seo_title}
+                        onChange={e => setForm(p => ({ ...p, seo_title: e.target.value }))}
+                        placeholder={displayName}
+                        className="w-full bg-zinc-50 border border-zinc-200 p-3 rounded-xl text-sm font-semibold text-zinc-900 outline-none focus:ring-2 focus:ring-brand/10 transition-all"
+                    />
+                    <p className="text-[9px] text-zinc-400">Optimal: 50–60 characters. Leave blank to use the {entityType} name.</p>
                 </div>
-            )}
 
-            {/* Main SEO Options Form & Keyword Density Tool */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                {/* SEO Configuration Inputs */}
-                <form onSubmit={handleSubmit} className="lg:col-span-2 next-panel p-8 space-y-6">
-                    <div className="flex items-center gap-3 mb-6 border-b border-zinc-100 pb-4">
-                        <div className="p-2 bg-zinc-100 rounded-lg text-zinc-950"><Settings size={18} /></div>
-                        <h3 className="text-sm font-bold uppercase tracking-widest text-zinc-900">SEO Index Settings</h3>
+                {/* SEO Description */}
+                <div className="space-y-1.5">
+                    <div className="flex justify-between items-center">
+                        <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Meta Description</label>
+                        <span className={`text-[10px] font-bold ${descLn > 160 ? 'text-rose-500' : descLn > 140 ? 'text-amber-500' : 'text-zinc-400'}`}>
+                            {descLn}/160
+                        </span>
                     </div>
+                    <textarea
+                        rows={3}
+                        value={form.seo_description}
+                        onChange={e => setForm(p => ({ ...p, seo_description: e.target.value }))}
+                        placeholder="Write a compelling description that appears in search results..."
+                        className="w-full bg-zinc-50 border border-zinc-200 p-3 rounded-xl text-sm font-semibold text-zinc-900 outline-none focus:ring-2 focus:ring-brand/10 transition-all resize-none"
+                    />
+                    <p className="text-[9px] text-zinc-400">Optimal: 120–160 characters.</p>
+                </div>
 
-                    <div className="space-y-2">
-                        <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest ml-1">Meta Keywords</label>
-                        <input
-                            type="text"
-                            name="meta_keywords"
-                            value={config.meta_keywords || ''}
-                            onChange={handleChange}
-                            placeholder="e.g. ecommerce, online store, gadgets"
-                            className="w-full bg-zinc-50 border border-zinc-200 p-3 rounded-xl focus:ring-2 focus:ring-brand/5 outline-none transition-all font-semibold text-zinc-900 text-sm"
-                        />
-                        <p className="text-[9px] text-zinc-400 font-medium ml-1">Comma-separated terms target search engines match.</p>
-                    </div>
+                {/* SEO Keywords */}
+                <div className="space-y-1.5">
+                    <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Focus Keywords</label>
+                    <input
+                        type="text"
+                        value={form.seo_keywords}
+                        onChange={e => setForm(p => ({ ...p, seo_keywords: e.target.value }))}
+                        placeholder="keyword one, keyword two, keyword three"
+                        className="w-full bg-zinc-50 border border-zinc-200 p-3 rounded-xl text-sm font-semibold text-zinc-900 outline-none focus:ring-2 focus:ring-brand/10 transition-all"
+                    />
+                    <p className="text-[9px] text-zinc-400">Comma-separated. Keep to 5–10 highly relevant terms.</p>
+                </div>
 
-                    <div className="space-y-2">
-                        <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest ml-1">SEO Description</label>
-                        <textarea
-                            name="meta_description"
-                            value={config.meta_description || ''}
-                            onChange={handleChange}
-                            rows={4}
-                            placeholder="Type a premium meta search index description..."
-                            className="w-full bg-zinc-50 border border-zinc-200 p-3 rounded-xl focus:ring-2 focus:ring-brand/5 outline-none transition-all font-semibold text-zinc-900 text-sm resize-none"
-                        />
-                        <div className="flex justify-between items-center px-1">
-                            <span className="text-[9px] text-zinc-400 font-medium">Recommended: 150-160 characters.</span>
-                            <span className={`text-[9px] font-bold uppercase ${config.meta_description?.length > 160 ? 'text-rose-500' : 'text-zinc-400'}`}>
-                                {config.meta_description?.length || 0} / 160
-                            </span>
-                        </div>
-                    </div>
-
-                    <div className="border-t border-zinc-100 pt-6 flex justify-end">
-                        <button
-                            type="submit"
-                            disabled={saving}
-                            className="bg-indigo-600 text-white px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-indigo-500/10 active:scale-95 transition-all flex items-center gap-2"
-                        >
-                            {saving ? <RefreshCw size={14} className="animate-spin" /> : <Save size={14} />}
-                            {saving ? 'Saving...' : 'Save Meta Configuration'}
-                        </button>
-                    </div>
-                </form>
-
-                {/* Keyword Rank Assistant */}
-                <div className="next-panel p-8 flex flex-col justify-between">
-                    <div>
-                        <div className="flex items-center gap-3 mb-6 border-b border-zinc-100 pb-4">
-                            <div className="p-2 bg-zinc-100 rounded-lg text-zinc-950"><TrendingUp size={18} /></div>
-                            <h3 className="text-sm font-bold uppercase tracking-widest text-zinc-900">Keyword Assistant</h3>
-                        </div>
-
-                        <div className="space-y-4">
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest ml-1">Focus Keyword</label>
-                                <div className="flex gap-2">
-                                    <input
-                                        type="text"
-                                        value={keyword}
-                                        onChange={(e) => setKeyword(e.target.value)}
-                                        placeholder="e.g. mobile accessories"
-                                        className="flex-1 bg-zinc-50 border border-zinc-200 p-2.5 rounded-xl focus:ring-2 focus:ring-brand/5 outline-none transition-all text-xs font-semibold text-zinc-900"
-                                    />
-                                    <button
-                                        type="button"
-                                        onClick={analyzeKeyword}
-                                        disabled={analyzingKeyword}
-                                        className="bg-zinc-900 hover:bg-zinc-800 text-white px-4 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all active:scale-95 flex items-center justify-center"
-                                    >
-                                        {analyzingKeyword ? <RefreshCw size={12} className="animate-spin" /> : <Search size={12} />}
-                                    </button>
-                                </div>
+                {/* Checklist */}
+                <div className="pt-2 border-t border-zinc-100 space-y-2">
+                    <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest">SEO Checklist</p>
+                    {[
+                        { label: 'SEO Title set', ok: !!form.seo_title },
+                        { label: 'Title length optimal (≤60)', ok: titleLen > 0 && titleLen <= 60 },
+                        { label: 'Meta description set', ok: !!form.seo_description },
+                        { label: 'Description length optimal (≤160)', ok: descLn > 0 && descLn <= 160 },
+                        { label: 'Focus keywords set', ok: !!form.seo_keywords },
+                        { label: 'Has URL slug', ok: !!entity.slug },
+                    ].map(({ label, ok }) => (
+                        <div key={label} className="flex items-center gap-2">
+                            <div className={`w-3.5 h-3.5 rounded-full flex items-center justify-center flex-shrink-0 ${ok ? 'bg-emerald-100 text-emerald-600' : 'bg-zinc-100 text-zinc-400'}`}>
+                                {ok ? <CheckCircle size={9} /> : <AlertCircle size={9} />}
                             </div>
-
-                            {analysisResult && (
-                                <div className="space-y-4 pt-4 border-t border-zinc-100 animate-in fade-in duration-300">
-                                    <div className="flex justify-between items-center">
-                                        <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">SEO Relevance</span>
-                                        <span className={`text-xs font-black uppercase px-2 py-0.5 rounded-full ${analysisResult.densityScore > 60 ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'}`}>
-                                            {analysisResult.densityScore}% Match
-                                        </span>
-                                    </div>
-
-                                    {/* Recommendations */}
-                                    <div className="space-y-2">
-                                        <span className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest block">Action Items:</span>
-                                        <div className="space-y-1.5 max-h-40 overflow-y-auto no-scrollbar">
-                                            {analysisResult.recommendations.map((rec: string, index: number) => (
-                                                <div key={index} className="flex items-start gap-1.5 text-[10px] text-zinc-600 font-medium">
-                                                    <ArrowRight size={10} className="mt-0.5 text-zinc-400 shrink-0" />
-                                                    <span>{rec}</span>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
+                            <span className={`text-[10px] font-medium ${ok ? 'text-zinc-800' : 'text-zinc-400'}`}>{label}</span>
                         </div>
-                    </div>
+                    ))}
+                </div>
 
-                    {/* Standard SEO Checklist */}
-                    <div className="pt-6 mt-6 border-t border-zinc-100 space-y-3">
-                        <span className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest block">SEO Standard Checklist</span>
-                        <div className="space-y-2">
-                            <CheckItem label="Structured JSON-LD schema injected" checked={seoScore > 80} />
-                            <CheckItem label="XML Sitemap generated (/sitemap.xml)" checked={seoScore > 85} />
-                            <CheckItem label="Search Engine (Google/Bing) pinged" checked={seoScore > 90} />
-                            <CheckItem label="Dynamic canonical links configured" checked={true} />
-                        </div>
-                    </div>
+                <div className="flex justify-end pt-2">
+                    <button
+                        onClick={handleSave}
+                        disabled={saving}
+                        className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 transition-all active:scale-95 shadow-lg shadow-indigo-500/10"
+                    >
+                        {saving ? <RefreshCw size={12} className="animate-spin" /> : <Save size={12} />}
+                        {saving ? 'Saving...' : 'Save SEO'}
+                    </button>
                 </div>
             </div>
         </div>
     );
 };
 
-const CheckItem = ({ label, checked }: { label: string, checked: boolean }) => (
-    <div className="flex items-center gap-2">
-        <div className={`w-4 h-4 rounded-full flex items-center justify-center ${checked ? 'bg-emerald-50 text-emerald-600' : 'bg-zinc-100 text-zinc-400'}`}>
-            {checked ? <Check size={10} /> : <AlertCircle size={10} />}
+// ─── Entity List (Products or Blogs) ─────────────────────────────────────────
+const EntitySeoList = ({
+    entityType, onSelect
+}: {
+    entityType: 'product' | 'blog';
+    onSelect: (e: SeoEntity) => void;
+}) => {
+    const [items, setItems] = useState<SeoEntity[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [query, setQuery] = useState('');
+    const [page, setPage] = useState(1);
+    const [hasMore, setHasMore] = useState(false);
+
+    const endpoint = entityType === 'product' ? 'products/' : 'blog-posts/';
+    const nameKey = entityType === 'product' ? 'name' : 'title';
+
+    const load = useCallback(async (q: string, pg: number) => {
+        setLoading(true);
+        try {
+            const params: any = { page: pg, page_size: 20 };
+            if (q) params.search = q;
+            const res = await api.get(endpoint, { params });
+            const data = res.data;
+            const results: SeoEntity[] = Array.isArray(data) ? data : (data.results || []);
+            setItems(pg === 1 ? results : prev => [...prev, ...results]);
+            setHasMore(!!(data.next));
+        } catch { /* silent */ }
+        finally { setLoading(false); }
+    }, [endpoint]);
+
+    useEffect(() => { setPage(1); load(query, 1); }, [query]);
+    useEffect(() => { if (page > 1) load(query, page); }, [page]);
+
+    const seoStatus = (item: SeoEntity) => {
+        const has = !!(item.seo_title || item.seo_description || item.seo_keywords);
+        return has;
+    };
+
+    const filtered = items.filter(i =>
+        ((i as any)[nameKey] || '').toLowerCase().includes(query.toLowerCase())
+    );
+
+    return (
+        <div className="space-y-4">
+            {/* Search */}
+            <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400" size={14} />
+                <input
+                    type="text"
+                    value={query}
+                    onChange={e => setQuery(e.target.value)}
+                    placeholder={`Search ${entityType === 'product' ? 'products' : 'blog posts'}...`}
+                    className="w-full pl-9 pr-4 py-2.5 bg-zinc-50 border border-zinc-200 rounded-xl text-sm font-medium text-zinc-900 outline-none focus:ring-2 focus:ring-brand/10 transition-all"
+                />
+            </div>
+
+            {/* Stats bar */}
+            <div className="flex items-center gap-4 text-[10px] font-bold text-zinc-400 uppercase tracking-widest px-1">
+                <span>{items.length} {entityType === 'product' ? 'products' : 'posts'}</span>
+                <span className="text-emerald-600">{items.filter(seoStatus).length} optimized</span>
+                <span className="text-amber-600">{items.filter(i => !seoStatus(i)).length} need attention</span>
+            </div>
+
+            {/* List */}
+            <div className="space-y-1.5">
+                {loading && items.length === 0 ? (
+                    <div className="flex items-center justify-center py-20">
+                        <div className="w-6 h-6 border-2 border-zinc-200 border-t-zinc-900 rounded-full animate-spin" />
+                    </div>
+                ) : filtered.length === 0 ? (
+                    <div className="text-center py-16 text-zinc-400 text-sm font-medium">
+                        No {entityType === 'product' ? 'products' : 'posts'} found.
+                    </div>
+                ) : filtered.map(item => {
+                    const isOptimized = seoStatus(item);
+                    const imgSrc = thumb(item.image);
+                    return (
+                        <button
+                            key={item.id}
+                            onClick={() => onSelect(item)}
+                            className="w-full flex items-center gap-4 p-3.5 rounded-xl border border-zinc-100 hover:border-brand/20 hover:bg-indigo-50/30 transition-all group text-left"
+                        >
+                            {/* Thumbnail */}
+                            <div className="w-10 h-10 rounded-lg bg-zinc-100 overflow-hidden flex-shrink-0">
+                                {imgSrc
+                                    ? <img src={imgSrc} alt="" className="w-full h-full object-cover" />
+                                    : <div className="w-full h-full flex items-center justify-center text-zinc-300">
+                                        {entityType === 'product' ? <Package size={16} /> : <FileText size={16} />}
+                                    </div>
+                                }
+                            </div>
+
+                            {/* Info */}
+                            <div className="flex-1 min-w-0">
+                                <p className="text-[13px] font-semibold text-zinc-900 leading-tight truncate">
+                                    {(item as any)[nameKey]}
+                                </p>
+                                {item.slug && (
+                                    <p className="text-[10px] text-zinc-400 font-medium mt-0.5 truncate">/{item.slug}</p>
+                                )}
+                                {isOptimized ? (
+                                    <p className="text-[9px] font-bold text-emerald-600 mt-1 uppercase tracking-wider">
+                                        ✓ SEO Configured
+                                    </p>
+                                ) : (
+                                    <p className="text-[9px] font-bold text-amber-500 mt-1 uppercase tracking-wider">
+                                        ⚠ Needs SEO Setup
+                                    </p>
+                                )}
+                            </div>
+
+                            {/* Score */}
+                            <div className="flex-shrink-0">
+                                <SeoScore entity={item} />
+                            </div>
+
+                            <ChevronRight size={14} className="text-zinc-300 group-hover:text-brand transition-colors flex-shrink-0" />
+                        </button>
+                    );
+                })}
+            </div>
+
+            {hasMore && (
+                <button
+                    onClick={() => setPage(p => p + 1)}
+                    disabled={loading}
+                    className="w-full py-2.5 text-[10px] font-bold text-zinc-500 hover:text-zinc-900 uppercase tracking-widest border border-dashed border-zinc-200 rounded-xl hover:border-zinc-400 transition-all flex items-center justify-center gap-2"
+                >
+                    {loading ? <RefreshCw size={12} className="animate-spin" /> : null}
+                    Load More
+                </button>
+            )}
         </div>
-        <span className={`text-[10px] font-medium leading-none ${checked ? 'text-zinc-900' : 'text-zinc-400'}`}>{label}</span>
-    </div>
-);
+    );
+};
+
+// ─── Global SEO Settings Panel ────────────────────────────────────────────────
+const GlobalSeoPanel = ({ siteSettings }: { siteSettings: any }) => {
+    const [config, setConfig] = useState({ meta_description: '', meta_keywords: '' });
+    const [saving, setSaving] = useState(false);
+    const [msg, setMsg] = useState<Message | null>(null);
+
+    useEffect(() => {
+        if (siteSettings) {
+            setConfig({
+                meta_description: siteSettings.meta_description || '',
+                meta_keywords: siteSettings.meta_keywords || '',
+            });
+        }
+    }, [siteSettings]);
+
+    const handleSave = async () => {
+        setSaving(true);
+        setMsg(null);
+        try {
+            const fd = new FormData();
+            fd.append('meta_description', config.meta_description);
+            fd.append('meta_keywords', config.meta_keywords);
+            await api.patch(`site-settings/${siteSettings?.id || 1}/`, fd, {
+                headers: { 'Content-Type': 'multipart/form-data' }
+            });
+            setMsg({ type: 'success', text: 'Global SEO saved!' });
+            setTimeout(() => setMsg(null), 2500);
+        } catch {
+            setMsg({ type: 'error', text: 'Failed to save.' });
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    return (
+        <div className="next-panel p-6 space-y-5">
+            <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                    <Globe size={15} className="text-zinc-400" />
+                    <h3 className="text-xs font-bold uppercase tracking-widest text-zinc-900">Global / Default SEO</h3>
+                </div>
+                {msg && <MsgBanner msg={msg} onClose={() => setMsg(null)} />}
+            </div>
+            <p className="text-[10px] text-zinc-400 font-medium -mt-2">
+                Fallback meta tags used on pages without specific SEO settings.
+            </p>
+
+            <div className="space-y-1.5">
+                <div className="flex justify-between">
+                    <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Default Meta Keywords</label>
+                </div>
+                <input
+                    type="text"
+                    value={config.meta_keywords}
+                    onChange={e => setConfig(p => ({ ...p, meta_keywords: e.target.value }))}
+                    placeholder="e.g. ecommerce, online shop, bangladesh"
+                    className="w-full bg-zinc-50 border border-zinc-200 p-3 rounded-xl text-sm font-semibold text-zinc-900 outline-none focus:ring-2 focus:ring-brand/10 transition-all"
+                />
+            </div>
+
+            <div className="space-y-1.5">
+                <div className="flex justify-between items-center">
+                    <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Default Meta Description</label>
+                    <span className={`text-[10px] font-bold ${config.meta_description.length > 160 ? 'text-rose-500' : 'text-zinc-400'}`}>
+                        {config.meta_description.length}/160
+                    </span>
+                </div>
+                <textarea
+                    rows={3}
+                    value={config.meta_description}
+                    onChange={e => setConfig(p => ({ ...p, meta_description: e.target.value }))}
+                    placeholder="Site-wide fallback meta description..."
+                    className="w-full bg-zinc-50 border border-zinc-200 p-3 rounded-xl text-sm font-semibold text-zinc-900 outline-none focus:ring-2 focus:ring-brand/10 transition-all resize-none"
+                />
+            </div>
+
+            <div className="flex justify-end">
+                <button
+                    onClick={handleSave}
+                    disabled={saving}
+                    className="bg-zinc-900 hover:bg-zinc-800 text-white px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 transition-all active:scale-95"
+                >
+                    {saving ? <RefreshCw size={12} className="animate-spin" /> : <Save size={12} />}
+                    {saving ? 'Saving...' : 'Save Global SEO'}
+                </button>
+            </div>
+        </div>
+    );
+};
+
+// ─── Main SeoManager ──────────────────────────────────────────────────────────
+type Tab = 'products' | 'blogs';
+
+const SeoManager = () => {
+    const { settings: siteSettings } = useSettings();
+    const [activeTab, setActiveTab] = useState<Tab>('products');
+    const [selected, setSelected] = useState<{ entity: SeoEntity; type: 'product' | 'blog' } | null>(null);
+
+    const handleSaved = (updated: SeoEntity) => {
+        setSelected(prev => prev ? { ...prev, entity: updated } : null);
+    };
+
+    return (
+        <div className="animate-in fade-in duration-500 max-w-5xl mx-auto space-y-8 pb-24">
+            {/* Header */}
+            <div>
+                <h2 className="text-2xl font-bold tracking-tight text-zinc-900">SEO Manager</h2>
+                <p className="text-sm text-zinc-500 mt-1 font-medium">
+                    Configure search engine metadata for products and blog posts individually.
+                </p>
+            </div>
+
+            {/* Global SEO panel */}
+            <GlobalSeoPanel siteSettings={siteSettings} />
+
+            {/* Tab bar */}
+            <div className="flex items-center gap-1 bg-zinc-100 p-1 rounded-xl w-fit">
+                {([
+                    { id: 'products', label: 'Products', icon: <Package size={13} /> },
+                    { id: 'blogs', label: 'Blog Posts', icon: <FileText size={13} /> },
+                ] as { id: Tab; label: string; icon: React.ReactNode }[]).map(t => (
+                    <button
+                        key={t.id}
+                        onClick={() => { setActiveTab(t.id); setSelected(null); }}
+                        className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-[11px] font-black uppercase tracking-widest transition-all ${activeTab === t.id ? 'bg-white shadow-sm text-zinc-900' : 'text-zinc-500 hover:text-zinc-900'}`}
+                    >
+                        {t.icon} {t.label}
+                    </button>
+                ))}
+            </div>
+
+            {/* Content */}
+            <div className="next-panel p-6">
+                {selected ? (
+                    <SeoEditor
+                        entity={selected.entity}
+                        entityType={selected.type}
+                        onSave={handleSaved}
+                        onClose={() => setSelected(null)}
+                    />
+                ) : (
+                    <EntitySeoList
+                        key={activeTab}
+                        entityType={activeTab === 'products' ? 'product' : 'blog'}
+                        onSelect={e => setSelected({ entity: e, type: activeTab === 'products' ? 'product' : 'blog' })}
+                    />
+                )}
+            </div>
+        </div>
+    );
+};
 
 export default SeoManager;

@@ -202,7 +202,12 @@ class Product(models.Model):
     image = models.ImageField(upload_to='products/', blank=True, null=True)
     video_url = models.CharField(max_length=500, blank=True, null=True, help_text="YouTube or external video embed URL")
     is_active = models.BooleanField(default=True)
-    
+
+    # SEO Fields
+    seo_title = models.CharField(max_length=255, blank=True, null=True, help_text="Custom SEO title (overrides product name in meta tags)")
+    seo_description = models.TextField(blank=True, null=True, help_text="Custom SEO meta description for this product")
+    seo_keywords = models.CharField(max_length=500, blank=True, null=True, help_text="Comma-separated SEO keywords for this product")
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -519,6 +524,11 @@ class BlogPost(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     is_published = models.BooleanField(default=True)
     views = models.PositiveIntegerField(default=0)
+
+    # SEO Fields
+    seo_title = models.CharField(max_length=255, blank=True, null=True, help_text="Custom SEO title (overrides blog title in meta tags)")
+    seo_description = models.TextField(blank=True, null=True, help_text="Custom SEO meta description for this blog post")
+    seo_keywords = models.CharField(max_length=500, blank=True, null=True, help_text="Comma-separated SEO keywords for this blog post")
 
     class Meta:
         ordering = ['-created_at']
