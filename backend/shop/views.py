@@ -2823,3 +2823,56 @@ class SitemapView(View):
         return HttpResponse(xml_content, content_type="application/xml")
 
 
+# ─── Page SEO ViewSet ─────────────────────────────────────────────────────────
+class PageSeoViewSet(viewsets.ModelViewSet):
+    """
+    CRUD for per-page static SEO records.
+    GET  /api/page-seo/          → list all
+    GET  /api/page-seo/<key>/   → retrieve one by page_key
+    PATCH /api/page-seo/<key>/  → update one by page_key
+    POST /api/page-seo/         → create (auto-created via seed action below)
+    """
+    from shop.serializers import PageSeoSerializer as _PageSeoSerializer
+    serializer_class = _PageSeoSerializer
+    lookup_field = 'page_key'
+
+    def get_queryset(self):
+        from shop.models import PageSeo
+        return PageSeo.objects.all()
+
+    def get_permissions(self):
+        if self.action in ['list', 'retrieve']:
+            return [permissions.AllowAny()]
+        return [IsFullAdmin()]
+
+    @action(detail=False, methods=['post'], permission_classes=[IsFullAdmin])
+    def seed(self, request):
+        """
+        Auto-creates default PageSeo rows for all known static pages
+        if they don't already exist. Safe to call multiple times.
+        """
+        from shop.models import PageSeo
+        PAGES = [
+            {'page_key': 'home',                    'page_label': 'Home Page',               'page_path': '/'},
+            {'page_key': 'products',                'page_label': 'Shop / All Products',      'page_path': '/products'},
+            {'page_key': 'blogs',                   'page_label': 'Blog Listing',             'page_path': '/blogs'},
+            {'page_key': 'about-us',                'page_label': 'About Us',                 'page_path': '/about-us'},
+            {'page_key': 'contact-us',              'page_label': 'Contact Us',               'page_path': '/contact-us'},
+            {'page_key': 'flash-sale',              'page_label': 'Flash Sale',               'page_path': '/flash-sale'},
+            {'page_key': 'offer',                   'page_label': 'Offers',                   'page_path': '/offer'},
+            {'page_key': 'brands',                  'page_label': 'Brands',                   'page_path': '/brands'},
+            {'page_key': 'categories',              'page_label': 'Categories',               'page_path': '/categories'},
+            {'page_key': 'shipping-policy',         'page_label': 'Shipping Policy',          'page_path': '/shipping-policy'},
+            {'page_key': 'return-policy',           'page_label': 'Return & Replacement',     'page_path': '/return-replacement-policy'},
+            {'page_key': 'privacy-policy',          'page_label': 'Privacy Policy',           'page_path': '/privacy-policy'},
+            {'page_key': 'terms-conditions',        'page_label': 'Terms & Conditions',       'page_path': '/terms-conditions'},
+        ]
+        created = []
+        for page in PAGES:
+            obj, was_created = PageSeo.objects.get_or_create(
+                page_key=page['page_key'],
+                defaults={'page_label': page['page_label'], 'page_path': page['page_path']}
+            )
+            if was_created:
+                created.append(page['page_key'])
+        return Response({'created': created, 'message': f'{len(created)} pages seeded.'})

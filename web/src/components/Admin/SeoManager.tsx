@@ -462,13 +462,250 @@ const GlobalSeoPanel = ({ siteSettings }: { siteSettings: any }) => {
     );
 };
 
+// ─── Page SEO Editor ────────────────────────────────────────────────────────
+interface PageSeoRecord {
+    id?: number;
+    page_key: string;
+    page_label: string;
+    page_path: string;
+    seo_title?: string | null;
+    seo_description?: string | null;
+    seo_keywords?: string | null;
+}
+
+const PageSeoEditor = ({ page, onSave, onClose }: {
+    page: PageSeoRecord;
+    onSave: (updated: PageSeoRecord) => void;
+    onClose: () => void;
+}) => {
+    const { settings: siteSettings } = useSettings();
+    const siteDomain = (siteSettings as any)?.site_url || 'qbamart.com';
+    const [form, setForm] = useState({
+        seo_title: page.seo_title || '',
+        seo_description: page.seo_description || '',
+        seo_keywords: page.seo_keywords || '',
+    });
+    const [saving, setSaving] = useState(false);
+    const [msg, setMsg] = useState<Message | null>(null);
+
+    const handleSave = async () => {
+        setSaving(true);
+        setMsg(null);
+        try {
+            let res;
+            if (page.id) {
+                res = await api.patch(`page-seo/${page.page_key}/`, form);
+            } else {
+                res = await api.post('page-seo/', { ...form, page_key: page.page_key, page_label: page.page_label, page_path: page.page_path });
+            }
+            onSave({ ...page, ...res.data });
+            setMsg({ type: 'success', text: 'Page SEO saved!' });
+            setTimeout(() => setMsg(null), 2500);
+        } catch {
+            setMsg({ type: 'error', text: 'Failed to save.' });
+        } finally { setSaving(false); }
+    };
+
+    const titleLen = form.seo_title.length;
+    const descLn = form.seo_description.length;
+
+    return (
+        <div className="animate-in slide-in-from-right-4 duration-300 space-y-6">
+            <div className="flex items-start justify-between gap-4">
+                <div className="flex items-center gap-3">
+                    <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-zinc-100 text-zinc-400 hover:text-zinc-900 transition-colors">
+                        <ArrowLeft size={16} />
+                    </button>
+                    <div>
+                        <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-0.5">Page SEO</p>
+                        <h3 className="text-base font-bold text-zinc-900 leading-tight">{page.page_label}</h3>
+                        <p className="text-[10px] text-zinc-400 font-medium mt-0.5">{page.page_path}</p>
+                    </div>
+                </div>
+                {msg && <MsgBanner msg={msg} onClose={() => setMsg(null)} />}
+            </div>
+
+            {/* SERP Preview */}
+            <div className="next-panel p-5 space-y-1.5 bg-white">
+                <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-3">Google Preview</p>
+                <p className="text-[13px] text-blue-600 font-medium truncate">{form.seo_title || page.page_label}</p>
+                <p className="text-[11px] text-green-700 font-medium">{siteDomain}{page.page_path}</p>
+                <p className="text-[11px] text-zinc-500 leading-relaxed line-clamp-2">
+                    {form.seo_description || 'No meta description set.'}
+                </p>
+            </div>
+
+            <div className="next-panel p-6 space-y-5">
+                <div className="space-y-1.5">
+                    <div className="flex justify-between items-center">
+                        <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">SEO Title</label>
+                        <span className={`text-[10px] font-bold ${titleLen > 60 ? 'text-rose-500' : titleLen > 50 ? 'text-amber-500' : 'text-zinc-400'}`}>{titleLen}/60</span>
+                    </div>
+                    <input type="text" value={form.seo_title}
+                        onChange={e => setForm(p => ({ ...p, seo_title: e.target.value }))}
+                        placeholder={page.page_label}
+                        className="w-full bg-zinc-50 border border-zinc-200 p-3 rounded-xl text-sm font-semibold text-zinc-900 outline-none focus:ring-2 focus:ring-brand/10 transition-all" />
+                    <p className="text-[9px] text-zinc-400">Optimal: 50–60 characters.</p>
+                </div>
+                <div className="space-y-1.5">
+                    <div className="flex justify-between items-center">
+                        <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Meta Description</label>
+                        <span className={`text-[10px] font-bold ${descLn > 160 ? 'text-rose-500' : descLn > 140 ? 'text-amber-500' : 'text-zinc-400'}`}>{descLn}/160</span>
+                    </div>
+                    <textarea rows={3} value={form.seo_description}
+                        onChange={e => setForm(p => ({ ...p, seo_description: e.target.value }))}
+                        placeholder="Write a compelling description..."
+                        className="w-full bg-zinc-50 border border-zinc-200 p-3 rounded-xl text-sm font-semibold text-zinc-900 outline-none focus:ring-2 focus:ring-brand/10 transition-all resize-none" />
+                    <p className="text-[9px] text-zinc-400">Optimal: 120–160 characters.</p>
+                </div>
+                <div className="space-y-1.5">
+                    <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Focus Keywords</label>
+                    <input type="text" value={form.seo_keywords}
+                        onChange={e => setForm(p => ({ ...p, seo_keywords: e.target.value }))}
+                        placeholder="keyword one, keyword two"
+                        className="w-full bg-zinc-50 border border-zinc-200 p-3 rounded-xl text-sm font-semibold text-zinc-900 outline-none focus:ring-2 focus:ring-brand/10 transition-all" />
+                </div>
+                <div className="pt-2 border-t border-zinc-100 space-y-2">
+                    <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest">SEO Checklist</p>
+                    {[
+                        { label: 'SEO Title set', ok: !!form.seo_title },
+                        { label: 'Title optimal (≤60)', ok: titleLen > 0 && titleLen <= 60 },
+                        { label: 'Meta description set', ok: !!form.seo_description },
+                        { label: 'Description optimal (≤160)', ok: descLn > 0 && descLn <= 160 },
+                        { label: 'Keywords set', ok: !!form.seo_keywords },
+                    ].map(({ label, ok }) => (
+                        <div key={label} className="flex items-center gap-2">
+                            <div className={`w-3.5 h-3.5 rounded-full flex items-center justify-center flex-shrink-0 ${ok ? 'bg-emerald-100 text-emerald-600' : 'bg-zinc-100 text-zinc-400'}`}>
+                                {ok ? <CheckCircle size={9} /> : <AlertCircle size={9} />}
+                            </div>
+                            <span className={`text-[10px] font-medium ${ok ? 'text-zinc-800' : 'text-zinc-400'}`}>{label}</span>
+                        </div>
+                    ))}
+                </div>
+                <div className="flex justify-end pt-2">
+                    <button onClick={handleSave} disabled={saving}
+                        className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 transition-all active:scale-95 shadow-lg shadow-indigo-500/10">
+                        {saving ? <RefreshCw size={12} className="animate-spin" /> : <Save size={12} />}
+                        {saving ? 'Saving...' : 'Save Page SEO'}
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+// ─── Pages SEO List ───────────────────────────────────────────────────────────
+const STATIC_PAGES: PageSeoRecord[] = [
+    { page_key: 'home',             page_label: 'Home Page',            page_path: '/' },
+    { page_key: 'products',         page_label: 'Shop / All Products',   page_path: '/products' },
+    { page_key: 'blogs',            page_label: 'Blog Listing',          page_path: '/blogs' },
+    { page_key: 'about-us',         page_label: 'About Us',              page_path: '/about-us' },
+    { page_key: 'contact-us',       page_label: 'Contact Us',            page_path: '/contact-us' },
+    { page_key: 'flash-sale',       page_label: 'Flash Sale',            page_path: '/flash-sale' },
+    { page_key: 'offer',            page_label: 'Offers',                page_path: '/offer' },
+    { page_key: 'brands',           page_label: 'Brands',                page_path: '/brands' },
+    { page_key: 'categories',       page_label: 'Categories',            page_path: '/categories' },
+    { page_key: 'shipping-policy',  page_label: 'Shipping Policy',       page_path: '/shipping-policy' },
+    { page_key: 'return-policy',    page_label: 'Return & Replacement',  page_path: '/return-replacement-policy' },
+    { page_key: 'privacy-policy',   page_label: 'Privacy Policy',        page_path: '/privacy-policy' },
+    { page_key: 'terms-conditions', page_label: 'Terms & Conditions',    page_path: '/terms-conditions' },
+];
+
+const PAGE_ICONS: Record<string, React.ReactNode> = {
+    home: <Globe size={15} />,
+    products: <Package size={15} />,
+    blogs: <FileText size={15} />,
+};
+
+const PagesSeoList = ({ onSelect }: { onSelect: (p: PageSeoRecord) => void }) => {
+    const [pages, setPages] = useState<PageSeoRecord[]>(STATIC_PAGES);
+    const [loading, setLoading] = useState(true);
+    const [seeding, setSeeding] = useState(false);
+
+    const load = async () => {
+        setLoading(true);
+        try {
+            const res = await api.get('page-seo/');
+            const records: PageSeoRecord[] = Array.isArray(res.data) ? res.data : (res.data.results || []);
+            // Merge DB records into static list
+            setPages(STATIC_PAGES.map(sp => {
+                const db = records.find(r => r.page_key === sp.page_key);
+                return db ? { ...sp, ...db } : sp;
+            }));
+        } catch { /* silent */ } finally { setLoading(false); }
+    };
+
+    const seed = async () => {
+        setSeeding(true);
+        try { await api.post('page-seo/seed/'); await load(); } catch { /* silent */ } finally { setSeeding(false); }
+    };
+
+    useEffect(() => { load(); }, []);
+
+    const optimized = pages.filter(p => p.seo_title || p.seo_description || p.seo_keywords);
+
+    return (
+        <div className="space-y-4">
+            <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4 text-[10px] font-bold text-zinc-400 uppercase tracking-widest px-1">
+                    <span>{pages.length} pages</span>
+                    <span className="text-emerald-600">{optimized.length} optimized</span>
+                    <span className="text-amber-600">{pages.length - optimized.length} need attention</span>
+                </div>
+                <button onClick={seed} disabled={seeding}
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-[9px] font-black uppercase tracking-widest border border-dashed border-zinc-300 rounded-lg text-zinc-500 hover:text-zinc-900 hover:border-zinc-500 transition-all">
+                    {seeding ? <RefreshCw size={10} className="animate-spin" /> : <RefreshCw size={10} />}
+                    Seed Pages
+                </button>
+            </div>
+
+            {loading ? (
+                <div className="flex items-center justify-center py-16">
+                    <div className="w-6 h-6 border-2 border-zinc-200 border-t-zinc-900 rounded-full animate-spin" />
+                </div>
+            ) : (
+                <div className="space-y-1.5">
+                    {pages.map(page => {
+                        const isOpt = !!(page.seo_title || page.seo_description || page.seo_keywords);
+                        const icon = PAGE_ICONS[page.page_key] || <Globe size={15} />;
+                        return (
+                            <button key={page.page_key} onClick={() => onSelect(page)}
+                                className="w-full flex items-center gap-4 p-3.5 rounded-xl border border-zinc-100 hover:border-brand/20 hover:bg-indigo-50/30 transition-all group text-left">
+                                <div className="w-10 h-10 rounded-lg bg-zinc-100 flex items-center justify-center flex-shrink-0 text-zinc-400">
+                                    {icon}
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                    <p className="text-[13px] font-semibold text-zinc-900 leading-tight">{page.page_label}</p>
+                                    <p className="text-[10px] text-zinc-400 font-medium mt-0.5">{page.page_path}</p>
+                                    {isOpt
+                                        ? <p className="text-[9px] font-bold text-emerald-600 mt-1 uppercase tracking-wider">✓ SEO Configured</p>
+                                        : <p className="text-[9px] font-bold text-amber-500 mt-1 uppercase tracking-wider">⚠ Needs SEO Setup</p>
+                                    }
+                                </div>
+                                <div className="flex-shrink-0">
+                                    {isOpt
+                                        ? <span className="text-[10px] font-black text-emerald-600 bg-emerald-50 px-2 py-1 rounded-lg">SET</span>
+                                        : <span className="text-[10px] font-black text-zinc-400 bg-zinc-100 px-2 py-1 rounded-lg">EMPTY</span>
+                                    }
+                                </div>
+                                <ChevronRight size={14} className="text-zinc-300 group-hover:text-brand transition-colors flex-shrink-0" />
+                            </button>
+                        );
+                    })}
+                </div>
+            )}
+        </div>
+    );
+};
+
 // ─── Main SeoManager ──────────────────────────────────────────────────────────
-type Tab = 'products' | 'blogs';
+type Tab = 'products' | 'blogs' | 'pages';
 
 const SeoManager = () => {
     const { settings: siteSettings } = useSettings();
     const [activeTab, setActiveTab] = useState<Tab>('products');
     const [selected, setSelected] = useState<{ entity: SeoEntity; type: 'product' | 'blog' } | null>(null);
+    const [selectedPage, setSelectedPage] = useState<PageSeoRecord | null>(null);
 
     const handleSaved = (updated: SeoEntity) => {
         setSelected(prev => prev ? { ...prev, entity: updated } : null);
@@ -490,8 +727,9 @@ const SeoManager = () => {
             {/* Tab bar */}
             <div className="flex items-center gap-1 bg-zinc-100 p-1 rounded-xl w-fit">
                 {([
-                    { id: 'products', label: 'Products', icon: <Package size={13} /> },
-                    { id: 'blogs', label: 'Blog Posts', icon: <FileText size={13} /> },
+                    { id: 'products', label: 'Products',   icon: <Package size={13} /> },
+                    { id: 'blogs',    label: 'Blog Posts', icon: <FileText size={13} /> },
+                    { id: 'pages',    label: 'Pages',      icon: <Globe size={13} /> },
                 ] as { id: Tab; label: string; icon: React.ReactNode }[]).map(t => (
                     <button
                         key={t.id}
@@ -505,7 +743,17 @@ const SeoManager = () => {
 
             {/* Content */}
             <div className="next-panel p-6">
-                {selected ? (
+                {activeTab === 'pages' ? (
+                    selectedPage ? (
+                        <PageSeoEditor
+                            page={selectedPage}
+                            onSave={updated => setSelectedPage(updated)}
+                            onClose={() => setSelectedPage(null)}
+                        />
+                    ) : (
+                        <PagesSeoList onSelect={p => setSelectedPage(p)} />
+                    )
+                ) : selected ? (
                     <SeoEditor
                         entity={selected.entity}
                         entityType={selected.type}

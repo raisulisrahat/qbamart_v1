@@ -9,7 +9,7 @@ from .views import (
     BlogCategoryViewSet, BlogPostViewSet, FunnelViewSet,
     ColorViewSet, SizeViewSet, TagViewSet, ProductImageViewSet, ProductVideoViewSet,
     UserViewSet, ReviewViewSet, OTPViewSet, MetaView, CustomObtainAuthToken,
-    MediaManagerView, SecurityAuditView, BkashCallbackView
+    MediaManagerView, SecurityAuditView, BkashCallbackView, PageSeoViewSet
 )
 from rest_framework.authtoken.views import obtain_auth_token
 
@@ -42,6 +42,7 @@ router.register(r'tags', TagViewSet)
 router.register(r'product-images', ProductImageViewSet)
 router.register(r'product-videos', ProductVideoViewSet)
 router.register(r'otp', OTPViewSet, basename='otp')
+router.register(r'page-seo', PageSeoViewSet, basename='page-seo')
 
 urlpatterns = [
     path('', include(router.urls)),

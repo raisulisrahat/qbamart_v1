@@ -813,3 +813,34 @@ class FunnelReviewImage(models.Model):
 
     def __str__(self):
         return f"Review image for funnel {self.funnel.slug}"
+
+
+class PageSeo(models.Model):
+    """
+    Stores custom SEO metadata for static frontend pages (Home, Shop, About Us, etc.)
+    Each page is identified by a unique page_key (e.g. 'home', 'products', 'about-us').
+    """
+    page_key = models.SlugField(
+        max_length=100, unique=True,
+        help_text="Unique identifier for the page, e.g. 'home', 'products', 'about-us'"
+    )
+    page_label = models.CharField(
+        max_length=200,
+        help_text="Human-readable page name shown in the admin, e.g. 'Home Page'"
+    )
+    page_path = models.CharField(
+        max_length=200, blank=True,
+        help_text="Frontend URL path, e.g. '/' or '/products'"
+    )
+    seo_title = models.CharField(max_length=255, blank=True, null=True)
+    seo_description = models.TextField(blank=True, null=True)
+    seo_keywords = models.CharField(max_length=500, blank=True, null=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Page SEO"
+        verbose_name_plural = "Page SEO"
+        ordering = ['page_label']
+
+    def __str__(self):
+        return f"SEO: {self.page_label} ({self.page_path})"

@@ -218,6 +218,34 @@ class IndexView(View):
         except Exception:
             return None
 
+    # ── Fetch static page SEO data ─────────────────────────
+    def _page_meta(self, request, path: str) -> dict | None:
+        try:
+            from shop.models import PageSeo, SiteSettings
+            page = PageSeo.objects.only(
+                'seo_title', 'seo_description', 'seo_keywords', 'page_label', 'page_path'
+            ).get(page_path=path)
+
+            if not (page.seo_title or page.seo_description or page.seo_keywords):
+                return None  # No custom SEO set; use HTML defaults
+
+            site = SiteSettings.objects.only('site_title').first()
+            site_title = site.site_title if site else 'Qbamart'
+
+            title = page.seo_title.strip() if page.seo_title else page.page_label
+            full_title = f'{title} | {site_title}'
+            description = (page.seo_description or '').strip()[:160]
+
+            return {
+                'title':       full_title,
+                'description': description,
+                'keywords':    page.seo_keywords or '',
+                'image':       '',  # No specific image for static pages; keeps default
+                'url':         request.build_absolute_uri(request.path),
+            }
+        except Exception:
+            return None
+
     # ── Main handler ───────────────────────────────────────
     def get(self, request, *args, **kwargs):
         html = self._get_raw_html()
@@ -234,10 +262,15 @@ class IndexView(View):
             if m:
                 meta = self._blog_meta(request, m.group('slug'))
 
+        # Static page SEO (home, /products, /about-us, etc.)
+        if meta is None:
+            meta = self._page_meta(request, path)
+
         if meta:
             html = self._inject_meta(html, meta)
 
         return HttpResponse(html, content_type='text/html; charset=utf-8')
+
 
 
 urlpatterns = [

@@ -4,7 +4,8 @@ from .models import (
     Category, Brand, Tag, Color, Size, Product, ProductImage, ProductFunnelSection, 
     Order, OrderItem, OrderNote, Banner, SiteSettings, Notice, FlashSale, FlashSaleItem,
     Review, ReviewImage, District, Upazila, Profile, Wishlist, PaymentMethod,
-    Notification, BlogCategory, BlogPost, Funnel, ProductVideo, ShippingZone, OTP, FunnelReviewImage
+    Notification, BlogCategory, BlogPost, Funnel, ProductVideo, ShippingZone, OTP, FunnelReviewImage,
+    PageSeo
 )
 from django.contrib.auth.models import User
 
@@ -851,3 +852,9 @@ class OTPSerializer(serializers.ModelSerializer):
         model = OTP
         fields = ['phone_number', 'code', 'created_at', 'expires_at']
         read_only_fields = ['code', 'created_at', 'expires_at']
+
+
+class PageSeoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PageSeo
+        fields = ['id', 'page_key', 'page_label', 'page_path', 'seo_title', 'seo_description', 'seo_keywords', 'updated_at']
