@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { Helmet } from 'react-helmet-async';
 import { useSettings } from '../context/SettingsContext';
 import { resolveImageUrl } from '../utils/image';
 
@@ -10,102 +10,67 @@ interface SEOProps {
   type?: 'website' | 'article' | 'product';
   keywords?: string;
   schema?: any; // For JSON-LD structured data
+  noIndex?: boolean; // For private/account pages
 }
 
-const SEO = ({ title, description, image, url, type = 'website', keywords, schema }: SEOProps) => {
+const SEO = ({ title, description, image, url, type = 'website', keywords, schema, noIndex = false }: SEOProps) => {
   const { siteTitle, settings } = useSettings();
 
-  useEffect(() => {
-    // 1. Title Management
-    const baseTitle = siteTitle;
-    const fullTitle = title ? `${title} | ${baseTitle}` : baseTitle;
-    document.title = fullTitle;
+  const baseTitle = siteTitle || 'Qbamart';
+  const fullTitle = title ? `${title} | ${baseTitle}` : baseTitle;
+  const metaDesc = description || settings?.meta_description || `${baseTitle} - Premium Shopping in Bangladesh`;
+  const metaKeywords = keywords || settings?.meta_keywords || `ecommerce, bangladesh, shopping, ${baseTitle}`;
+  const canonicalUrl = url || (typeof window !== 'undefined' ? window.location.href : '');
+  const ogImage = image
+    ? resolveImageUrl(image)
+    : settings?.site_logo
+    ? resolveImageUrl(settings.site_logo)
+    : '';
 
-    // 2. Meta Tags Helper
-    const updateMetaTag = (property: string, content: string, isName = false) => {
-      if (!content) return;
-      const attribute = isName ? 'name' : 'property';
-      let element = document.querySelector(`meta[${attribute}="${property}"]`);
-      
-      if (!element) {
-        element = document.createElement('meta');
-        element.setAttribute(attribute, property);
-        document.head.appendChild(element);
-      }
-      element.setAttribute('content', content);
-    };
+  // Build the JSON-LD schema
+  const finalSchema = schema || {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: baseTitle,
+    url: typeof window !== 'undefined' ? window.location.origin : 'https://qbamart.com',
+    potentialAction: {
+      '@type': 'SearchAction',
+      target: `${typeof window !== 'undefined' ? window.location.origin : 'https://qbamart.com'}/products?search={search_term_string}`,
+      'query-input': 'required name=search_term_string',
+    },
+  };
 
-    // 3. SEO Data Derivation
-    const metaDesc = description || settings?.meta_description || `${baseTitle} - Premium Shopping in Bangladesh`;
-    const metaKeywords = keywords || settings?.meta_keywords || `ecommerce, bangladesh, shopping, ${baseTitle}`;
-    const canonicalUrl = typeof window !== 'undefined' ? window.location.href : url;
-    const ogImage = image ? resolveImageUrl(image) : (settings?.site_logo ? resolveImageUrl(settings.site_logo) : '');
+  return (
+    <Helmet>
+      {/* Primary Meta */}
+      <title>{fullTitle}</title>
+      <meta name="description" content={metaDesc} />
+      <meta name="keywords" content={metaKeywords} />
+      <meta name="author" content={baseTitle} />
+      <meta name="robots" content={noIndex ? 'noindex, nofollow' : 'index, follow'} />
 
-    // 4. Update Standard Tags
-    updateMetaTag('description', metaDesc, true);
-    updateMetaTag('keywords', metaKeywords, true);
-    updateMetaTag('author', baseTitle, true);
-    updateMetaTag('robots', 'index, follow', true);
+      {/* Canonical */}
+      {canonicalUrl && <link rel="canonical" href={canonicalUrl} />}
 
-    // 5. Update Open Graph Tags
-    updateMetaTag('og:site_name', baseTitle);
-    updateMetaTag('og:title', fullTitle);
-    updateMetaTag('og:description', metaDesc);
-    updateMetaTag('og:url', canonicalUrl);
-    updateMetaTag('og:type', type);
-    if (ogImage) {
-      updateMetaTag('og:image', ogImage);
-      updateMetaTag('og:image:alt', title || baseTitle);
-    }
+      {/* Open Graph */}
+      <meta property="og:site_name" content={baseTitle} />
+      <meta property="og:title" content={fullTitle} />
+      <meta property="og:description" content={metaDesc} />
+      <meta property="og:url" content={canonicalUrl} />
+      <meta property="og:type" content={type === 'product' ? 'product' : type} />
+      {ogImage && <meta property="og:image" content={ogImage} />}
+      {ogImage && <meta property="og:image:alt" content={title || baseTitle} />}
 
-    // 6. Update Twitter Tags
-    updateMetaTag('twitter:card', 'summary_large_image', true);
-    updateMetaTag('twitter:title', fullTitle, true);
-    updateMetaTag('twitter:description', metaDesc, true);
-    if (ogImage) updateMetaTag('twitter:image', ogImage, true);
+      {/* Twitter */}
+      <meta name="twitter:card" content="summary_large_image" />
+      <meta name="twitter:title" content={fullTitle} />
+      <meta name="twitter:description" content={metaDesc} />
+      {ogImage && <meta name="twitter:image" content={ogImage} />}
 
-    // 7. Update Canonical Link
-    let canonicalLink = document.querySelector('link[rel="canonical"]');
-    if (!canonicalLink) {
-      canonicalLink = document.createElement('link');
-      canonicalLink.setAttribute('rel', 'canonical');
-      document.head.appendChild(canonicalLink);
-    }
-    canonicalLink.setAttribute('href', canonicalUrl);
-
-    // 8. JSON-LD Structured Data
-    const existingSchema = document.getElementById('json-ld-schema');
-    if (existingSchema) existingSchema.remove();
-
-    if (schema) {
-      const script = document.createElement('script');
-      script.id = 'json-ld-schema';
-      script.type = 'application/ld+json';
-      script.innerHTML = JSON.stringify(schema);
-      document.head.appendChild(script);
-    } else {
-      // Default website schema
-      const defaultSchema = {
-        "@context": "https://schema.org",
-        "@type": "WebSite",
-        "name": baseTitle,
-        "url": window.location.origin,
-        "potentialAction": {
-          "@type": "SearchAction",
-          "target": `${window.location.origin}/products?search={search_term_string}`,
-          "query-input": "required name=search_term_string"
-        }
-      };
-      const script = document.createElement('script');
-      script.id = 'json-ld-schema';
-      script.type = 'application/ld+json';
-      script.innerHTML = JSON.stringify(defaultSchema);
-      document.head.appendChild(script);
-    }
-
-  }, [title, description, image, url, type, keywords, siteTitle, settings, schema]);
-
-  return null;
+      {/* JSON-LD Structured Data */}
+      <script type="application/ld+json">{JSON.stringify(finalSchema)}</script>
+    </Helmet>
+  );
 };
 
 export default SEO;

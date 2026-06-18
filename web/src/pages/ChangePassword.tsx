@@ -4,6 +4,7 @@ import { ArrowLeft, Lock, Save, Loader2, Eye, EyeOff } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import AccountSidebar from '../components/AccountSidebar';
 import { changePassword } from '../services/api';
+import SEO from '../components/SEO';
 
 const ChangePassword = () => {
   const navigate = useNavigate();
@@ -52,6 +53,7 @@ const ChangePassword = () => {
 
   return (
     <div className="min-h-screen bg-[#F8F9FA] py-12">
+      <SEO title="Change Password" noIndex={true} />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           
