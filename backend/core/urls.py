@@ -113,6 +113,7 @@ class IndexView(View):
             'og:description': desc,
             'og:url':         url,
             'og:image':       image,
+            'og:image:alt':   title,
         }
         for prop, value in og_map.items():
             html = re.sub(
