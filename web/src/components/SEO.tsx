@@ -59,7 +59,10 @@ const SEO = ({ title, description, image, url, type = 'website', keywords, schem
       <meta property="og:url" content={canonicalUrl} />
       <meta property="og:type" content={type === 'product' ? 'product' : type} />
       {ogImage && <meta property="og:image" content={ogImage} />}
-      {ogImage && <meta property="og:image:alt" content={title || baseTitle} />}
+      {ogImage && <meta property="og:image:type" content="image/png" />}
+      {ogImage && <meta property="og:image:width" content="1200" />}
+      {ogImage && <meta property="og:image:height" content="630" />}
+      {ogImage && <meta property="og:image:alt" content={fullTitle} />}
 
       {/* Twitter */}
       <meta name="twitter:card" content="summary_large_image" />
