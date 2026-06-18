@@ -8,12 +8,6 @@ from django.http import HttpResponse
 import os
 import re
 
-
-# ─────────────────────────────────────────────
-#  Helper: build an absolute media URL
-#  Always uses MEDIA_DOMAIN (api.qbamart.com) since media
-#  files are served by the API server, not the frontend.
-# ─────────────────────────────────────────────
 def _abs_media(image_field) -> str:
     """Return an absolute URL for a model ImageField using MEDIA_DOMAIN."""
     if not image_field:
@@ -119,7 +113,6 @@ class IndexView(View):
 
         # Open Graph
         lines += [
-            f'  <meta property="og:type" content="website" />',
             f'  <meta property="og:site_name" content="Qbamart" />',
             f'  <meta property="og:title" content="{title}" />',
             f'  <meta property="og:description" content="{desc}" />',
@@ -137,7 +130,6 @@ class IndexView(View):
         # Twitter — use first image only
         primary_image = images[0] if images else ''
         lines += [
-            f'  <meta name="twitter:card" content="summary_large_image" />',
             f'  <meta name="twitter:title" content="{title}" />',
             f'  <meta name="twitter:description" content="{desc}" />',
         ]
@@ -247,6 +239,34 @@ class IndexView(View):
         except Exception:
             return None
 
+    # ── Global fallback SEO from SiteSettings ──────────────
+    def _global_meta(self, request) -> dict:
+        """
+        Always returns a meta dict using the global SiteSettings values.
+        This is the final fallback — ensures <head> is never empty.
+        These are the same values edited in SEO Manager → Global Settings.
+        """
+        try:
+            from shop.models import SiteSettings
+            site = SiteSettings.objects.only(
+                'site_title', 'meta_description', 'meta_keywords', 'site_logo'
+            ).first()
+        except Exception:
+            site = None
+
+        site_title   = (site.site_title   if site else None) or 'Qbamart'
+        description  = (site.meta_description if site else None) or f'{site_title} - Premium Shopping in Bangladesh'
+        keywords     = (site.meta_keywords    if site else None) or 'ecommerce, bangladesh, shopping'
+        logo_url     = _abs_media(site.site_logo) if (site and site.site_logo) else ''
+
+        return {
+            'title':       site_title,
+            'description': description[:160],
+            'keywords':    keywords,
+            'images':      [logo_url] if logo_url else [],
+            'url':         _frontend_url(request.path),
+        }
+
     # ── Main handler ───────────────────────────────────────
     def get(self, request, *args, **kwargs):
         html = self._get_raw_html()
@@ -267,10 +287,13 @@ class IndexView(View):
         if meta is None:
             meta = self._page_meta(request, path)
 
-        if meta:
-            html = self._inject_meta(html, meta)
+        # Global fallback — always inject something from SiteSettings
+        if meta is None:
+            meta = self._global_meta(request)
 
+        html = self._inject_meta(html, meta)
         return HttpResponse(html, content_type='text/html; charset=utf-8')
+
 
 
 urlpatterns = [

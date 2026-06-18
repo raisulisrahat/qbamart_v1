@@ -1,4 +1,5 @@
 import { Helmet } from 'react-helmet-async';
+import { useLocation } from 'react-router-dom';
 import { useSettings } from '../context/SettingsContext';
 import { resolveImageUrl } from '../utils/image';
 
@@ -9,25 +10,49 @@ interface SEOProps {
   url?: string;
   type?: 'website' | 'article' | 'product';
   keywords?: string;
-  schema?: any; // For JSON-LD structured data
-  noIndex?: boolean; // For private/account pages
+  schema?: any;
+  noIndex?: boolean;
 }
 
 const SEO = ({ title, description, image, url, type = 'website', keywords, schema, noIndex = false }: SEOProps) => {
-  const { siteTitle, settings } = useSettings();
+  const { siteTitle, settings, pageSeoList } = useSettings();
+  const location = useLocation();
 
+  // ── Look up PageSeo record for the current path ────────────
+  // Values from SEO Manager (Pages tab) take priority over hardcoded props.
+  // Product/blog pages pass explicit props so they always win.
+  const currentPath = location.pathname.replace(/\/$/, '') || '/';
+  const pageSeo = pageSeoList.find(p => {
+    const p2 = (p.page_path || '').replace(/\/$/, '') || '/';
+    return p2 === currentPath;
+  });
+
+  // Priority: pageSeo (from DB) > prop passed by page > global SiteSettings fallback
   const baseTitle = siteTitle || 'Qbamart';
-  const fullTitle = title ? `${title} | ${baseTitle}` : baseTitle;
-  const metaDesc = description || settings?.meta_description || `${baseTitle} - Premium Shopping in Bangladesh`;
-  const metaKeywords = keywords || settings?.meta_keywords || `ecommerce, bangladesh, shopping, ${baseTitle}`;
+
+  const finalTitle = pageSeo?.seo_title || title
+    ? `${pageSeo?.seo_title || title} | ${baseTitle}`
+    : baseTitle;
+
+  const finalDesc = pageSeo?.seo_description
+    || description
+    || settings?.meta_description
+    || `${baseTitle} - Premium Shopping in Bangladesh`;
+
+  const finalKeywords = pageSeo?.seo_keywords
+    || keywords
+    || settings?.meta_keywords
+    || `ecommerce, bangladesh, shopping, ${baseTitle}`;
+
   const canonicalUrl = url || (typeof window !== 'undefined' ? window.location.href : '');
+
   const ogImage = image
     ? resolveImageUrl(image)
     : settings?.site_logo
     ? resolveImageUrl(settings.site_logo)
     : '';
 
-  // Build the JSON-LD schema
+  // JSON-LD structured data
   const finalSchema = schema || {
     '@context': 'https://schema.org',
     '@type': 'WebSite',
@@ -42,10 +67,10 @@ const SEO = ({ title, description, image, url, type = 'website', keywords, schem
 
   return (
     <Helmet>
-      {/* Primary Meta */}
-      <title>{fullTitle}</title>
-      <meta name="description" content={metaDesc} />
-      <meta name="keywords" content={metaKeywords} />
+      {/* Primary */}
+      <title>{finalTitle}</title>
+      <meta name="description" content={finalDesc} />
+      <meta name="keywords" content={finalKeywords} />
       <meta name="author" content={baseTitle} />
       <meta name="robots" content={noIndex ? 'noindex, nofollow' : 'index, follow'} />
 
@@ -54,23 +79,23 @@ const SEO = ({ title, description, image, url, type = 'website', keywords, schem
 
       {/* Open Graph */}
       <meta property="og:site_name" content={baseTitle} />
-      <meta property="og:title" content={fullTitle} />
-      <meta property="og:description" content={metaDesc} />
+      <meta property="og:title" content={finalTitle} />
+      <meta property="og:description" content={finalDesc} />
       <meta property="og:url" content={canonicalUrl} />
       <meta property="og:type" content={type === 'product' ? 'product' : type} />
       {ogImage && <meta property="og:image" content={ogImage} />}
       {ogImage && <meta property="og:image:type" content="image/png" />}
       {ogImage && <meta property="og:image:width" content="1200" />}
       {ogImage && <meta property="og:image:height" content="630" />}
-      {ogImage && <meta property="og:image:alt" content={fullTitle} />}
+      {ogImage && <meta property="og:image:alt" content={finalTitle} />}
 
       {/* Twitter */}
       <meta name="twitter:card" content="summary_large_image" />
-      <meta name="twitter:title" content={fullTitle} />
-      <meta name="twitter:description" content={metaDesc} />
+      <meta name="twitter:title" content={finalTitle} />
+      <meta name="twitter:description" content={finalDesc} />
       {ogImage && <meta name="twitter:image" content={ogImage} />}
 
-      {/* JSON-LD Structured Data */}
+      {/* JSON-LD */}
       <script type="application/ld+json">{JSON.stringify(finalSchema)}</script>
     </Helmet>
   );

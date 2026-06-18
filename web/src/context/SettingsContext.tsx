@@ -1,6 +1,7 @@
 import { createContext, useContext, ReactNode, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { getSiteSettings, BASE_URL } from '../services/api';
+import api from '../services/api';
 import defaultLogo from '../assets/logo.svg';
 
 interface SiteSettings {
@@ -29,9 +30,20 @@ interface SiteSettings {
   enable_district_upazila?: boolean;
 }
 
+export interface PageSeoRecord {
+  id?: number;
+  page_key: string;
+  page_label: string;
+  page_path: string;
+  seo_title?: string | null;
+  seo_description?: string | null;
+  seo_keywords?: string | null;
+}
+
 interface SettingsContextType {
   settings: SiteSettings | null;
   isLoading: boolean;
+  pageSeoList: PageSeoRecord[];
 }
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
@@ -40,10 +52,18 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
   const { data, isLoading } = useQuery({
     queryKey: ['site-settings'],
     queryFn: () => getSiteSettings().then(res => {
-      // Handle array or single object response
       const settingsArray = res.data;
       return Array.isArray(settingsArray) ? settingsArray[0] : settingsArray;
     }),
+  });
+
+  const { data: pageSeoData } = useQuery({
+    queryKey: ['page-seo-all'],
+    queryFn: () => api.get('page-seo/').then(res => {
+      const d = res.data;
+      return (Array.isArray(d) ? d : (d?.results || [])) as PageSeoRecord[];
+    }),
+    staleTime: 5 * 60 * 1000, // cache 5 minutes
   });
 
   useEffect(() => {
@@ -65,7 +85,7 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
   }, [data]);
 
   return (
-    <SettingsContext.Provider value={{ settings: data || null, isLoading }}>
+    <SettingsContext.Provider value={{ settings: data || null, isLoading, pageSeoList: pageSeoData || [] }}>
       {children}
     </SettingsContext.Provider>
   );
@@ -85,5 +105,6 @@ export const useSettings = () => {
     siteLogo: settings?.site_logo || defaultLogo,
     footerLogo: settings?.footer_logo || settings?.site_logo || defaultLogo,
     favicon: settings?.site_favicon,
+    pageSeoList: context.pageSeoList,
   };
 };
