@@ -11,16 +11,29 @@ import re
 
 # ─────────────────────────────────────────────
 #  Helper: build an absolute media URL
+#  Always uses MEDIA_DOMAIN (api.qbamart.com) since media
+#  files are served by the API server, not the frontend.
 # ─────────────────────────────────────────────
-def _abs_media(request, image_field):
-    """Return an absolute URL for a model ImageField, or empty string."""
+def _abs_media(image_field) -> str:
+    """Return an absolute URL for a model ImageField using MEDIA_DOMAIN."""
     if not image_field:
         return ''
     try:
-        relative = image_field.url          # e.g. /media/products/foo.webp
-        return request.build_absolute_uri(relative)
+        media_domain = getattr(settings, 'MEDIA_DOMAIN', 'https://api.qbamart.com').rstrip('/')
+        relative = image_field.url  # e.g. /media/products/foo.webp
+        return f"{media_domain}{relative}"
     except Exception:
         return ''
+
+
+# ─────────────────────────────────────────────
+#  Helper: build the frontend page URL
+#  Always uses SITE_URL (qbamart.com) — NOT the API domain.
+# ─────────────────────────────────────────────
+def _frontend_url(path: str) -> str:
+    """Return an absolute frontend URL for a given path."""
+    site_url = getattr(settings, 'SITE_URL', 'https://qbamart.com').rstrip('/')
+    return f"{site_url}{path}"
 
 
 # ─────────────────────────────────────────────
@@ -43,11 +56,14 @@ class IndexView(View):
     """
     Serves the Vite-built index.html for every frontend route.
 
-    For /product/<slug> and /blog/<slug> pages it fetches SEO metadata
-    from the database and REPLACES the generic meta tags in the HTML
-    before sending the response.  This means Googlebot, Facebook OG
-    scrapers, and SEO audit tools all see the correct product/post
-    title and description on first HTTP request — without SSR.
+    For /product/<slug>, /blog/<slug>, and configured static pages,
+    it fetches SEO metadata from the database and INSERTS the meta tags
+    before </head>. index.html has NO static default meta tags.
+
+    og:url / canonical always use SITE_URL (qbamart.com).
+    og:image tags always use MEDIA_DOMAIN (api.qbamart.com).
+    Products emit multiple og:image tags (one per gallery image) for
+    Facebook/LinkedIn carousel previews.
     """
 
     _cached_html: str | None = None
@@ -76,97 +92,72 @@ class IndexView(View):
     @staticmethod
     def _inject_meta(html: str, meta: dict) -> str:
         """
-        Replace <title> and key <meta>/<link> tags inside <head>
-        with page-specific values, then return the modified HTML.
+        Insert a full SEO block directly before </head>.
+        meta dict keys:
+          title, desc, keywords, url (frontend URL), image (primary),
+          images (list of all gallery image URLs for og:image carousel)
         """
         title    = _esc(meta.get('title', ''))
         desc     = _esc(meta.get('description', ''))
-        image    = _esc(meta.get('image', ''))
         url      = _esc(meta.get('url', ''))
         keywords = _esc(meta.get('keywords', ''))
+        # images: list of absolute URLs; first is primary
+        images   = [_esc(img) for img in meta.get('images', []) if img]
+        # Fall back to legacy single 'image' key
+        if not images and meta.get('image'):
+            images = [_esc(meta['image'])]
 
-        # 1. <title>
-        html = re.sub(
-            r'<title>[^<]*</title>',
-            f'<title>{title}</title>',
-            html, count=1
-        )
-
-        # 2. Standard meta description
-        html = re.sub(
-            r'<meta\s+name=["\']description["\'][^>]*/?>',
-            f'<meta name="description" content="{desc}" />',
-            html, count=1, flags=re.IGNORECASE
-        )
-
-        # 3. Keywords
+        lines = [
+            f'  <title>{title}</title>',
+            f'  <meta name="description" content="{desc}" />',
+            f'  <meta name="robots" content="index, follow" />',
+        ]
         if keywords:
-            html = re.sub(
-                r'<meta\s+name=["\']keywords["\'][^>]*/?>',
-                f'<meta name="keywords" content="{keywords}" />',
-                html, count=1, flags=re.IGNORECASE
-            )
+            lines.append(f'  <meta name="keywords" content="{keywords}" />')
+        if url:
+            lines.append(f'  <link rel="canonical" href="{url}" />')
 
-        # 4. OG tags
-        og_map = {
-            'og:title':       title,
-            'og:description': desc,
-            'og:url':         url,
-            'og:image':       image,
-            'og:image:alt':   title,
-        }
-        for prop, value in og_map.items():
-            html = re.sub(
-                rf'<meta\s+property=["\'{re.escape(prop)}\'"][^>]*/?>',
-                f'<meta property="{prop}" content="{value}" />',
-                html, count=1, flags=re.IGNORECASE
-            )
-            # Also handle property="…" with double quotes only
-            html = re.sub(
-                rf'<meta\s+property="{re.escape(prop)}"[^>]*/?>',
-                f'<meta property="{prop}" content="{value}" />',
-                html, count=1, flags=re.IGNORECASE
-            )
+        # Open Graph
+        lines += [
+            f'  <meta property="og:type" content="website" />',
+            f'  <meta property="og:site_name" content="Qbamart" />',
+            f'  <meta property="og:title" content="{title}" />',
+            f'  <meta property="og:description" content="{desc}" />',
+            f'  <meta property="og:url" content="{url}" />',
+        ]
+        # Emit one og:image tag per gallery image (carousel support)
+        for img_url in images:
+            lines += [
+                f'  <meta property="og:image" content="{img_url}" />',
+                f'  <meta property="og:image:width" content="1200" />',
+                f'  <meta property="og:image:height" content="630" />',
+                f'  <meta property="og:image:alt" content="{title}" />',
+            ]
 
-        # 5. Twitter tags
-        tw_map = {
-            'twitter:title':       title,
-            'twitter:description': desc,
-            'twitter:image':       image,
-        }
-        for name, value in tw_map.items():
-            html = re.sub(
-                rf'<meta\s+name=["\'{re.escape(name)}\'"][^>]*/?>',
-                f'<meta name="{name}" content="{value}" />',
-                html, count=1, flags=re.IGNORECASE
-            )
-            html = re.sub(
-                rf'<meta\s+name="{re.escape(name)}"[^>]*/?>',
-                f'<meta name="{name}" content="{value}" />',
-                html, count=1, flags=re.IGNORECASE
-            )
+        # Twitter — use first image only
+        primary_image = images[0] if images else ''
+        lines += [
+            f'  <meta name="twitter:card" content="summary_large_image" />',
+            f'  <meta name="twitter:title" content="{title}" />',
+            f'  <meta name="twitter:description" content="{desc}" />',
+        ]
+        if primary_image:
+            lines.append(f'  <meta name="twitter:image" content="{primary_image}" />')
 
-        # 6. Canonical link
-        canonical_tag = f'<link rel="canonical" href="{url}" />'
-        if '<link rel="canonical"' in html:
-            html = re.sub(
-                r'<link\s+rel=["\']canonical["\'][^>]*/?>',
-                canonical_tag,
-                html, count=1, flags=re.IGNORECASE
-            )
-        else:
-            html = html.replace('</head>', f'  {canonical_tag}\n  </head>', 1)
-
-        return html
+        block = '\n'.join(lines) + '\n'
+        return html.replace('</head>', block + '</head>', 1)
 
     # ── Fetch product SEO data ─────────────────────────────
     def _product_meta(self, request, slug: str) -> dict | None:
         try:
             from shop.models import Product, SiteSettings
-            product = Product.objects.only(
-                'name', 'slug', 'seo_title', 'seo_description',
-                'seo_keywords', 'short_description', 'image'
-            ).get(slug=slug, is_active=True)
+            product = (
+                Product.objects
+                .prefetch_related('images')
+                .only('name', 'slug', 'seo_title', 'seo_description',
+                      'seo_keywords', 'short_description', 'image')
+                .get(slug=slug, is_active=True)
+            )
 
             site = SiteSettings.objects.only('site_title').first()
             site_title = site.site_title if site else 'Qbamart'
@@ -181,12 +172,21 @@ class IndexView(View):
             )
             description = raw_desc[:160].strip()
 
+            # Build image list: main image first, then gallery images
+            all_images = []
+            if product.image:
+                all_images.append(_abs_media(product.image))
+            for gallery_img in product.images.all():
+                url = _abs_media(gallery_img.image)
+                if url and url not in all_images:
+                    all_images.append(url)
+
             return {
                 'title':       full_title,
                 'description': description,
                 'keywords':    product.seo_keywords or '',
-                'image':       _abs_media(request, product.image),
-                'url':         request.build_absolute_uri(request.path),
+                'images':      all_images,
+                'url':         _frontend_url(request.path),
             }
         except Exception:
             return None
@@ -205,15 +205,16 @@ class IndexView(View):
 
             title = (post.seo_title or post.title).strip()
             full_title = f'{title} | {site_title}'
-
             description = (post.seo_description or '').strip()[:160]
+
+            images = [_abs_media(post.image)] if post.image else []
 
             return {
                 'title':       full_title,
                 'description': description,
                 'keywords':    post.seo_keywords or '',
-                'image':       _abs_media(request, post.image),
-                'url':         request.build_absolute_uri(request.path),
+                'images':      images,
+                'url':         _frontend_url(request.path),
             }
         except Exception:
             return None
@@ -227,7 +228,7 @@ class IndexView(View):
             ).get(page_path=path)
 
             if not (page.seo_title or page.seo_description or page.seo_keywords):
-                return None  # No custom SEO set; use HTML defaults
+                return None  # No custom SEO set yet
 
             site = SiteSettings.objects.only('site_title').first()
             site_title = site.site_title if site else 'Qbamart'
@@ -240,8 +241,8 @@ class IndexView(View):
                 'title':       full_title,
                 'description': description,
                 'keywords':    page.seo_keywords or '',
-                'image':       '',  # No specific image for static pages; keeps default
-                'url':         request.build_absolute_uri(request.path),
+                'images':      [],
+                'url':         _frontend_url(request.path),
             }
         except Exception:
             return None
@@ -272,7 +273,6 @@ class IndexView(View):
         return HttpResponse(html, content_type='text/html; charset=utf-8')
 
 
-
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include('shop.urls')),
@@ -286,4 +286,3 @@ urlpatterns = [
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
-
