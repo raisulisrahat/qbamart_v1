@@ -452,7 +452,12 @@ const StepFunnel = () => {
 
     return (
         <div className="bg-white min-h-screen font-sans selection:bg-brand selection:text-white">
-            <SEO title={`${product.name} - Special Offer`} description={product.short_description} image={product.image} />
+            <SEO 
+                title={product.seo_title || product.name} 
+                description={product.seo_description || product.short_description} 
+                keywords={product.seo_keywords}
+                image={product.image} 
+            />
             
             {/* Promo Top Bar */}
             <div className="bg-brand text-white py-2.5 text-center font-bold text-xs md:text-sm uppercase tracking-widest px-4">

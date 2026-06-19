@@ -66,6 +66,8 @@ class IndexView(View):
     # Patterns that trigger dynamic SEO injection
     PRODUCT_RE = re.compile(r'^/product/(?P<slug>[^/]+)/?$')
     BLOG_RE    = re.compile(r'^/blog/(?P<slug>[^/]+)/?$')
+    OFFER_RE   = re.compile(r'^/offer/(?P<slug>[^/]+)/?$')
+    STEP_RE    = re.compile(r'^/step/(?P<slug>[^/]+)/?$')
 
     # ── Static-file cache ──────────────────────────────────
     @classmethod
@@ -183,6 +185,46 @@ class IndexView(View):
         except Exception:
             return None
 
+    # ── Fetch funnel SEO data ──────────────────────────────
+    def _funnel_meta(self, request, slug: str) -> dict | None:
+        try:
+            from shop.models import Funnel, SiteSettings
+            funnel = Funnel.objects.select_related('product').get(slug=slug, is_active=True)
+            product = funnel.product
+
+            site = SiteSettings.objects.only('site_title').first()
+            site_title = site.site_title if site else 'Qbamart'
+
+            # Funnel uses its linked product's SEO data
+            title = (product.seo_title or product.name).strip()
+            full_title = f'{title} | {site_title}'
+
+            raw_desc = (
+                product.seo_description
+                or product.short_description
+                or ''
+            )
+            description = raw_desc[:160].strip()
+
+            # Build image list from product: main image first, then gallery images
+            all_images = []
+            if product.image:
+                all_images.append(_abs_media(product.image))
+            for gallery_img in product.images.all():
+                url = _abs_media(gallery_img.image)
+                if url and url not in all_images:
+                    all_images.append(url)
+
+            return {
+                'title':       full_title,
+                'description': description,
+                'keywords':    product.seo_keywords or '',
+                'images':      all_images,
+                'url':         _frontend_url(request.path),
+            }
+        except Exception:
+            return None
+
     # ── Fetch blog SEO data ────────────────────────────────
     def _blog_meta(self, request, slug: str) -> dict | None:
         try:
@@ -277,6 +319,16 @@ class IndexView(View):
         m = self.PRODUCT_RE.match(path)
         if m:
             meta = self._product_meta(request, m.group('slug'))
+
+        if meta is None:
+            m = self.OFFER_RE.match(path)
+            if m:
+                meta = self._funnel_meta(request, m.group('slug'))
+
+        if meta is None:
+            m = self.STEP_RE.match(path)
+            if m:
+                meta = self._funnel_meta(request, m.group('slug'))
 
         if meta is None:
             m = self.BLOG_RE.match(path)

@@ -767,8 +767,9 @@ const OfferPage = () => {
     return (
         <>
             <SEO 
-                title={funnelData.title} 
-                description={`Special Offer: ${funnelData.product_details.name}. Get it now at a discounted price!`}
+                title={funnelData.product_details.seo_title || funnelData.title || funnelData.product_details.name} 
+                description={funnelData.product_details.seo_description || funnelData.product_details.short_description || `Special Offer: ${funnelData.product_details.name}. Get it now at a discounted price!`}
+                keywords={funnelData.product_details.seo_keywords}
                 image={funnelData.product_details.image}
             />
             <FacebookPixel pixelId={funnelData.pixel_id} />
