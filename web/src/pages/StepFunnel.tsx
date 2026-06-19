@@ -38,6 +38,7 @@ import { resolveImageUrl } from '../utils/image';
 import SEO from '../components/SEO';
 import FacebookPixel from '../components/FacebookPixel';
 import ChatBubble from '../components/ChatBubble';
+import { pushToDataLayer } from '../utils/dataLayer';
 
 import 'swiper/css';
 import 'swiper/css/navigation';
@@ -98,9 +99,9 @@ const StepFunnel = () => {
     const hasSentBeginCheckoutRef = useRef(false);
 
     useEffect(() => {
-        if (product && !hasSentBeginCheckoutRef.current && (window as any).dataLayer) {
+        if (product && !hasSentBeginCheckoutRef.current) {
             const currentPrice = Math.floor(product.sale_price || product.regular_price);
-            (window as any).dataLayer.push({
+            pushToDataLayer({
                 event: 'begin_checkout',
                 ecommerce: {
                     value: currentPrice,
@@ -127,7 +128,21 @@ const StepFunnel = () => {
     // Initial Data Fetch
     useEffect(() => {
         getDistricts().then(res => setDistricts(res.data.results || res.data));
-        getShippingZones().then(res => setShippingZones(res.data.results || res.data));
+        getShippingZones().then(res => {
+            const zones = res.data.results || res.data;
+            setShippingZones(zones);
+            if (zones.length > 0) {
+                const defaultZone = zones.find((z: any) =>
+                    z.name.toLowerCase().includes('outside dhaka city') ||
+                    z.name.toLowerCase().includes('outside')
+                ) || zones[0];
+                if (defaultZone) {
+                    setShippingCost(parseFloat(defaultZone.shipping_cost));
+                    setSelectedZone(defaultZone);
+                    setFormData(prev => ({ ...prev, shipping_zone: defaultZone.id.toString() }));
+                }
+            }
+        });
         getSiteSettings().then(res => {
             const data = res.data.results || res.data;
             setSiteSettings(Array.isArray(data) ? data[0] : data);
@@ -136,7 +151,7 @@ const StepFunnel = () => {
 
     // Fetch Upazilas when district changes
     useEffect(() => {
-        if (formData.district) {
+        if (siteSettings?.enable_district_upazila !== false && formData.district) {
             getUpazilas(formData.district).then(res => setUpazilas(res.data.results || res.data));
             
             // Auto shipping cost for Dhaka/Outside
@@ -152,7 +167,7 @@ const StepFunnel = () => {
                 if (zone) setSelectedZone(zone);
             }
         }
-    }, [formData.district, districts, shippingZones]);
+    }, [formData.district, districts, shippingZones, siteSettings]);
 
     // Handle Input Change
     const handleChange = (e: any) => {
@@ -178,13 +193,17 @@ const StepFunnel = () => {
             const orderData = {
                 customer_name: formData.customer_name || 'Incomplete Customer',
                 phone_number: formData.phone_number,
-                address: formData.district ? `${formData.address}${formData.upazila ? `, ${upazilas.find(u => u.id == formData.upazila)?.name || formData.upazila}` : ''}${formData.district ? `, ${districts.find(d => d.id == formData.district)?.name || formData.district}` : ''}` : formData.address || 'Incomplete Address',
+                address: siteSettings?.enable_district_upazila !== false 
+                    ? `${formData.address}${formData.upazila ? `, ${upazilas.find(u => u.id == formData.upazila)?.name || formData.upazila}` : ''}${formData.district ? `, ${districts.find(d => d.id == formData.district)?.name || formData.district}` : ''}`
+                    : formData.address || 'Incomplete Address',
                 items: [{
                     product: product.id,
                     quantity: 1,
                     price: currentPrice
                 }],
-                shipping_zone: selectedZone?.id || (formData.district && districts.find(d => d.id == formData.district)?.name.toLowerCase().includes('dhaka') ? 2 : 1),
+                shipping_zone: siteSettings?.enable_district_upazila !== false
+                    ? (selectedZone?.id || (formData.district && districts.find(d => d.id == formData.district)?.name.toLowerCase().includes('dhaka') ? 2 : 1))
+                    : (formData.shipping_zone ? parseInt(formData.shipping_zone) : (shippingZones[0]?.id || 1)),
                 shipping_cost: shippingCost,
                 total_amount: finalTotal,
                 payment_method: 1
@@ -219,13 +238,17 @@ const StepFunnel = () => {
             const orderData = {
                 customer_name: formData.customer_name || 'Incomplete Customer',
                 phone_number: formData.phone_number,
-                address: formData.district ? `${formData.address}${formData.upazila ? `, ${upazilas.find(u => u.id == formData.upazila)?.name || formData.upazila}` : ''}${formData.district ? `, ${districts.find(d => d.id == formData.district)?.name || formData.district}` : ''}` : formData.address || 'Incomplete Address',
+                address: siteSettings?.enable_district_upazila !== false
+                    ? `${formData.address}${formData.upazila ? `, ${upazilas.find(u => u.id == formData.upazila)?.name || formData.upazila}` : ''}${formData.district ? `, ${districts.find(d => d.id == formData.district)?.name || formData.district}` : ''}`
+                    : formData.address || 'Incomplete Address',
                 items: [{
                     product: product.id,
                     quantity: 1,
                     price: currentPrice
                 }],
-                shipping_zone: selectedZone?.id || (formData.district && districts.find(d => d.id == formData.district)?.name.toLowerCase().includes('dhaka') ? 2 : 1),
+                shipping_zone: siteSettings?.enable_district_upazila !== false
+                    ? (selectedZone?.id || (formData.district && districts.find(d => d.id == formData.district)?.name.toLowerCase().includes('dhaka') ? 2 : 1))
+                    : (formData.shipping_zone ? parseInt(formData.shipping_zone) : (shippingZones[0]?.id || 1)),
                 shipping_cost: shippingCost,
                 total_amount: finalTotal,
                 payment_method: 1
@@ -304,13 +327,17 @@ const StepFunnel = () => {
             const orderData = {
                 customer_name: formData.customer_name,
                 phone_number: formData.phone_number,
-                address: `${formData.address}${formData.upazila ? `, ${upazilas.find(u => u.id == formData.upazila)?.name || formData.upazila}` : ''}${formData.district ? `, ${districts.find(d => d.id == formData.district)?.name || formData.district}` : ''}`,
+                address: siteSettings?.enable_district_upazila !== false
+                    ? `${formData.address}${formData.upazila ? `, ${upazilas.find(u => u.id == formData.upazila)?.name || formData.upazila}` : ''}${formData.district ? `, ${districts.find(d => d.id == formData.district)?.name || formData.district}` : ''}`
+                    : formData.address,
                 items: [{
                     product: product.id,
                     quantity: 1,
                     price: currentPrice
                 }],
-                shipping_zone: selectedZone?.id || (formData.district && districts.find(d => d.id == formData.district)?.name.toLowerCase().includes('dhaka') ? 2 : 1),
+                shipping_zone: siteSettings?.enable_district_upazila !== false
+                    ? (selectedZone?.id || (formData.district && districts.find(d => d.id == formData.district)?.name.toLowerCase().includes('dhaka') ? 2 : 1))
+                    : (formData.shipping_zone ? parseInt(formData.shipping_zone) : (shippingZones[0]?.id || 1)),
                 shipping_cost: shippingCost,
                 total_amount: finalTotal,
                 payment_method: 1
@@ -343,12 +370,11 @@ const StepFunnel = () => {
             }
 
             // Google Tag Manager dataLayer Purchase Event
-            if ((window as any).dataLayer) {
-                const finalAddress = res.data?.address || `${formData.address}${formData.upazila ? `, ${upazilas.find(u => u.id == formData.upazila)?.name || formData.upazila}` : ''}${formData.district ? `, ${districts.find(d => d.id == formData.district)?.name || formData.district}` : ''}`;
-                const finalPhone = res.data?.phone_number || formData.phone_number;
+            const finalAddress = res.data?.address || `${formData.address}${formData.upazila ? `, ${upazilas.find(u => u.id == formData.upazila)?.name || formData.upazila}` : ''}${formData.district ? `, ${districts.find(d => d.id == formData.district)?.name || formData.district}` : ''}`;
+            const finalPhone = res.data?.phone_number || formData.phone_number;
 
-                (window as any).dataLayer.push({
-                    event: 'purchase',
+            pushToDataLayer({
+                event: 'purchase',
                     customer_name: res.data?.customer_name || formData.customer_name,
                     customer_phone: finalPhone,
                     customer_address: finalAddress,
@@ -372,8 +398,7 @@ const StepFunnel = () => {
                         }]
                     }
                 });
-            }
-        } catch (err) {
+            } catch (err) {
             console.error("Order failed", err);
             alert("Failed to place order. Please check your information.");
         } finally {
@@ -553,33 +578,66 @@ const StepFunnel = () => {
                                             />
                                         </div>
 
-                                        <div className="grid grid-cols-2 gap-4">
-                                            <select
-                                                name="district"
-                                                required
-                                                className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-5 focus:border-brand outline-none transition-all font-bold text-white"
-                                                value={formData.district}
-                                                onChange={handleChange}
-                                            >
-                                                <option value="" className="bg-slate-900">{t('select_district')}</option>
-                                                {districts.map(d => (
-                                                    <option key={d.id} value={d.id} className="bg-slate-900">{d.name.split('|')[language === 'bn' ? 0 : 1] || d.name}</option>
-                                                ))}
-                                            </select>
-                                            <select
-                                                name="upazila"
-                                                required
-                                                className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-5 focus:border-brand outline-none transition-all font-bold text-white disabled:opacity-50"
-                                                value={formData.upazila}
-                                                onChange={handleChange}
-                                                disabled={!formData.district}
-                                            >
-                                                <option value="" className="bg-slate-900">{t('select_area')}</option>
-                                                {upazilas.map(u => (
-                                                    <option key={u.id} value={u.id} className="bg-slate-900">{u.name.split('|')[language === 'bn' ? 0 : 1] || u.name}</option>
-                                                ))}
-                                            </select>
-                                        </div>
+                                        {siteSettings?.enable_district_upazila !== false ? (
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <select
+                                                    name="district"
+                                                    required
+                                                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-5 focus:border-brand outline-none transition-all font-bold text-white"
+                                                    value={formData.district}
+                                                    onChange={handleChange}
+                                                >
+                                                    <option value="" className="bg-slate-900">{t('select_district')}</option>
+                                                    {districts.map(d => (
+                                                        <option key={d.id} value={d.id} className="bg-slate-900">{d.name.split('|')[language === 'bn' ? 0 : 1] || d.name}</option>
+                                                    ))}
+                                                </select>
+                                                <select
+                                                    name="upazila"
+                                                    required
+                                                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-5 focus:border-brand outline-none transition-all font-bold text-white disabled:opacity-50"
+                                                    value={formData.upazila}
+                                                    onChange={handleChange}
+                                                    disabled={!formData.district}
+                                                >
+                                                    <option value="" className="bg-slate-900">{t('select_area')}</option>
+                                                    {upazilas.map(u => (
+                                                        <option key={u.id} value={u.id} className="bg-slate-900">{u.name.split('|')[language === 'bn' ? 0 : 1] || u.name}</option>
+                                                    ))}
+                                                </select>
+                                            </div>
+                                        ) : (
+                                            <div className="relative">
+                                                <select
+                                                    name="shipping_zone"
+                                                    required
+                                                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-5 focus:border-brand outline-none transition-all font-bold text-white appearance-none"
+                                                    value={formData.shipping_zone || ''}
+                                                    onChange={(e) => {
+                                                        const val = e.target.value;
+                                                        setFormData(prev => ({ ...prev, shipping_zone: val }));
+                                                        const zone = shippingZones.find(z => z.id === parseInt(val));
+                                                        if (zone) {
+                                                            setSelectedZone(zone);
+                                                            setShippingCost(parseFloat(zone.shipping_cost));
+                                                        }
+                                                    }}
+                                                >
+                                                    <option value="" className="bg-slate-900">{language === 'bn' ? 'শিপিং এলাকা সিলেক্ট করুন' : 'Select Shipping Zone'}</option>
+                                                    {shippingZones.map(z => {
+                                                        const displayName = z.name.toLowerCase().includes('inside dhaka city')
+                                                            ? (language === 'bn' ? 'ঢাকা সিটির ভেতরে' : 'Inside Dhaka City')
+                                                            : z.name.toLowerCase().includes('outside dhaka city')
+                                                                ? (language === 'bn' ? 'ঢাকা সিটির বাইরে' : 'Outside Dhaka City')
+                                                                : z.name;
+                                                        return (
+                                                            <option key={z.id} value={z.id} className="bg-slate-900">{displayName} - ৳{parseFloat(z.shipping_cost).toLocaleString()}</option>
+                                                        );
+                                                    })}
+                                                </select>
+                                                <ChevronRight className="absolute right-5 top-1/2 -translate-y-1/2 text-white/50 pointer-events-none rotate-90" size={20} />
+                                            </div>
+                                        )}
 
                                         <textarea
                                             name="address"

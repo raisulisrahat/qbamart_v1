@@ -8,6 +8,7 @@ import { useAuth } from '../context/AuthContext';
 import { useSettings } from '../context/SettingsContext';
 import Breadcrumbs from '../components/Breadcrumbs';
 import SEO from '../components/SEO';
+import { pushToDataLayer } from '../utils/dataLayer';
 
 const Checkout = () => {
   const navigate = useNavigate();
@@ -245,7 +246,7 @@ const Checkout = () => {
 
     if (status === 'success') {
       // Google Tag Manager dataLayer Purchase Event
-      if ((window as any).dataLayer && cart.length > 0) {
+      if (cart.length > 0) {
         const orderId = searchParams.get('order_id') || `checkout_${Date.now()}`;
         const finalName = name || formData.name;
         const finalPhone = phone || formData.phone;
@@ -253,7 +254,7 @@ const Checkout = () => {
         const totalAmountVal = cartTotal + shippingCost;
         const totalQuantityVal = cart.reduce((total, item) => total + item.quantity, 0);
 
-        (window as any).dataLayer.push({
+        pushToDataLayer({
           event: 'purchase',
           customer_name: finalName,
           customer_phone: finalPhone,
@@ -484,8 +485,7 @@ const Checkout = () => {
       }
 
       // Google Tag Manager dataLayer Purchase Event
-      if ((window as any).dataLayer) {
-        (window as any).dataLayer.push({
+      pushToDataLayer({
           event: 'purchase',
           customer_name: res.data?.customer_name || formData.name,
           customer_phone: res.data?.phone_number || formData.phone,
@@ -521,7 +521,6 @@ const Checkout = () => {
             })
           }
         });
-      }
 
       setIsSuccess(true);
       clearCart();

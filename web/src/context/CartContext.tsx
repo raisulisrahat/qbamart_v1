@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { pushToDataLayer } from '../utils/dataLayer';
 
 interface CartItem {
   id: number;
@@ -66,7 +67,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }];
     });
 
-    if (typeof window !== 'undefined' && (window as any).dataLayer) {
+    if (typeof window !== 'undefined') {
       const rawPrice = product.sale_price || product.regular_price || "0";
       const cleanPrice = parseFloat(rawPrice.toString().replace(/[^0-9.]/g, '')) || 0;
       
@@ -88,7 +89,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       }
 
-      (window as any).dataLayer.push({
+      pushToDataLayer({
         event: isOrderNow ? 'order_now' : 'add_to_cart',
         ecommerce: {
           currency: 'BDT',
