@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
+import { pushToDataLayer } from '../utils/dataLayer';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { ShoppingCart, Heart, Share2, ShieldCheck, Truck, RefreshCcw, Star, ChevronLeft, ChevronRight, Zap, CheckCircle2, ZoomIn, ZoomOut, X, Play } from 'lucide-react';
@@ -198,6 +199,26 @@ const ProductDetail = () => {
             }
         }
     }, [activeImage, gallery, availableColors, selectedColor]);
+        useEffect(() => {
+        if (product) {
+            pushToDataLayer({
+                event: 'view_item',
+                ecommerce: {
+                    currency: 'BDT', // Replace with your store's currency
+                    value: product.sale_price,
+                    items: [
+                        {
+                            item_id: product.id,
+                            item_name: product.name,
+                            price: product.sale_price,
+                            item_brand: product.brand?.name,
+                            item_category: product.categories?.[0]?.name,
+                        }
+                    ]
+                }
+            });
+        }
+    }, [product]);
 
     const videoOptions = useMemo(() => {
         const activeItem = gallery[activeImage];
@@ -324,6 +345,23 @@ const ProductDetail = () => {
 
     const handleAddToCart = (isOrderNow: boolean = false) => {
         addToCart(product, quantity, selectedColor, selectedSize, isOrderNow);
+        // Push the event to GTM
+        pushToDataLayer({
+            event: 'add_to_cart',
+            ecommerce: {
+                currency: 'BDT',
+                value: product.sale_price * quantity,
+                items: [
+                    {
+                        item_id: product.id,
+                        item_name: product.name,
+                        price: product.sale_price,
+                        quantity: quantity,
+                        item_variant: selectedColor?.name || selectedSize?.name || undefined
+                    }
+                ]
+            }
+        });
     };
 
     return (

@@ -68,6 +68,15 @@ const StepFunnel = () => {
     const formRef = useRef<HTMLDivElement>(null);
     const submitBtnRef = useRef<HTMLButtonElement>(null);
 
+    const [ipAddress, setIpAddress] = useState('');
+
+    useEffect(() => {
+        fetch('https://api.ipify.org?format=json')
+            .then(res => res.json())
+            .then(data => setIpAddress(data.ip))
+            .catch(err => console.error("Error fetching IP:", err));
+    }, []);
+
     // Form State
     const [formData, setFormData] = useState({
         customer_name: '',
@@ -85,6 +94,28 @@ const StepFunnel = () => {
         queryFn: () => getProductBySlug(slug!).then(res => res.data),
         enabled: !!slug
     });
+
+    const hasSentBeginCheckoutRef = useRef(false);
+
+    useEffect(() => {
+        if (product && !hasSentBeginCheckoutRef.current && (window as any).dataLayer) {
+            const currentPrice = Math.floor(product.sale_price || product.regular_price);
+            (window as any).dataLayer.push({
+                event: 'begin_checkout',
+                ecommerce: {
+                    value: currentPrice,
+                    currency: 'BDT',
+                    items: [{
+                        item_name: product.name,
+                        item_id: product.id?.toString(),
+                        price: currentPrice.toString(),
+                        quantity: 1
+                    }]
+                }
+            });
+            hasSentBeginCheckoutRef.current = true;
+        }
+    }, [product]);
 
     const [districts, setDistricts] = useState<any[]>([]);
     const [upazilas, setUpazilas] = useState<any[]>([]);
@@ -285,7 +316,7 @@ const StepFunnel = () => {
                 payment_method: 1
             };
 
-            await createOrder(orderData);
+            const res = await createOrder(orderData);
 
             // Mark as submitted to prevent any subsequent draft saves/updates
             isOrderSubmittedRef.current = true;
@@ -313,17 +344,31 @@ const StepFunnel = () => {
 
             // Google Tag Manager dataLayer Purchase Event
             if ((window as any).dataLayer) {
+                const finalAddress = res.data?.address || `${formData.address}${formData.upazila ? `, ${upazilas.find(u => u.id == formData.upazila)?.name || formData.upazila}` : ''}${formData.district ? `, ${districts.find(d => d.id == formData.district)?.name || formData.district}` : ''}`;
+                const finalPhone = res.data?.phone_number || formData.phone_number;
+
                 (window as any).dataLayer.push({
                     event: 'purchase',
+                    customer_name: res.data?.customer_name || formData.customer_name,
+                    customer_phone: finalPhone,
+                    customer_address: finalAddress,
+                    order_id: res.data?.id || `stepfunnel_${Date.now()}`,
+                    district: formData.district,
+                    upazila: formData.upazila,
+                    shipping_cost: shippingCost,
+                    total_amount: parseFloat(res.data?.total_amount) || finalTotal,
+                    ip_address: res.data?.ip_address || ipAddress,
                     ecommerce: {
-                        transaction_id: `stepfunnel_${Date.now()}`,
-                        value: finalTotal,
+                        transaction_id: res.data?.id || `stepfunnel_${Date.now()}`,
+                        value: parseFloat(res.data?.total_amount) || finalTotal,
                         currency: 'BDT',
                         items: [{
                             item_name: product.name,
                             item_id: product.id,
                             price: currentPrice,
-                            quantity: 1
+                            quantity: 1,
+                            color: '',
+                            size: '',
                         }]
                     }
                 });
