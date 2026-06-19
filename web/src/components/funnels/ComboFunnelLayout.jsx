@@ -336,7 +336,7 @@ const ComboFunnelLayout = ({
                                             name="phone_number"
                                             required
                                             className="w-full pl-5 pr-12 py-4 bg-white border border-[#3D1625]/20 rounded-2xl focus:border-[#3D1625] focus:ring-4 focus:ring-[#3D1625]/10 text-slate-800 placeholder-slate-400 outline-none font-semibold transition-all duration-300"
-                                            placeholder="017XXXXXXXX"
+                                            placeholder="আপনার মোবাইল নাম্বার"
                                             value={formData.phone_number}
                                             onChange={handlePhoneChange}
                                         />
@@ -402,7 +402,7 @@ const ComboFunnelLayout = ({
                                         required
                                         rows="2"
                                         className="w-full pl-5 pr-12 py-4 bg-white border border-[#3D1625]/20 rounded-2xl focus:border-[#3D1625] focus:ring-4 focus:ring-[#3D1625]/10 text-slate-800 placeholder-slate-400 outline-none font-semibold transition-all duration-300 resize-none"
-                                        placeholder={t('write_full_address')}
+                                        placeholder="আপনার ঠিকানা, জেলা এবং থানাসহ বিস্তারিত লিখুন"
                                         value={formData.address}
                                         onChange={handleChange}
                                     ></textarea>
@@ -922,7 +922,7 @@ const ComboFunnelLayout = ({
                                             name="phone_number"
                                             required
                                             className="w-full pl-5 pr-12 py-4 bg-white border border-[#3D1625]/20 rounded-2xl focus:border-[#3D1625] focus:ring-4 focus:ring-[#3D1625]/10 text-slate-800 placeholder-slate-400 outline-none font-semibold transition-all duration-300"
-                                            placeholder="017XXXXXXXX"
+                                            placeholder="আপনার মোবাইল নাম্বার"
                                             value={formData.phone_number}
                                             onChange={handlePhoneChange}
                                         />
@@ -988,7 +988,7 @@ const ComboFunnelLayout = ({
                                         required
                                         rows="2"
                                         className="w-full pl-5 pr-12 py-4 bg-white border border-[#3D1625]/20 rounded-2xl focus:border-[#3D1625] focus:ring-4 focus:ring-[#3D1625]/10 text-slate-800 placeholder-slate-400 outline-none font-semibold transition-all duration-300 resize-none"
-                                        placeholder={t('write_full_address')}
+                                        placeholder="আপনার ঠিকানা, জেলা এবং থানাসহ বিস্তারিত লিখুন"
                                         value={formData.address}
                                         onChange={handleChange}
                                     ></textarea>
@@ -1097,6 +1097,9 @@ const ComboFunnelLayout = ({
                                         <span className="text-xl font-black text-[#3D1625]">{t('total_amount')}</span>
                                         <span className="text-3xl font-black text-[#3D1625]">৳{finalTotal}</span>
                                     </div>
+                                    <p className="text-sm font-medium text-slate-600 text-center mt-3 leading-relaxed">
+                                        ক্যাশ অন ডেলিভারি, কোনো প্রকার অগ্রিম পেমেন্টের প্রয়োজন নেই
+                                    </p>
                                 </div>
                             </div>
 
@@ -1118,7 +1121,7 @@ const ComboFunnelLayout = ({
             {/* Footer */}
             <div className="bg-green-900 text-white/50 py-12 text-center text-xs font-semibold border-t border-white/10">
                 <div className="container mx-auto px-4 max-w-4xl space-y-2">
-                    <p className="mb-2 font-medium text-white">© 2026 Qbamart. Developed by <a href="https://ctsolutionbd.com" target="_blank" rel="noopener noreferrer" className='text-white hover:text-slate-300 transition-colors'>Cyber and Tech Solution</a>.</p>
+                    <p className="mb-2 font-medium text-white">© 2026 Qbamart. Powered by <a href="https://ctsolutionbd.com" target="_blank" rel="noopener noreferrer" className='text-white hover:text-slate-300 transition-colors'>Cyber and Tech Solution</a>.</p>
                 </div>
             </div>
 

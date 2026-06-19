@@ -572,7 +572,7 @@ const StepFunnel = () => {
                                                 name="phone_number"
                                                 required
                                                 className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-5 focus:border-brand outline-none transition-all font-bold placeholder-white/30"
-                                                placeholder={t('phone_number')}
+                                                placeholder="আপনার মোবাইল নাম্বার"
                                                 value={formData.phone_number}
                                                 onChange={handleChange}
                                             />
@@ -644,7 +644,7 @@ const StepFunnel = () => {
                                             required
                                             rows={2}
                                             className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-5 focus:border-brand outline-none transition-all font-bold placeholder-white/30 resize-none"
-                                            placeholder={t('write_full_address')}
+                                            placeholder="আপনার ঠিকানা, জেলা এবং থানাসহ বিস্তারিত লিখুন"
                                             value={formData.address}
                                             onChange={handleChange}
                                         />
