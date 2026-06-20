@@ -128,7 +128,6 @@ class IndexView(View):
             images = [_esc(meta['image'])]
 
         lines = [
-            f'  <title>{title}</title>',
             f'  <meta name="description" content="{desc}" />',
             f'  <meta name="robots" content="index, follow" />',
         ]
