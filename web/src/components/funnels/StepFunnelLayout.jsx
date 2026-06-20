@@ -64,16 +64,21 @@ const StepFunnelLayout = ({
             ([entry]) => {
                 setShowMobileCTA(!entry.isIntersecting);
             },
-            { threshold: 0.1 }
+            { threshold: 0.05 }
         );
 
-        if (formRef.current) {
-            observer.observe(formRef.current);
-        }
+        const timeoutId = setTimeout(() => {
+            const formElement = document.getElementById('order-form');
+            if (formElement) {
+                observer.observe(formElement);
+            }
+        }, 100);
 
         return () => {
-            if (formRef.current) {
-                observer.unobserve(formRef.current);
+            clearTimeout(timeoutId);
+            const formElement = document.getElementById('order-form');
+            if (formElement) {
+                observer.unobserve(formElement);
             }
         };
     }, []);

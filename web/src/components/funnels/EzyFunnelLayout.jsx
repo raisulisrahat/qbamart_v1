@@ -123,16 +123,21 @@ const EzyFunnelLayout = ({
             ([entry]) => {
                 setShowMobileCTA(!entry.isIntersecting);
             },
-            { threshold: 0.1 }
+            { threshold: 0.05 }
         );
 
-        if (submitBtnRef.current) {
-            observer.observe(submitBtnRef.current);
-        }
+        const timeoutId = setTimeout(() => {
+            const formElement = document.getElementById('order-form');
+            if (formElement) {
+                observer.observe(formElement);
+            }
+        }, 100);
 
         return () => {
-            if (submitBtnRef.current) {
-                observer.unobserve(submitBtnRef.current);
+            clearTimeout(timeoutId);
+            const formElement = document.getElementById('order-form');
+            if (formElement) {
+                observer.unobserve(formElement);
             }
         };
     }, []);
@@ -706,7 +711,7 @@ const EzyFunnelLayout = ({
                     </div>
 
                     {/* F. High Conversion Order Form */}
-                    <div id="order-form-anchor" className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-[2rem] p-4 sm:p-10 shadow-2xl space-y-8">
+                    <div id="order-form" className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-[2rem] p-4 sm:p-10 shadow-2xl space-y-8">
                         <form onSubmit={handleFormSubmit} className="space-y-8">
                             
                             {/* Variant Selection List */}

@@ -98,16 +98,21 @@ const GardenFunnelLayout = ({
             ([entry]) => {
                 setShowMobileCTA(!entry.isIntersecting);
             },
-            { threshold: 0.1 }
+            { threshold: 0.05 }
         );
 
-        if (submitBtnRef.current) {
-            observer.observe(submitBtnRef.current);
-        }
+        const timeoutId = setTimeout(() => {
+            const formElement = document.getElementById('order-form');
+            if (formElement) {
+                observer.observe(formElement);
+            }
+        }, 100);
 
         return () => {
-            if (submitBtnRef.current) {
-                observer.unobserve(submitBtnRef.current);
+            clearTimeout(timeoutId);
+            const formElement = document.getElementById('order-form');
+            if (formElement) {
+                observer.unobserve(formElement);
             }
         };
     }, []);

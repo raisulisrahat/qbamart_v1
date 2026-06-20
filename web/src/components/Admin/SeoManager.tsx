@@ -374,7 +374,7 @@ const EntitySeoList = ({
 
 // ─── Global SEO Settings Panel ────────────────────────────────────────────────
 const GlobalSeoPanel = ({ siteSettings }: { siteSettings: any }) => {
-    const [config, setConfig] = useState({ meta_description: '', meta_keywords: '' });
+    const [config, setConfig] = useState({ meta_description: '', meta_keywords: '', facebook_app_id: '' });
     const [saving, setSaving] = useState(false);
     const [msg, setMsg] = useState<Message | null>(null);
 
@@ -383,6 +383,7 @@ const GlobalSeoPanel = ({ siteSettings }: { siteSettings: any }) => {
             setConfig({
                 meta_description: siteSettings.meta_description || '',
                 meta_keywords: siteSettings.meta_keywords || '',
+                facebook_app_id: siteSettings.facebook_app_id || '',
             });
         }
     }, [siteSettings]);
@@ -394,6 +395,7 @@ const GlobalSeoPanel = ({ siteSettings }: { siteSettings: any }) => {
             const fd = new FormData();
             fd.append('meta_description', config.meta_description);
             fd.append('meta_keywords', config.meta_keywords);
+            fd.append('facebook_app_id', config.facebook_app_id);
             await api.patch(`site-settings/${siteSettings?.id || 1}/`, fd, {
                 headers: { 'Content-Type': 'multipart/form-data' }
             });
@@ -419,17 +421,32 @@ const GlobalSeoPanel = ({ siteSettings }: { siteSettings: any }) => {
                 Fallback meta tags used on pages without specific SEO settings.
             </p>
 
-            <div className="space-y-1.5">
-                <div className="flex justify-between">
-                    <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Default Meta Keywords</label>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div className="space-y-1.5">
+                    <div className="flex justify-between">
+                        <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Default Meta Keywords</label>
+                    </div>
+                    <input
+                        type="text"
+                        value={config.meta_keywords}
+                        onChange={e => setConfig(p => ({ ...p, meta_keywords: e.target.value }))}
+                        placeholder="e.g. ecommerce, online shop, bangladesh"
+                        className="w-full bg-zinc-50 border border-zinc-200 p-3 rounded-xl text-sm font-semibold text-zinc-900 outline-none focus:ring-2 focus:ring-brand/10 transition-all"
+                    />
                 </div>
-                <input
-                    type="text"
-                    value={config.meta_keywords}
-                    onChange={e => setConfig(p => ({ ...p, meta_keywords: e.target.value }))}
-                    placeholder="e.g. ecommerce, online shop, bangladesh"
-                    className="w-full bg-zinc-50 border border-zinc-200 p-3 rounded-xl text-sm font-semibold text-zinc-900 outline-none focus:ring-2 focus:ring-brand/10 transition-all"
-                />
+
+                <div className="space-y-1.5">
+                    <div className="flex justify-between">
+                        <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Facebook App ID</label>
+                    </div>
+                    <input
+                        type="text"
+                        value={config.facebook_app_id}
+                        onChange={e => setConfig(p => ({ ...p, facebook_app_id: e.target.value }))}
+                        placeholder="e.g. 966242223397117"
+                        className="w-full bg-zinc-50 border border-zinc-200 p-3 rounded-xl text-sm font-semibold text-zinc-900 outline-none focus:ring-2 focus:ring-brand/10 transition-all"
+                    />
+                </div>
             </div>
 
             <div className="space-y-1.5">

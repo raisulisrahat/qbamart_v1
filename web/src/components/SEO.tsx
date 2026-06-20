@@ -75,19 +75,20 @@ const SEO = ({ title, description, image, url, type = 'website', keywords, schem
       <meta name="robots" content={noIndex ? 'noindex, nofollow' : 'index, follow'} />
 
       {/* Canonical */}
-      {canonicalUrl && <link rel="canonical" href={canonicalUrl} />}
+      {/* {canonicalUrl && <link rel="canonical" href={canonicalUrl} />} */}
 
       {/* Open Graph */}
       <meta property="og:site_name" content={baseTitle} />
       <meta property="og:title" content={finalTitle} />
       <meta property="og:description" content={finalDesc} />
-      <meta property="og:url" content={canonicalUrl} />
+      {/* <meta property="og:url" content={canonicalUrl} /> */}
       <meta property="og:type" content={type === 'product' ? 'product' : type} />
       {ogImage && <meta property="og:image" content={ogImage} />}
       {ogImage && <meta property="og:image:type" content="image/png" />}
       {ogImage && <meta property="og:image:width" content="1200" />}
       {ogImage && <meta property="og:image:height" content="630" />}
       {ogImage && <meta property="og:image:alt" content={finalTitle} />}
+      <meta property="fb:app_id" content={settings?.facebook_app_id} />
 
       {/* Twitter */}
       <meta name="twitter:title" content={finalTitle} />

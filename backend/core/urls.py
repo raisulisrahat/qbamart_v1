@@ -143,6 +143,19 @@ class IndexView(View):
             f'  <meta property="og:description" content="{desc}" />',
             f'  <meta property="og:url" content="{url}" />',
         ]
+        
+        try:
+            from shop.models import SiteSettings
+            site_settings = SiteSettings.objects.only('facebook_app_id').first()
+            fb_app_id = site_settings.facebook_app_id if site_settings and site_settings.facebook_app_id else ""
+        except Exception:
+            fb_app_id = ""
+            
+        if fb_app_id:
+            lines.append(f'  <meta property="fb:app_id" content="{fb_app_id}" />')
+        else:
+            lines.append(f'  <meta property="fb:app_id" content="966242223397117" />')
+            
         # Emit one og:image tag per gallery image (carousel support)
         for img_url in images:
             lines += [

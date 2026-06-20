@@ -493,7 +493,7 @@ const FunnelManager = () => {
                                                 </div>
                                             </div>
                                         </td>
-                                        <td className="px-6 py-4 hidden sm:table-cell">
+                                        <td className="px-6 py-4 sm:table-cell">
                                             <a
                                                 href={`/offer/${funnel.slug}`}
                                                 target="_blank"

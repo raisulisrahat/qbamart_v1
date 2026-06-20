@@ -1862,6 +1862,8 @@ class MetaView(View):
                         except ValueError:
                             pass
             
+            fb_app_id = site_settings.facebook_app_id if site_settings and getattr(site_settings, 'facebook_app_id', None) else ""
+            
             # Build minimal HTML shell with full OG tags
             html = f"""<!DOCTYPE html>
 <html>
@@ -1882,6 +1884,7 @@ class MetaView(View):
     <meta property="og:type" content="{'product' if 'product/' in path else 'article' if 'blog/' in path else 'website'}">
     {f'<meta property="og:video" content="{video_url}">' if video_url else ''}
     {f'<meta property="og:video:type" content="video/mp4">' if video_url else ''}
+    {f'<meta property="fb:app_id" content="{fb_app_id}">' if fb_app_id else '<meta property="fb:app_id" content="966242223397117">'}
     
     <!-- Twitter -->
     <meta name="twitter:title" content="{title}">
