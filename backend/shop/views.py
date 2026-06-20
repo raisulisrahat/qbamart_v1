@@ -1772,10 +1772,11 @@ class MetaView(View):
                 return clean.strip()
 
             # Default values from site settings
-            title = f"{site_title} | Premium Gadget & Accessories Shop"
-            description = site_settings.meta_description if site_settings and site_settings.meta_description else f"{site_title} - Premium Gadget & Accessories Shop in Bangladesh"
+            title = f"{site_title}"
+            description = site_settings.meta_description if site_settings and site_settings.meta_description else f"{site_title}"
             # Strip HTML/JSON from default description if any
             description = extract_clean_text(description)
+            keywords = site_settings.meta_keywords if site_settings and site_settings.meta_keywords else ""
             
             # Safe image URL retrieval to avoid ValueErrors on empty fields
             # Default fallback to site logo in media
@@ -1790,18 +1791,42 @@ class MetaView(View):
             frontend_url = getattr(django_settings, 'FRONTEND_URL', 'https://qbamart.com').rstrip('/')
             canonical_url = f"{frontend_url}/{path}" if path else f"{frontend_url}/"
             
+            # Check PageSeo for static paths
+            from .models import PageSeo
+            check_path = f"/{path}" if not path.startswith('/') else path
+            if check_path != '/' and check_path.endswith('/'):
+                check_path = check_path.rstrip('/')
+            page_seo = PageSeo.objects.filter(page_path=check_path).first()
+            if not page_seo and check_path != '/':
+                page_seo = PageSeo.objects.filter(page_path=check_path + '/').first()
+            if page_seo:
+                if page_seo.seo_title:
+                    title = f"{page_seo.seo_title} | {site_title}"
+                if page_seo.seo_description:
+                    description = page_seo.seo_description
+                if page_seo.seo_keywords:
+                    keywords = page_seo.seo_keywords
+            
             # Determine content type based on path
+            video_url = None
             if 'product/' in path:
                 slug = path.split('product/')[-1].split('?')[0].strip('/')
-                product = Product.objects.filter(slug=slug).first()
+                product = Product.objects.prefetch_related('videos').filter(slug=slug).first()
                 if product:
-                    title = f"{product.name} | {site_title}"
-                    raw_desc = product.short_description or product.description or ''
+                    title = f"{product.seo_title or product.name} | {site_title}"
+                    raw_desc = product.seo_description or product.short_description or product.description or ''
                     clean_desc = extract_clean_text(raw_desc)[:200]
                     description = clean_desc or description
+                    if product.seo_keywords:
+                        keywords = product.seo_keywords
                     if product.image:
                         try:
                             image = request.build_absolute_uri(product.image.url)
+                        except ValueError:
+                            pass
+                    if product.videos.exists():
+                        try:
+                            video_url = request.build_absolute_uri(product.videos.first().video.url)
                         except ValueError:
                             pass
             
@@ -1809,10 +1834,12 @@ class MetaView(View):
                 slug = path.split('blog/')[-1].split('?')[0].strip('/')
                 post = BlogPost.objects.filter(slug=slug).first()
                 if post:
-                    title = f"{post.title} | {site_title}"
-                    raw_desc = getattr(post, 'excerpt', '') or post.content or ''
+                    title = f"{post.seo_title or post.title} | {site_title}"
+                    raw_desc = post.seo_description or getattr(post, 'excerpt', '') or post.content or ''
                     clean_desc = extract_clean_text(raw_desc)[:200]
                     description = clean_desc or description
+                    if post.seo_keywords:
+                        keywords = post.seo_keywords
                     if hasattr(post, 'image') and post.image:
                         try:
                             image = request.build_absolute_uri(post.image.url)
@@ -1823,10 +1850,12 @@ class MetaView(View):
                 slug = (path.split('offer/')[-1] if 'offer/' in path else path.split('step/')[-1]).split('?')[0].strip('/')
                 funnel = Funnel.objects.filter(slug=slug).first()
                 if funnel and funnel.product:
-                    title = f"{funnel.title or funnel.product.name} | {site_title}"
-                    raw_desc = funnel.product.short_description or funnel.product.description or ''
+                    title = f"{funnel.product.seo_title or funnel.title or funnel.product.name} | {site_title}"
+                    raw_desc = funnel.product.seo_description or funnel.product.short_description or funnel.product.description or ''
                     clean_desc = extract_clean_text(raw_desc)[:200]
                     description = clean_desc or description
+                    if funnel.product.seo_keywords:
+                        keywords = funnel.product.seo_keywords
                     if funnel.product.image:
                         try:
                             image = request.build_absolute_uri(funnel.product.image.url)
@@ -1840,6 +1869,7 @@ class MetaView(View):
     <meta charset="utf-8">
     <title>{title}</title>
     <meta name="description" content="{description}">
+    <meta name="keywords" content="{keywords}">
     
     <!-- Open Graph -->
     <meta property="og:site_name" content="{site_title}">
@@ -1850,9 +1880,10 @@ class MetaView(View):
     <meta property="og:image:height" content="630">
     <meta property="og:url" content="{canonical_url}">
     <meta property="og:type" content="{'product' if 'product/' in path else 'article' if 'blog/' in path else 'website'}">
+    {f'<meta property="og:video" content="{video_url}">' if video_url else ''}
+    {f'<meta property="og:video:type" content="video/mp4">' if video_url else ''}
     
     <!-- Twitter -->
-    <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="{title}">
     <meta name="twitter:description" content="{description}">
     <meta name="twitter:image" content="{image}">

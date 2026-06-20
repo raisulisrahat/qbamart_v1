@@ -28,7 +28,7 @@ const SEO = ({ title, description, image, url, type = 'website', keywords, schem
   });
 
   // Priority: pageSeo (from DB) > prop passed by page > global SiteSettings fallback
-  const baseTitle = siteTitle || 'Qbamart';
+  const baseTitle = siteTitle;
 
   const finalTitle = pageSeo?.seo_title || title
     ? `${pageSeo?.seo_title || title} | ${baseTitle}`
@@ -90,7 +90,6 @@ const SEO = ({ title, description, image, url, type = 'website', keywords, schem
       {ogImage && <meta property="og:image:alt" content={finalTitle} />}
 
       {/* Twitter */}
-      <meta name="twitter:card" content="summary_large_image" />
       <meta name="twitter:title" content={finalTitle} />
       <meta name="twitter:description" content={finalDesc} />
       {ogImage && <meta name="twitter:image" content={ogImage} />}

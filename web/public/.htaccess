@@ -3,23 +3,32 @@ RewriteEngine On
 RewriteBase /
 
 # ------------------------------------------------------------------
-# Social Media Crawler → Django SEO Proxy
-# When Facebook/WhatsApp/Telegram etc. crawl a product or blog URL,
-# redirect them to the Django backend which renders server-side HTML
-# with the correct og:title, og:description, og:image for that page.
+# Social Media & Search Engine Crawlers → Django SEO Injection
+# ------------------------------------------------------------------
+# When Facebook, WhatsApp, Telegram, Google, etc. crawl ANY page,
+# we forward the request to the Django backend (api.qbamart.com).
+# Django's IndexView serves the React index.html with correct
+# og:title, og:description, og:image, og:url injected server-side.
+#
+# This covers ALL routes:
+#   /product/<slug>   → product SEO from DB
+#   /blog/<slug>      → blog SEO from DB
+#   /about-us, /      → static page SEO from PageSeo model
 # ------------------------------------------------------------------
 
-RewriteCond %{HTTP_USER_AGENT} (facebookexternalhit|Facebot|Twitterbot|WhatsApp|TelegramBot|Discordbot|Slackbot|LinkedInBot|googlebot|bingbot|rogerbot|DuckDuckBot|ia_archiver) [NC]
-RewriteCond %{REQUEST_URI} ^/(product|blog|offer|step)/ [NC]
+RewriteCond %{HTTP_USER_AGENT} (facebookexternalhit|Facebot|Twitterbot|WhatsApp|TelegramBot|Discordbot|Slackbot|LinkedInBot|googlebot|bingbot|rogerbot|DuckDuckBot|ia_archiver|MetaInspector|crawler|spider|bot) [NC]
+RewriteCond %{REQUEST_URI} ^/(product|blog|offer)/ [NC]
 RewriteRule ^(.*)$ https://api.qbamart.com/api/seo-proxy/?path=/$1 [L,R=302]
 
 # ------------------------------------------------------------------
 # Redirect sitemap.xml to Django backend dynamic sitemap
 # ------------------------------------------------------------------
 RewriteRule ^sitemap\.xml$ https://api.qbamart.com/sitemap.xml [L,R=302]
+RewriteRule ^sitemap\.xsl$ https://api.qbamart.com/sitemap.xsl [L,R=302]
 
 # ------------------------------------------------------------------
 # React SPA fallback — serve index.html for all other routes
+# (Regular users get the static React build served directly)
 # ------------------------------------------------------------------
 RewriteRule ^index\.html$ - [L]
 RewriteCond %{REQUEST_FILENAME} !-f
@@ -27,8 +36,10 @@ RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule . /index.html [L]
 
 
+# ------------------------------------------------------------------
+# Compression
+# ------------------------------------------------------------------
 <IfModule mod_deflate.c>
-    # Compress HTML, CSS, JavaScript, Text, XML and fonts
     AddOutputFilterByType DEFLATE application/javascript
     AddOutputFilterByType DEFLATE application/json
     AddOutputFilterByType DEFLATE application/x-javascript
@@ -45,47 +56,47 @@ RewriteRule . /index.html [L]
 # ------------------------------------------------------------------
 <IfModule mod_expires.c>
     ExpiresActive On
-    
-    # Default expiry time (1 month)
+
+    # Default expiry (1 month)
     ExpiresDefault "access plus 1 month"
-    
-    # CSS & JavaScript (Vite fingerprinted files are cached for 1 year)
-    ExpiresByType text/css "access plus 1 year"
-    ExpiresByType application/javascript "access plus 1 year"
+
+    # CSS & JavaScript (Vite fingerprinted — safe to cache 1 year)
+    ExpiresByType text/css                  "access plus 1 year"
+    ExpiresByType application/javascript    "access plus 1 year"
     ExpiresByType application/x-javascript "access plus 1 year"
-    ExpiresByType text/javascript "access plus 1 year"
-    
-    # HTML (Never cache index.html to ensure clients get updates immediately)
+    ExpiresByType text/javascript           "access plus 1 year"
+
+    # HTML — never cache; always fetch fresh index.html
     ExpiresByType text/html "access plus 0 seconds"
-    
+
     # Images & Favicon
-    ExpiresByType image/gif "access plus 1 month"
-    ExpiresByType image/png "access plus 1 month"
-    ExpiresByType image/jpeg "access plus 1 month"
-    ExpiresByType image/webp "access plus 1 month"
+    ExpiresByType image/gif    "access plus 1 month"
+    ExpiresByType image/png    "access plus 1 month"
+    ExpiresByType image/jpeg   "access plus 1 month"
+    ExpiresByType image/webp   "access plus 1 month"
     ExpiresByType image/x-icon "access plus 1 month"
     ExpiresByType image/svg+xml "access plus 1 month"
-    
+
     # Fonts
-    ExpiresByType font/opentype "access plus 1 year"
-    ExpiresByType font/truetype "access plus 1 year"
-    ExpiresByType font/woff "access plus 1 year"
-    ExpiresByType font/woff2 "access plus 1 year"
-    ExpiresByType application/vnd.ms-fontobject "access plus 1 year"
+    ExpiresByType font/opentype                      "access plus 1 year"
+    ExpiresByType font/truetype                      "access plus 1 year"
+    ExpiresByType font/woff                          "access plus 1 year"
+    ExpiresByType font/woff2                         "access plus 1 year"
+    ExpiresByType application/vnd.ms-fontobject      "access plus 1 year"
 </IfModule>
 
 <IfModule mod_headers.c>
-    # Cache Vite fingerprinted assets for 1 year with immutable tag
+    # Cache Vite fingerprinted assets for 1 year (immutable = never re-validate)
     <FilesMatch "\.(js|css|woff2?|eot|ttf|otf)$">
         Header set Cache-Control "public, max-age=31536000, immutable"
     </FilesMatch>
-    
-    # Cache other images and media files for 1 month
+
+    # Images & media — 1 month with revalidation
     <FilesMatch "\.(ico|png|jpg|jpeg|webp|gif|svg)$">
         Header set Cache-Control "public, max-age=2592000, must-revalidate"
     </FilesMatch>
 
-    # Make sure HTML is never cached
+    # HTML — never cache
     <FilesMatch "\.html$">
         Header set Cache-Control "no-store, no-cache, must-revalidate, max-age=0"
     </FilesMatch>

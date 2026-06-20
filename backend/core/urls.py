@@ -75,14 +75,38 @@ class IndexView(View):
         index_path = os.path.join(settings.FRONTEND_DIST_DIR, 'index.html')
         try:
             mtime = os.path.getmtime(index_path)
+            if cls._cached_mtime != mtime:
+                with open(index_path, 'r', encoding='utf-8') as f:
+                    cls._cached_html = f.read()
+                cls._cached_mtime = mtime
+            return cls._cached_html  # type: ignore[return-value]
         except FileNotFoundError:
-            return '<html><body><p>Frontend not built. Run <code>npm run build</code>.</p></body></html>'
+            pass
 
-        if cls._cached_mtime != mtime:
-            with open(index_path, 'r', encoding='utf-8') as f:
-                cls._cached_html = f.read()
-            cls._cached_mtime = mtime
-        return cls._cached_html  # type: ignore[return-value]
+        # If not found locally, fetch it from the live site (cPanel separation fallback)
+        import urllib.request
+        import time
+
+        current_time = time.time()
+        # Cache the fetched HTML for 5 minutes (300 seconds)
+        if cls._cached_html and cls._cached_mtime and (current_time - cls._cached_mtime < 300):
+            return cls._cached_html
+
+        site_url = getattr(settings, 'SITE_URL', 'https://qbamart.com').rstrip('/')
+        index_url = f"{site_url}/index.html"
+        
+        try:
+            # Use a custom user agent to avoid bot rewrite loops in .htaccess
+            req = urllib.request.Request(
+                index_url,
+                headers={'User-Agent': 'Qbamart-Internal-Fetcher'}
+            )
+            with urllib.request.urlopen(req, timeout=5) as response:
+                cls._cached_html = response.read().decode('utf-8')
+                cls._cached_mtime = current_time
+                return cls._cached_html
+        except Exception as e:
+            return f'<html><head></head><body><p>Frontend not found locally, and fetch failed: {e}</p></body></html>'
 
     # ── Inject meta tags into HTML string ─────────────────
     @staticmethod
