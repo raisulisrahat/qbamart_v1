@@ -1,5 +1,4 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { pushToDataLayer } from '../utils/dataLayer';
 
 interface CartItem {
   id: number;
@@ -39,26 +38,57 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [cart]);
 
   const addToCart = (product: any, quantity: number = 1, color?: any, size?: any, isOrderNow: boolean = false) => {
+    const rawPrice = product.sale_price || product.regular_price || "0";
+    const cleanPrice = rawPrice.toString().replace(/[^0-9.]/g, '');
+    const priceNum = parseFloat(cleanPrice) || 0;
+
+    if ((window as any).dataLayer) {
+      (window as any).dataLayer.push({
+        event: isOrderNow ? "order_now" : "add_to_cart",
+        ecommerce: {
+          currency: "BDT",
+          value: priceNum * quantity,
+          items: [{
+            item_id: product.id?.toString(),
+            item_name: product.name,
+            price: cleanPrice,
+            quantity: quantity,
+            item_color: color?.name || undefined,
+            item_size: size?.name || undefined
+          }]
+        }
+      });
+    }
+
     setCart(prev => {
       const cartKey = `${product.slug}-${color?.id || 'none'}-${size?.id || 'none'}`;
       const existing = prev.find(item => item.cartKey === cartKey);
       const stockLimit = product.stock !== undefined ? product.stock : 999999;
-      
+
+      let itemImage = product.image;
+      if (color && product.images && product.images.length > 0) {
+        const variantImageObj = product.images.find((img: any) => 
+          img.color === color.id || img.color_details?.id === color.id
+        );
+        if (variantImageObj && variantImageObj.image) {
+          itemImage = variantImageObj.image;
+        }
+      }
+
       if (existing) {
         return prev.map(item => 
-          item.cartKey === cartKey ? { ...item, quantity: Math.min(item.quantity + quantity, stockLimit) } : item
+          item.cartKey === cartKey ? { ...item, quantity: Math.min(item.quantity + quantity, stockLimit), image: itemImage } : item
         );
       }
       
       const rawPrice = product.sale_price || product.regular_price || "0";
-      const cleanPrice = rawPrice.toString().replace(/[^0-9.]/g, '');
 
       return [...prev, {
         id: product.id,
         name: product.name,
         slug: product.slug,
         price: cleanPrice,
-        image: product.image,
+        image: itemImage,
         quantity: Math.min(quantity, stockLimit),
         color,
         size,
@@ -66,38 +96,6 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         stock: product.stock
       }];
     });
-
-    if (typeof window !== 'undefined') {
-      const rawPrice = product.sale_price || product.regular_price || "0";
-      const cleanPrice = parseFloat(rawPrice.toString().replace(/[^0-9.]/g, '')) || 0;
-      
-      const itemData: any = {
-        item_name: product.name,
-        item_id: product.id,
-        price: cleanPrice,
-        quantity: quantity
-      };
-
-      if (color) {
-        itemData.item_variant = color.name;
-      }
-      if (size) {
-        if (itemData.item_variant) {
-          itemData.item_variant += ` / ${size.name}`;
-        } else {
-          itemData.item_variant = size.name;
-        }
-      }
-
-      pushToDataLayer({
-        event: isOrderNow ? 'order_now' : 'add_to_cart',
-        ecommerce: {
-          currency: 'BDT',
-          value: cleanPrice * quantity,
-          items: [itemData]
-        }
-      });
-    }
   };
 
   const removeFromCart = (cartKey: string) => {

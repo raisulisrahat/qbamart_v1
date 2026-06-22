@@ -559,10 +559,7 @@ const Home = () => {
                 </button>
               </div>
 
-              <Link to="/blogs" className="text-brand font-bold text-sm flex items-center space-x-1 group">
-                <span>View All Articles</span>
-                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-              </Link>
+
             </div>
           </div>
 
@@ -584,8 +581,13 @@ const Home = () => {
                 >
                   <BlogCard post={post} />
                 </div>
-              ))}
+              ))}              
             </div>
+          </div>
+          <div className="flex justify-center pt-4">
+            <Link to="/blogs" className="inline-flex items-center space-x-2 text-brand font-bold text-sm transition-all">
+              <span>View All Articles</span>
+            </Link>
           </div>
         </section>
       )}

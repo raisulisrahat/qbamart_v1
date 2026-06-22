@@ -4,7 +4,7 @@ import { useSettings } from '../../context/SettingsContext';
 import {
     Search, Save, RefreshCw, AlertCircle, CheckCircle, Globe,
     Package, FileText, ChevronRight, X, Tag, Edit3,
-    ArrowLeft, BarChart2, ExternalLink
+    ArrowLeft, BarChart2, ExternalLink, Sparkles
 } from 'lucide-react';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -69,7 +69,7 @@ const SeoEditor = ({
     entity, entityType, onSave, onClose
 }: {
     entity: SeoEntity;
-    entityType: 'product' | 'blog';
+    entityType: 'product' | 'blog' | 'category' | 'brand';
     onSave: (updated: SeoEntity) => void;
     onClose: () => void;
 }) => {
@@ -82,12 +82,31 @@ const SeoEditor = ({
         seo_keywords: entity.seo_keywords || '',
     });
     const [saving, setSaving] = useState(false);
+    const [isGenerating, setIsGenerating] = useState(false);
     const [msg, setMsg] = useState<Message | null>(null);
 
-    // ProductViewSet uses lookup_field='slug', BlogPostViewSet uses lookup_field='slug' too
     const endpoint = entityType === 'product'
         ? `products/${entity.slug}/`
-        : `blog-posts/${entity.slug}/`;
+        : entityType === 'blog'
+        ? `blog-posts/${entity.slug}/`
+        : entityType === 'category'
+        ? `categories/${entity.slug}/`
+        : `brands/${entity.slug}/`;
+
+    const handleAutoGenerate = () => {
+        setIsGenerating(true);
+        setTimeout(() => {
+            const title = displayName;
+            setForm({
+                seo_title: `${title} - Buy Online at Best Price`,
+                seo_description: `Get the best deals on ${title}. Shop now and enjoy fast shipping and excellent customer service.`,
+                seo_keywords: `${title.toLowerCase()}, buy online, best price`
+            });
+            setIsGenerating(false);
+            setMsg({ type: 'success', text: 'Suggestions generated!' });
+            setTimeout(() => setMsg(null), 2500);
+        }, 800);
+    };
 
     const handleSave = async () => {
         setSaving(true);
@@ -121,11 +140,11 @@ const SeoEditor = ({
                     </button>
                     <div>
                         <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-0.5">
-                            {entityType === 'product' ? 'Product SEO' : 'Blog Post SEO'}
+                            {entityType === 'product' ? 'Product SEO' : entityType === 'blog' ? 'Blog Post SEO' : entityType === 'category' ? 'Category SEO' : 'Brand SEO'}
                         </p>
                         <h3 className="text-base font-bold text-zinc-900 leading-tight">{displayName}</h3>
                         {entity.slug && (
-                            <a href={entityType === 'product' ? `/product/${entity.slug}` : `/blog/${entity.slug}`}
+                            <a href={entityType === 'product' ? `/product/${entity.slug}` : entityType === 'blog' ? `/blog/${entity.slug}` : entityType === 'category' ? `/products?category=${entity.slug}` : `/products?brand=${entity.slug}`}
                                 target="_blank" rel="noopener noreferrer"
                                 className="flex items-center gap-1 text-[10px] text-zinc-400 hover:text-brand transition-colors mt-0.5">
                                 <ExternalLink size={10} />/{entity.slug}
@@ -133,7 +152,17 @@ const SeoEditor = ({
                         )}
                     </div>
                 </div>
-                {msg && <MsgBanner msg={msg} onClose={() => setMsg(null)} />}
+                <div className="flex items-center gap-3">
+                    <button
+                        onClick={handleAutoGenerate}
+                        disabled={isGenerating}
+                        className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 text-indigo-600 rounded-lg text-[10px] font-bold uppercase tracking-widest hover:bg-indigo-100 transition-all border border-indigo-100 disabled:opacity-50"
+                    >
+                        {isGenerating ? <RefreshCw size={12} className="animate-spin" /> : <Sparkles size={12} />}
+                        Auto Generate
+                    </button>
+                    {msg && <MsgBanner msg={msg} onClose={() => setMsg(null)} />}
+                </div>
             </div>
 
             {/* SERP Preview */}
@@ -143,7 +172,7 @@ const SeoEditor = ({
                     {form.seo_title || displayName}
                 </p>
                 <p className="text-[11px] text-green-700 font-medium">
-                    {`qbamart.com/${entityType === 'product' ? 'product' : 'blog'}/${entity.slug || ''}`}
+                    {`qbamart.com/${entityType === 'product' ? 'product/' : entityType === 'blog' ? 'blog/' : entityType === 'category' ? 'products?category=' : 'products?brand='}${entity.slug || ''}`}
                 </p>
                 <p className="text-[11px] text-zinc-500 leading-relaxed line-clamp-2">
                     {form.seo_description || 'No meta description set. Search engines will use page content instead.'}
@@ -240,7 +269,7 @@ const SeoEditor = ({
 const EntitySeoList = ({
     entityType, onSelect
 }: {
-    entityType: 'product' | 'blog';
+    entityType: 'product' | 'blog' | 'category' | 'brand';
     onSelect: (e: SeoEntity) => void;
 }) => {
     const [items, setItems] = useState<SeoEntity[]>([]);
@@ -249,8 +278,8 @@ const EntitySeoList = ({
     const [page, setPage] = useState(1);
     const [hasMore, setHasMore] = useState(false);
 
-    const endpoint = entityType === 'product' ? 'products/' : 'blog-posts/';
-    const nameKey = entityType === 'product' ? 'name' : 'title';
+    const endpoint = entityType === 'product' ? 'products/' : entityType === 'blog' ? 'blog-posts/' : entityType === 'category' ? 'categories/' : 'brands/';
+    const nameKey = entityType === 'blog' ? 'title' : 'name';
 
     const load = useCallback(async (q: string, pg: number) => {
         setLoading(true);
@@ -287,14 +316,14 @@ const EntitySeoList = ({
                     type="text"
                     value={query}
                     onChange={e => setQuery(e.target.value)}
-                    placeholder={`Search ${entityType === 'product' ? 'products' : 'blog posts'}...`}
+                    placeholder={`Search ${entityType}s...`}
                     className="w-full pl-9 pr-4 py-2.5 bg-zinc-50 border border-zinc-200 rounded-xl text-sm font-medium text-zinc-900 outline-none focus:ring-2 focus:ring-brand/10 transition-all"
                 />
             </div>
 
             {/* Stats bar */}
             <div className="flex items-center gap-4 text-[10px] font-bold text-zinc-400 uppercase tracking-widest px-1">
-                <span>{items.length} {entityType === 'product' ? 'products' : 'posts'}</span>
+                <span>{items.length} {entityType}s</span>
                 <span className="text-emerald-600">{items.filter(seoStatus).length} optimized</span>
                 <span className="text-amber-600">{items.filter(i => !seoStatus(i)).length} need attention</span>
             </div>
@@ -307,7 +336,7 @@ const EntitySeoList = ({
                     </div>
                 ) : filtered.length === 0 ? (
                     <div className="text-center py-16 text-zinc-400 text-sm font-medium">
-                        No {entityType === 'product' ? 'products' : 'posts'} found.
+                        No {entityType}s found.
                     </div>
                 ) : filtered.map(item => {
                     const isOptimized = seoStatus(item);
@@ -323,7 +352,7 @@ const EntitySeoList = ({
                                 {imgSrc
                                     ? <img src={imgSrc} alt="" className="w-full h-full object-cover" />
                                     : <div className="w-full h-full flex items-center justify-center text-zinc-300">
-                                        {entityType === 'product' ? <Package size={16} /> : <FileText size={16} />}
+                                        {entityType === 'product' ? <Package size={16} /> : entityType === 'blog' ? <FileText size={16} /> : <Tag size={16} />}
                                     </div>
                                 }
                             </div>
@@ -503,7 +532,23 @@ const PageSeoEditor = ({ page, onSave, onClose }: {
         seo_keywords: page.seo_keywords || '',
     });
     const [saving, setSaving] = useState(false);
+    const [isGenerating, setIsGenerating] = useState(false);
     const [msg, setMsg] = useState<Message | null>(null);
+
+    const handleAutoGenerate = () => {
+        setIsGenerating(true);
+        setTimeout(() => {
+            const title = page.page_label;
+            setForm({
+                seo_title: `${title} - Official Store`,
+                seo_description: `Discover the best ${title} at our store. Shop now for exclusive deals and offers.`,
+                seo_keywords: `${title.toLowerCase()}, shop online, exclusive deals`
+            });
+            setIsGenerating(false);
+            setMsg({ type: 'success', text: 'Suggestions generated!' });
+            setTimeout(() => setMsg(null), 2500);
+        }, 800);
+    };
 
     const handleSave = async () => {
         setSaving(true);
@@ -539,7 +584,17 @@ const PageSeoEditor = ({ page, onSave, onClose }: {
                         <p className="text-[10px] text-zinc-400 font-medium mt-0.5">{page.page_path}</p>
                     </div>
                 </div>
-                {msg && <MsgBanner msg={msg} onClose={() => setMsg(null)} />}
+                <div className="flex items-center gap-3">
+                    <button
+                        onClick={handleAutoGenerate}
+                        disabled={isGenerating}
+                        className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 text-indigo-600 rounded-lg text-[10px] font-bold uppercase tracking-widest hover:bg-indigo-100 transition-all border border-indigo-100 disabled:opacity-50"
+                    >
+                        {isGenerating ? <RefreshCw size={12} className="animate-spin" /> : <Sparkles size={12} />}
+                        Auto Generate
+                    </button>
+                    {msg && <MsgBanner msg={msg} onClose={() => setMsg(null)} />}
+                </div>
             </div>
 
             {/* SERP Preview */}
@@ -716,12 +771,12 @@ const PagesSeoList = ({ onSelect }: { onSelect: (p: PageSeoRecord) => void }) =>
 };
 
 // ─── Main SeoManager ──────────────────────────────────────────────────────────
-type Tab = 'products' | 'blogs' | 'pages';
+type Tab = 'products' | 'blogs' | 'categories' | 'brands' | 'pages';
 
 const SeoManager = () => {
     const { settings: siteSettings } = useSettings();
     const [activeTab, setActiveTab] = useState<Tab>('products');
-    const [selected, setSelected] = useState<{ entity: SeoEntity; type: 'product' | 'blog' } | null>(null);
+    const [selected, setSelected] = useState<{ entity: SeoEntity; type: 'product' | 'blog' | 'category' | 'brand' } | null>(null);
     const [selectedPage, setSelectedPage] = useState<PageSeoRecord | null>(null);
 
     const handleSaved = (updated: SeoEntity) => {
@@ -745,6 +800,8 @@ const SeoManager = () => {
             <div className="flex items-center gap-1 bg-zinc-100 p-1 rounded-xl w-fit">
                 {([
                     { id: 'products', label: 'Products',   icon: <Package size={13} /> },
+                    { id: 'categories', label: 'Categories', icon: <Tag size={13} /> },
+                    { id: 'brands', label: 'Brands', icon: <Sparkles size={13} /> },
                     { id: 'blogs',    label: 'Blog Posts', icon: <FileText size={13} /> },
                     { id: 'pages',    label: 'Pages',      icon: <Globe size={13} /> },
                 ] as { id: Tab; label: string; icon: React.ReactNode }[]).map(t => (
@@ -780,8 +837,8 @@ const SeoManager = () => {
                 ) : (
                     <EntitySeoList
                         key={activeTab}
-                        entityType={activeTab === 'products' ? 'product' : 'blog'}
-                        onSelect={e => setSelected({ entity: e, type: activeTab === 'products' ? 'product' : 'blog' })}
+                        entityType={activeTab === 'products' ? 'product' : activeTab === 'blogs' ? 'blog' : activeTab === 'categories' ? 'category' : 'brand'}
+                        onSelect={e => setSelected({ entity: e, type: activeTab === 'products' ? 'product' : activeTab === 'blogs' ? 'blog' : activeTab === 'categories' ? 'category' : 'brand' })}
                     />
                 )}
             </div>

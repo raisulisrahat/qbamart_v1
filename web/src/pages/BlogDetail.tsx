@@ -174,7 +174,7 @@ const BlogDetail = () => {
             </div>
             <div className="flex flex-col">
               <span className="text-[8px] font-black text-zinc-400 uppercase tracking-widest leading-none mb-1">Published by</span>
-              <span className="text-xs font-black text-zinc-900 leading-none">{siteTitle} Editorial</span>
+              <span className="text-xs font-black text-zinc-900 leading-none">{siteTitle}</span>
             </div>
           </div>
         </div>
