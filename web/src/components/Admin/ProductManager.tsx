@@ -282,6 +282,7 @@ const ProductManager = ({ resetKey }) => {
                                 <th className="px-6 py-4">Product</th>
                                 <th className="px-6 py-4">Pricing</th>
                                 <th className="px-6 py-4 text-center hidden sm:table-cell">Stock</th>
+                                <th className="px-6 py-4 text-center hidden md:table-cell">Sales</th>
                                 <th className="px-6 py-4 hidden md:table-cell">Status</th>
                                 <th className="px-6 py-4 text-right">Actions</th>
                             </tr>
@@ -289,13 +290,13 @@ const ProductManager = ({ resetKey }) => {
                         <tbody className="divide-y divide-zinc-100">
                             {loading ? (
                                 <tr>
-                                    <td colSpan={6} className="px-6 py-12 text-center">
+                                    <td colSpan={7} className="px-6 py-12 text-center">
                                         <div className="w-6 h-6 border-2 border-zinc-200 border-t-zinc-900 rounded-full animate-spin mx-auto"></div>
                                     </td>
                                 </tr>
                             ) : products.length === 0 ? (
                                 <tr>
-                                    <td colSpan={6} className="px-6 py-12 text-center">
+                                    <td colSpan={7} className="px-6 py-12 text-center">
                                         <div className="flex flex-col items-center gap-2 opacity-40">
                                             <Package size={24} />
                                             <p className="text-xs font-bold uppercase tracking-widest">No products found</p>
@@ -337,6 +338,11 @@ const ProductManager = ({ resetKey }) => {
                                         <td className="px-6 py-4 text-center hidden sm:table-cell">
                                             <span className={`inline-flex px-2 py-0.5 rounded-md text-[10px] font-bold border ${product.stock > 10 ? 'bg-zinc-50 text-zinc-600 border-zinc-200' : 'bg-rose-50 text-rose-700 border-rose-200'}`}>
                                                 {product.stock}
+                                            </span>
+                                        </td>
+                                        <td className="px-6 py-4 text-center hidden md:table-cell">
+                                            <span className="inline-flex px-2.5 py-1 rounded-md text-xs font-black bg-brand/5 text-brand border border-brand/10">
+                                                {product.successful_sales_count || 0}
                                             </span>
                                         </td>
                                         <td className="px-6 py-4 hidden md:table-cell">

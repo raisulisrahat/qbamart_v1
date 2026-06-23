@@ -193,7 +193,7 @@ class IndexView(View):
             site_title = site.site_title if site else 'Qbamart'
 
             title = (product.seo_title or product.name).strip()
-            full_title = f'{title} | {site_title}'
+            full_title = f'{title}'
 
             raw_desc = (
                 product.seo_description
@@ -233,7 +233,7 @@ class IndexView(View):
 
             # Funnel uses its linked product's SEO data
             title = (product.seo_title or product.name).strip()
-            full_title = f'{title} | {site_title}'
+            full_title = f'{title} '
 
             raw_desc = (
                 product.seo_description
@@ -274,7 +274,7 @@ class IndexView(View):
             site_title = site.site_title if site else 'Qbamart'
 
             title = (post.seo_title or post.title).strip()
-            full_title = f'{title} | {site_title}'
+            full_title = f'{title} '
             description = (post.seo_description or '').strip()[:160]
 
             images = [_abs_media(post.image)] if post.image else []
@@ -304,7 +304,7 @@ class IndexView(View):
             site_title = site.site_title if site else 'Qbamart'
 
             title = page.seo_title.strip() if page.seo_title else page.page_label
-            full_title = f'{title} | {site_title}'
+            full_title = f'{title} '
             description = (page.seo_description or '').strip()[:160]
 
             return {

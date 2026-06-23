@@ -157,6 +157,7 @@ class ProductSerializer(serializers.ModelSerializer):
     funnel_sections = ProductFunnelSectionSerializer(many=True, read_only=True)
     reviews = serializers.SerializerMethodField()
     thumbnail = serializers.SerializerMethodField()
+    successful_sales_count = serializers.SerializerMethodField()
     
     description_html = serializers.SerializerMethodField()
     short_description_html = serializers.SerializerMethodField()
@@ -215,6 +216,14 @@ class ProductSerializer(serializers.ModelSerializer):
 
     def get_thumbnail(self, obj):
         return obj.image.url if obj.image else None
+
+    def get_successful_sales_count(self, obj):
+        # Calculate quantity sold across all delivered/successful orders
+        from django.db.models import Sum
+        total = obj.orderitem_set.filter(
+            order__status__in=['delivered', 'completed']
+        ).aggregate(total=Sum('quantity'))['total']
+        return total or 0
 
     def get_reviews(self, obj):
         reviews = obj.reviews.filter(is_approved=True)

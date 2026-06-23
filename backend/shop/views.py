@@ -1803,7 +1803,7 @@ class MetaView(View):
                 page_seo = PageSeo.objects.filter(page_path=check_path + '/').first()
             if page_seo:
                 if page_seo.seo_title:
-                    title = f"{page_seo.seo_title} | {site_title}"
+                    title = f"{page_seo.seo_title} "
                 if page_seo.seo_description:
                     description = page_seo.seo_description
                 if page_seo.seo_keywords:
@@ -1815,7 +1815,7 @@ class MetaView(View):
                 slug = path.split('product/')[-1].split('?')[0].strip('/')
                 product = Product.objects.prefetch_related('videos').filter(slug=slug).first()
                 if product:
-                    title = f"{product.seo_title or product.name} | {site_title}"
+                    title = f"{product.seo_title or product.name} "
                     raw_desc = product.seo_description or product.short_description or product.description or ''
                     clean_desc = extract_clean_text(raw_desc)[:200]
                     description = clean_desc or description
@@ -1836,7 +1836,7 @@ class MetaView(View):
                 slug = path.split('blog/')[-1].split('?')[0].strip('/')
                 post = BlogPost.objects.filter(slug=slug).first()
                 if post:
-                    title = f"{post.seo_title or post.title} | {site_title}"
+                    title = f"{post.seo_title or post.title} "
                     raw_desc = post.seo_description or getattr(post, 'excerpt', '') or post.content or ''
                     clean_desc = extract_clean_text(raw_desc)[:200]
                     description = clean_desc or description
@@ -1852,7 +1852,7 @@ class MetaView(View):
                 slug = (path.split('offer/')[-1] if 'offer/' in path else path.split('step/')[-1]).split('?')[0].strip('/')
                 funnel = Funnel.objects.filter(slug=slug).first()
                 if funnel and funnel.product:
-                    title = f"{funnel.product.seo_title or funnel.title or funnel.product.name} | {site_title}"
+                    title = f"{funnel.product.seo_title or funnel.title or funnel.product.name} "
                     raw_desc = funnel.product.seo_description or funnel.product.short_description or funnel.product.description or ''
                     clean_desc = extract_clean_text(raw_desc)[:200]
                     description = clean_desc or description
@@ -1868,37 +1868,36 @@ class MetaView(View):
             
             # Build minimal HTML shell with full OG tags
             html = f"""<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="utf-8">
-    <title>{title}</title>
-    <meta name="description" content="{description}">
-    <meta name="keywords" content="{keywords}">
-    
-    <!-- Open Graph -->
-    <meta property="og:site_name" content="{site_title}">
-    <meta property="og:title" content="{title}">
-    <meta property="og:description" content="{description}">
-    <meta property="og:image" content="{image}">
-    <meta property="og:image:width" content="1200">
-    <meta property="og:image:height" content="630">
-    <meta property="og:url" content="{canonical_url}">
-    <meta property="og:type" content="{'product' if 'product/' in path else 'article' if 'blog/' in path else 'website'}">
-    {f'<meta property="og:video" content="{video_url}">' if video_url else ''}
-    {f'<meta property="og:video:type" content="video/mp4">' if video_url else ''}
-    {f'<meta property="fb:app_id" content="{fb_app_id}">' if fb_app_id else '<meta property="fb:app_id" content="966242223397117">'}
-    
-    <!-- Twitter -->
-    <meta name="twitter:title" content="{title}">
-    <meta name="twitter:description" content="{description}">
-    <meta name="twitter:image" content="{image}">
-</head>
-<body>
-    <h1>{title}</h1>
-    <p>{description}</p>
-    <img src="{image}" />
-</body>
-</html>"""
+                        <html>
+                        <head>
+                            <meta charset="utf-8">
+                            <meta name="description" content="{description}">
+                            <meta name="keywords" content="{keywords}">
+                            <title>{title}</title>
+                            <!-- Open Graph -->
+                            <meta property="og:site_name" content="{site_title}">
+                            <meta property="og:title" content="{title}">
+                            <meta property="og:description" content="{description}">
+                            <meta property="og:image" content="{image}">
+                            <meta property="og:image:width" content="1200">
+                            <meta property="og:image:height" content="630">
+                            <meta property="og:url" content="{canonical_url}">
+                            <meta property="og:type" content="{'product' if 'product/' in path else 'article' if 'blog/' in path else 'website'}">
+                            {f'<meta property="og:video" content="{video_url}">' if video_url else ''}
+                            {f'<meta property="og:video:type" content="video/mp4">' if video_url else ''}
+                            {f'<meta property="fb:app_id" content="{fb_app_id}">' if fb_app_id else '<meta property="fb:app_id" content="966242223397117">'}
+                            
+                            <!-- Twitter -->
+                            <meta name="twitter:title" content="{title}">
+                            <meta name="twitter:description" content="{description}">
+                            <meta name="twitter:image" content="{image}">
+                        </head>
+                        <body>
+                            <h1>{title}</h1>
+                            <p>{description}</p>
+                            <img src="{image}" />
+                        </body>
+                        </html>"""
             return HttpResponse(html)
         except Exception as e:
             import traceback
@@ -2933,9 +2932,19 @@ class CourierWebhookView(APIView):
         return Response({"message": "Courier Webhook Endpoint. Auth successful. Please POST updates here."}, status=status.HTTP_200_OK)
 
     def post(self, request, *args, **kwargs):
-        data = request.data
+        # Safely parse data to prevent 500 errors if content-type is weird
+        data = request.data if isinstance(request.data, dict) else {}
         event = data.get('event')
         
+        # Log incoming request for debugging
+        try:
+            import json, datetime
+            with open("webhook_debug.log", "a") as f:
+                f.write(f"\n--- {datetime.datetime.now()} ---\n")
+                f.write(f"Headers: {dict(request.headers)}\n")
+                f.write(f"Data: {data}\n")
+        except: pass
+
         cb_token = None
         for key, val in request.headers.items():
             if key.lower() == 'x-cb-webhook-integration-header':
@@ -2997,7 +3006,15 @@ class CourierWebhookView(APIView):
             is_authorized = True
             
         if not is_authorized and (configured_cb_token or configured_sf_token):
-            return Response({"error": "Unauthorized Access. Invalid webhook token."}, status=status.HTTP_401_UNAUTHORIZED)
+            return Response({
+                "error": "Unauthorized Access. Invalid webhook token.",
+                "debug_info": {
+                    "received_steadfast_token": steadfast_token,
+                    "expected_steadfast_token": configured_sf_token,
+                    "received_carrybee_token": cb_token,
+                    "expected_carrybee_token": configured_cb_token
+                }
+            }, status=status.HTTP_401_UNAUTHORIZED)
             
         # 5. Handle status update events
         tracking_code = data.get('tracking_code') or data.get('tracking_id') or data.get('consignment_id')

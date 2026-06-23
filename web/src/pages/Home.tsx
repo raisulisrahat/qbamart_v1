@@ -481,10 +481,14 @@ const Home = () => {
       {/* Dual Promo Banners */}
       <div className="container mx-auto px-4 mb-24">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8">
-          {promoBanners.slice(0, 2).map((banner) => (
+          {bannersLoading ? (
+            Array.from({ length: 2 }).map((_, i) => (
+              <div key={i} className="relative h-[220px] md:h-[300px] lg:h-[350px] rounded-3xl bg-neutral-200 animate-pulse"></div>
+            ))
+          ) : promoBanners.slice(0, 2).map((banner) => (
             <Link to={banner.link || '#'} key={banner.id} className="relative h-[220px] md:h-[300px] lg:h-[350px] rounded-3xl overflow-hidden group shadow-xl block">
               {banner.image ? (
-                <img src={resolveImageUrl(banner.image)} alt={banner.title} className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105" />
+                <img src={resolveImageUrl(banner.image)} alt={banner.title} className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105" loading="lazy" />
               ) : (
                 <div className="w-full h-full bg-gradient-to-br from-gray-800 to-black flex items-center justify-center text-gray-400">No Image</div>
               )}
