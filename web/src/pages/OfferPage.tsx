@@ -52,6 +52,16 @@ const OfferPage = () => {
         }
     }, [draftOrderId, slug]);
 
+    const [ipAddress, setIpAddress] = useState('');
+    const [createdOrder, setCreatedOrder] = useState<any>(null);
+
+    useEffect(() => {
+        fetch('https://api.ipify.org?format=json')
+            .then(res => res.json())
+            .then(data => setIpAddress(data.ip))
+            .catch(err => console.error("Error fetching IP:", err));
+    }, []);
+
     // Form State
     const [formData, setFormData] = useState({
         customer_name: '',
@@ -237,10 +247,23 @@ const OfferPage = () => {
 
     const currentPrice = calculatePrice();
 
+    // Calculate Subtotal from variants
+    const calculateSubtotal = () => {
+        const total = selectedVariants.reduce((sum, v) => sum + (v.price * v.quantity), 0);
+        return total || currentPrice;
+    };
+
+    const subtotal = calculateSubtotal();
+
     // Track Purchase Event when isSuccess becomes true
+    const hasTrackedSuccessRef = useRef(false);
+
     useEffect(() => {
-        if (isSuccess) {
+        if (isSuccess && !hasTrackedSuccessRef.current) {
+            hasTrackedSuccessRef.current = true;
             window.scrollTo(0, 0);
+            
+            // Facebook Purchase Event
             if ((window as any).fbq) {
                 (window as any).fbq('track', 'Purchase', {
                     value: currentPrice,
@@ -251,22 +274,50 @@ const OfferPage = () => {
             }
 
             // Google Tag Manager dataLayer Purchase Event
-            pushToDataLayer({
-                event: 'purchase',
-                ecommerce: {
-                    transaction_id: `funnel_${Date.now()}`,
-                    value: currentPrice,
-                    currency: 'BDT',
-                    items: [{
-                        item_name: funnelData.product_details.name,
-                        item_id: funnelData.product_details.id,
-                        price: currentPrice,
-                        quantity: 1
-                    }]
-                }
-            });
+            if ((window as any).dataLayer) {
+                const totalQty = createdOrder.items?.reduce((sum: number, item: any) => sum + item.quantity, 0) || 
+                                 selectedVariants.filter(v => v.quantity > 0).reduce((sum, v) => sum + v.quantity, 0) || 
+                                 1;
+                const finalAddress = createdOrder.address || (siteSettings?.enable_district_upazila !== false 
+                    ? `${formData.address}${formData.upazila ? `, ${upazilas.find(u => u.id == formData.upazila)?.name || formData.upazila}` : ''}${formData.district ? `, ${districts.find(d => d.id == formData.district)?.name || formData.district}` : ''}`
+                    : formData.address);
+                const finalPhone = createdOrder.phone_number || formData.phone_number;
+
+                (window as any).dataLayer.push({
+                    event: 'purchase',
+                    customer_name: createdOrder.customer_name || formData.customer_name,
+                    customer_phone: finalPhone,
+                    customer_address: finalAddress,
+                    address: finalAddress,
+                    total_amount: parseFloat(createdOrder.total_amount) || (subtotal + shippingCost),
+                    order_id: createdOrder.id,
+                    quantity: totalQty,
+                    ip_address: createdOrder.ip_address || ipAddress,
+                    ecommerce: {
+                        transaction_id: createdOrder.id,
+                        value: parseFloat(createdOrder.total_amount) || (subtotal + shippingCost),
+                        currency: 'BDT',
+                        items: createdOrder.items?.map((item: any) => ({
+                            item_name: item.product_name || item.product_details?.name || funnelData.product_details.name,
+                            item_id: item.product,
+                            price: parseFloat(item.price),
+                            quantity: item.quantity,
+                            color: item.color_name || '',
+                            size: item.size_name || ''
+                        })) || [{
+                            item_name: funnelData.product_details.name,
+                            item_id: funnelData.product_details.id,
+                            price: currentPrice,
+                            quantity: 1,
+                            color: '',
+                            size: ''
+                        }]
+                    }
+                });
+            }
         }
-    }, [isSuccess, funnelData, currentPrice]);
+    }, [isSuccess, createdOrder, funnelData, currentPrice, selectedVariants, subtotal, shippingCost, formData, upazilas, districts, siteSettings, ipAddress]);
+
 
     const handleChange = (e: any) => {
         const { name, value } = e.target;
@@ -304,13 +355,6 @@ const OfferPage = () => {
         }
     }, [formData.district, siteSettings, districts, shippingZones]);
 
-    // Calculate Subtotal from variants
-    const calculateSubtotal = () => {
-        const total = selectedVariants.reduce((sum, v) => sum + (v.price * v.quantity), 0);
-        return total || currentPrice;
-    };
-
-    const subtotal = calculateSubtotal();
 
     const getShippingZoneId = () => {
         if (siteSettings?.enable_district_upazila !== false) {

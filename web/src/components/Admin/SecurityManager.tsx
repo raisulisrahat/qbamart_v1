@@ -70,7 +70,7 @@ const SecurityManager = () => {
             { threshold: 35, status: 'Indexing Python site-packages registry...' },
             { threshold: 55, status: 'Validating Framework integrity (Django)...' },
             { threshold: 75, status: 'Evaluating Linux Server entropies & logs...' },
-            { threshold: 95, status: 'Auditing PostgreSQL Exploit Guard diagnostics...' }
+            { threshold: 95, status: 'Auditing MySQL Exploit Guard diagnostics...' }
         ];
 
         let currentStep = 0;
@@ -194,7 +194,7 @@ const SecurityManager = () => {
                                 <div className="relative z-10">
                                     <div className="flex items-center gap-2 mb-8">
                                         <div className="p-2 bg-white/10 rounded-lg"><Lock size={16} className="text-zinc-400" /></div>
-                                        <h3 className="text-xs font-bold uppercase tracking-widest text-zinc-400">PostgreSQL Exploit Guard</h3>
+                                        <h3 className="text-xs font-bold uppercase tracking-widest text-zinc-400">MySQL Exploit Guard</h3>
                                     </div>
 
                                     {auditResults?.database?.exploits?.length > 0 ? (
@@ -315,7 +315,7 @@ const SecurityManager = () => {
                             { label: "Protocol Redirect", value: auditResults.framework.secure_ssl_redirect ? 'ACTIVE' : 'INACTIVE' },
                             { label: "Vault Persistence", value: auditResults.framework.session_cookie_secure ? 'SECURE' : 'UNSAFE' }
                         ]} />
-                        <AuditCard icon={<DBIcon />} title="Postgres Engine" data={[
+                        <AuditCard icon={<DBIcon />} title="MySQL Engine" data={[
                             { label: "Engine", value: auditResults.database.engine.split('.').pop() },
                             { label: "SSL Pipeline", value: auditResults.database.ssl_active ? 'ENCRYPTED' : 'PLAIN' },
                             { label: "Exploit Guard", value: auditResults.database.exploits.length > 0 ? 'ALERT' : 'SECURE', warning: auditResults.database.exploits.length > 0 }

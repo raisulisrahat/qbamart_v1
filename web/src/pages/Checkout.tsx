@@ -26,6 +26,7 @@ const Checkout = () => {
     return saved ? parseInt(saved, 10) : null;
   });
   const isOrderSubmittedRef = useRef(false);
+  const hasTrackedSuccessRef = useRef(false);
 
   useEffect(() => {
     if (draftOrderId) {
@@ -246,13 +247,23 @@ const Checkout = () => {
 
     if (status === 'success') {
       // Google Tag Manager dataLayer Purchase Event
-      if (cart.length > 0) {
+      if (cart.length > 0 && !hasTrackedSuccessRef.current) {
+        hasTrackedSuccessRef.current = true;
         const orderId = searchParams.get('order_id') || `checkout_${Date.now()}`;
         const finalName = name || formData.name;
         const finalPhone = phone || formData.phone;
         const finalAddress = formData.district ? `${formData.address}, ${formData.upazila}, ${formData.district}` : formData.address;
         const totalAmountVal = cartTotal + shippingCost;
         const totalQuantityVal = cart.reduce((total, item) => total + item.quantity, 0);
+
+        if ((window as any).fbq) {
+            (window as any).fbq('track', 'Purchase', {
+                value: totalAmountVal,
+                currency: 'BDT',
+                content_type: 'product',
+                contents: cart.map(item => ({ id: item.id, quantity: item.quantity }))
+            });
+        }
 
         pushToDataLayer({
           event: 'purchase',
@@ -485,7 +496,19 @@ const Checkout = () => {
       }
 
       // Google Tag Manager dataLayer Purchase Event
-      pushToDataLayer({
+      if (!hasTrackedSuccessRef.current) {
+        hasTrackedSuccessRef.current = true;
+        
+        if ((window as any).fbq) {
+            (window as any).fbq('track', 'Purchase', {
+                value: parseFloat(res.data?.total_amount) || (cartTotal + shippingCost),
+                currency: 'BDT',
+                content_type: 'product',
+                contents: cart.map(item => ({ id: item.id, quantity: item.quantity }))
+            });
+        }
+
+        pushToDataLayer({
           event: 'purchase',
           customer_name: res.data?.customer_name || formData.name,
           customer_phone: res.data?.phone_number || formData.phone,
@@ -521,6 +544,7 @@ const Checkout = () => {
             })
           }
         });
+      }
 
       setIsSuccess(true);
       clearCart();
