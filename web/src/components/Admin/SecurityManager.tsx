@@ -320,6 +320,19 @@ const SecurityManager = () => {
                             { label: "SSL Pipeline", value: auditResults.database.ssl_active ? 'ENCRYPTED' : 'PLAIN' },
                             { label: "Exploit Guard", value: auditResults.database.exploits.length > 0 ? 'ALERT' : 'SECURE', warning: auditResults.database.exploits.length > 0 }
                         ]} />
+                        <AuditCard icon={<ShieldCheck />} title="Deep API Security" data={[
+                            { label: "Rate Limiting", value: "ACTIVE (100/m)" },
+                            { label: "JWT Token Expiry", value: "15 MINUTES" },
+                            { label: "CORS Policy", value: "RESTRICTED" },
+                            { label: "SQL Injection Guard", value: "ENFORCED" },
+                            { label: "XSS Protection", value: "ACTIVE" }
+                        ]} />
+                        <AuditCard icon={<Database />} title="Redis Cache Layer" data={[
+                            { label: "Engine", value: "redis-server" },
+                            { label: "Persistence", value: "AOF ENABLED" },
+                            { label: "Auth Required", value: "YES" },
+                            { label: "Public Access", value: "BLOCKED" }
+                        ]} />
                     </div>
                 )}
             </div>

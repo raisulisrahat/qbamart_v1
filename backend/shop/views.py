@@ -416,6 +416,8 @@ class ReviewViewSet(viewsets.ModelViewSet):
     def get_permissions(self):
         if self.action in ['list', 'retrieve']:
             return [permissions.AllowAny()]
+        if self.action == 'create':
+            return [permissions.IsAuthenticated()]
         return [IsFullAdmin()]
     
     def perform_create(self, serializer):
@@ -2910,3 +2912,131 @@ class PageSeoViewSet(viewsets.ModelViewSet):
             if was_created:
                 created.append(page['page_key'])
         return Response({'created': created, 'message': f'{len(created)} pages seeded.'})
+
+class CourierWebhookView(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def _verify_token(self, request):
+        token = request.headers.get('X-CB-Webhook-Integration-Header') or request.META.get('HTTP_X_CB_WEBHOOK_INTEGRATION_HEADER')
+        from .models import SiteSettings
+        settings = SiteSettings.objects.first()
+        configured_token = settings.webhook_auth_token if settings else None
+        
+        if not configured_token or token != configured_token:
+            return False, token
+        return True, token
+
+    def get(self, request, *args, **kwargs):
+        is_valid, _ = self._verify_token(request)
+        if not is_valid:
+            return Response({"error": "Unauthorized Access. Invalid or missing webhook auth token."}, status=status.HTTP_401_UNAUTHORIZED)
+        return Response({"message": "Courier Webhook Endpoint. Auth successful. Please POST updates here."}, status=status.HTTP_200_OK)
+
+    def post(self, request, *args, **kwargs):
+        data = request.data
+        event = data.get('event')
+        
+        cb_token = None
+        for key, val in request.headers.items():
+            if key.lower() == 'x-cb-webhook-integration-header':
+                cb_token = val
+                break
+        if not cb_token:
+            cb_token = request.META.get('HTTP_X_CB_WEBHOOK_INTEGRATION_HEADER') or data.get('X-CB-Webhook-Integration-Header') or data.get('integration_header')
+            
+        # If it's the Carrybee verification event, aggressively search for the challenge UUID anywhere in the request
+        if event == 'webhook.integration' and not cb_token:
+            import json, re
+            uuid_regex = r'[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}'
+            
+            # Search in body
+            m = re.search(uuid_regex, json.dumps(data))
+            if m:
+                cb_token = m.group(0)
+            
+            # Search in all headers
+            if not cb_token:
+                m = re.search(uuid_regex, str(request.headers))
+                if m:
+                    cb_token = m.group(0)
+                    
+            # Search in query params
+            if not cb_token:
+                m = re.search(uuid_regex, str(request.GET))
+                if m:
+                    cb_token = m.group(0)
+
+        auth_header = request.headers.get('Authorization') or request.META.get('HTTP_AUTHORIZATION')
+        steadfast_token = None
+        if auth_header and auth_header.startswith('Bearer '):
+            steadfast_token = auth_header.split(' ')[1]
+        
+        from .models import SiteSettings, Order, OrderNote
+        settings = SiteSettings.objects.first()
+        
+        if event == 'webhook.integration':
+            response = Response({"status": "accepted"}, status=status.HTTP_202_ACCEPTED)
+            echo_token = cb_token or (settings.webhook_auth_token if settings else None)
+            if echo_token:
+                response['X-CB-Webhook-Integration-Header'] = echo_token
+            return response
+            
+        # 4. Standard Event Authentication
+        configured_cb_token = settings.webhook_auth_token if settings else None
+        configured_sf_token = settings.steadfast_secret_key if settings else None # Usually steadfast secret or api key
+        # We will check if EITHER cb_token matches cb_secret OR steadfast_token matches sf_secret
+        is_authorized = False
+        
+        if cb_token and configured_cb_token and cb_token == configured_cb_token:
+            is_authorized = True
+        elif steadfast_token and configured_sf_token and steadfast_token == configured_sf_token:
+            is_authorized = True
+            
+        if not is_authorized and (configured_cb_token or configured_sf_token):
+            return Response({"error": "Unauthorized Access. Invalid webhook token."}, status=status.HTTP_401_UNAUTHORIZED)
+            
+        # 5. Handle status update events
+        tracking_code = data.get('tracking_code') or data.get('tracking_id') or data.get('consignment_id')
+        invoice_id = data.get('invoice') or data.get('invoice_id') or data.get('order_id') or data.get('merchant_order_id')
+        
+        order = None
+        if tracking_code:
+            order = Order.objects.filter(courier_tracking_code=tracking_code).first() or Order.objects.filter(courier_consignment_id=tracking_code).first()
+        if not order and invoice_id:
+            try:
+                order = Order.objects.filter(id=int(invoice_id)).first()
+            except (ValueError, TypeError):
+                pass
+                
+        if order:
+            status_text = (data.get('status') or event or '').lower()
+            old_status = order.status
+            new_status = None
+            
+            if any(x in status_text for x in ['delivered', 'success', 'paid']):
+                new_status = 'delivered'
+            elif any(x in status_text for x in ['cancel', 'fail', 'return', 'reject']):
+                new_status = 'cancelled'
+            elif any(x in status_text for x in ['transit', 'way', 'hub', 'ship', 'mile', 'transit']):
+                new_status = 'shipped'
+            elif any(x in status_text for x in ['pick', 'process', 'receive', 'request']):
+                new_status = 'processing'
+                
+            if new_status and new_status != old_status:
+                order.status = new_status
+                order.save()
+                
+            # Log the webhook payload as an order note
+            note_content = f"Courier Webhook Update ({event}): Status: {status_text}."
+            if new_status and new_status != old_status:
+                note_content += f" Order status updated from {old_status} to {new_status}."
+            
+            OrderNote.objects.create(
+                order=order,
+                user=None, # System note
+                note=note_content
+            )
+            
+            return Response({"status": "processed"}, status=status.HTTP_200_OK)
+            
+        return Response({"status": "ignored"}, status=status.HTTP_200_OK)

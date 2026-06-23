@@ -1088,15 +1088,23 @@ const ProductForm = ({ product, onSave, onCancel }) => {
 
             if (Array.isArray(formData[key])) {
 
-                formData[key].forEach(item => {
+                if (formData[key].length === 0) {
 
-                    if (item !== undefined && item !== null) {
+                    data.append(key, '');
 
-                        data.append(key, item);
+                } else {
 
-                    }
+                    formData[key].forEach(item => {
 
-                });
+                        if (item !== undefined && item !== null) {
+
+                            data.append(key, item);
+
+                        }
+
+                    });
+
+                }
 
             } else {
 

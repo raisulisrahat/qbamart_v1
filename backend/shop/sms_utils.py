@@ -33,9 +33,9 @@ def send_sms(number, message):
         if data.get('response_code') == 202:
             return True, "SMS Sent Successfully"
         else:
-            error_message = data.get('success_message', 'Unknown Error')
-            logger.error(f"SMS API Error: {error_message} (Code: {data.get('response_code')})")
-            return False, error_message
+            error_msg = data.get('error_message') or data.get('success_message', 'Unknown Error')
+            logger.error(f"SMS API Error: {error_msg} (Code: {data.get('response_code')})")
+            return False, error_msg
     except Exception as e:
         logger.error(f"SMS Send Exception: {str(e)}")
         return False, str(e)
@@ -59,7 +59,7 @@ def get_balance():
 def send_otp_sms(number, otp_code):
     api_key, sender_id, otp_template = get_sms_settings()
     settings = SiteSettings.objects.first()
-    site_title = settings.site_title if settings else "Spaceghor"
+    site_title = settings.site_title if settings else "Qbamart"
     
     message = otp_template.format(site_title=site_title, otp=otp_code)
     return send_sms(number, message)

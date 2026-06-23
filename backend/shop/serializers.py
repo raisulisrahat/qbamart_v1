@@ -131,7 +131,7 @@ class ReviewImageSerializer(serializers.ModelSerializer):
 
 class ReviewSerializer(serializers.ModelSerializer):
     images = ReviewImageSerializer(many=True, read_only=True)
-    user_name = serializers.CharField(source='user.get_full_name', read_only=True)
+    user_name = serializers.SerializerMethodField()
     user_initial = serializers.SerializerMethodField()
     product_name = serializers.CharField(source='product.name', read_only=True)
 
@@ -139,6 +139,9 @@ class ReviewSerializer(serializers.ModelSerializer):
         model = Review
         fields = ['id', 'product', 'product_name', 'user_name', 'user_initial', 'rating', 'headline', 'comment', 'is_verified', 'is_approved', 'images', 'created_at']
         read_only_fields = ['is_verified']
+
+    def get_user_name(self, obj):
+        return obj.user.get_full_name() or obj.user.username
 
     def get_user_initial(self, obj):
         name = obj.user.get_full_name() or obj.user.username
@@ -250,11 +253,11 @@ class ProductSerializer(serializers.ModelSerializer):
         
         def get_list(data, key):
             if hasattr(data, 'getlist'):
-                return data.getlist(key)
+                return [x for x in data.getlist(key) if x != '']
             val = data.get(key)
             if isinstance(val, list):
-                return val
-            return [val] if val else []
+                return [x for x in val if x != '']
+            return [val] if (val and val != '') else []
 
         if 'brand' in request.data:
             brand_id = request.data.get('brand')
@@ -320,11 +323,11 @@ class ProductSerializer(serializers.ModelSerializer):
         
         def get_list(data, key):
             if hasattr(data, 'getlist'):
-                return data.getlist(key)
+                return [x for x in data.getlist(key) if x != '']
             val = data.get(key)
             if isinstance(val, list):
-                return val
-            return [val] if val else []
+                return [x for x in val if x != '']
+            return [val] if (val and val != '') else []
 
         if 'brand' in request.data:
             brand_id = request.data.get('brand')
@@ -397,7 +400,8 @@ class ProductSerializer(serializers.ModelSerializer):
             except Exception as e:
                 print(f"Error saving funnel sections: {e}")
             
-        return super().update(instance, validated_data)
+        instance.save()
+        return instance
 
 class ProductListSerializer(ProductSerializer):
     reviews = serializers.SerializerMethodField()
@@ -607,6 +611,30 @@ class SiteSettingsSerializer(serializers.ModelSerializer):
     class Meta:
         model = SiteSettings
         fields = '__all__'
+        
+        def to_representation(self, instance):
+            data = super().to_representation(instance)
+            request = self.context.get('request')
+            
+            is_staff = False
+            if request and request.user and request.user.is_authenticated:
+                if request.user.is_staff or request.user.is_superuser:
+                    is_staff = True
+                    
+            if not is_staff:
+                sensitive_fields = [
+                    'steadfast_api_key', 'steadfast_secret_key',
+                    'carrybee_client_id', 'carrybee_client_secret', 'carrybee_client_context',
+                    'webhook_auth_token',
+                    'facebook_capi_token', 'facebook_ad_account_id',
+                    'sms_api_key',
+                    'bkash_app_key', 'bkash_app_secret', 'bkash_username', 'bkash_password'
+                ]
+                for field in sensitive_fields:
+                    data.pop(field, None)
+                    
+            return data
+
 
 class NoticeSerializer(serializers.ModelSerializer):
     image = HybridImageField(required=False, allow_null=True)
