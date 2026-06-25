@@ -45,6 +45,27 @@ const OrderDetails = () => {
     }
   };
 
+  React.useEffect(() => {
+    if (order?.id && order?.courier_tracking_code && (order.status !== 'delivered' && order.status !== 'cancelled')) {
+      const checkLiveStatus = async () => {
+        try {
+          const { default: api } = await import('../services/api');
+          const res = await api.get(`courier/${order.id}/check_status/`);
+          if (res.data.delivery_status) {
+            const statusLower = res.data.delivery_status.toLowerCase();
+            if (statusLower === 'unknown' || statusLower === 'delivered') {
+              queryClient.invalidateQueries({ queryKey: ['order-details', id] });
+              queryClient.invalidateQueries({ queryKey: ['my-orders'] });
+            }
+          }
+        } catch (err) {
+          console.error("Tracking status sync failed", err);
+        }
+      };
+      checkLiveStatus();
+    }
+  }, [order?.id, order?.courier_tracking_code, order?.status, id, queryClient]);
+
   const getStatusInfo = (status: string) => {
     switch (status?.toLowerCase()) {
       case 'pending':

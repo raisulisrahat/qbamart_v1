@@ -972,10 +972,15 @@ class OrderViewSet(viewsets.ModelViewSet):
         except Exception as e:
             return Response({'error': f"Failed to connect to Carrybee: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-    @action(detail=True, methods=['get'], permission_classes=[IsModeratorOrAdmin])
+    @action(detail=True, methods=['get'], permission_classes=[permissions.IsAuthenticated])
     def check_status(self, request, pk=None):
         import requests
         order = self.get_object()
+        
+        # Ensure user has permission
+        if not (request.user.is_staff or (hasattr(request.user, 'profile') and request.user.profile.role in ['admin', 'moderator']) or order.user == request.user):
+            return Response({'error': 'You do not have permission to view this tracking status.'}, status=status.HTTP_403_FORBIDDEN)
+
         if not order.courier_tracking_code:
             return Response({'error': 'Order not dispatched to any courier.'}, status=status.HTTP_400_BAD_REQUEST)
             
@@ -1012,6 +1017,16 @@ class OrderViewSet(viewsets.ModelViewSet):
                                 order=order,
                                 user=request.user if request.user.is_authenticated else None,
                                 note="Order status automatically set to cancelled because Steadfast courier tracking status is unknown."
+                            )
+                    elif str(status_text).lower() == 'delivered':
+                        if order.status != 'delivered':
+                            order.status = 'delivered'
+                            order.save()
+                            from .models import OrderNote
+                            OrderNote.objects.create(
+                                order=order,
+                                user=request.user if request.user.is_authenticated else None,
+                                note="Order status automatically set to delivered based on Steadfast courier live tracking."
                             )
                     return Response({'delivery_status': status_text})
                 else:
@@ -1051,6 +1066,16 @@ class OrderViewSet(viewsets.ModelViewSet):
                                 order=order,
                                 user=request.user if request.user.is_authenticated else None,
                                 note="Order status automatically set to cancelled because Carrybee courier tracking status is unknown."
+                            )
+                    elif str(status_text).lower() == 'delivered':
+                        if order.status != 'delivered':
+                            order.status = 'delivered'
+                            order.save()
+                            from .models import OrderNote
+                            OrderNote.objects.create(
+                                order=order,
+                                user=request.user if request.user.is_authenticated else None,
+                                note="Order status automatically set to delivered based on Carrybee courier live tracking."
                             )
                     return Response({'delivery_status': str(status_text)})
                 else:

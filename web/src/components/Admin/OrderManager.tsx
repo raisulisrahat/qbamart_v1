@@ -190,13 +190,17 @@ const OrderManager = () => {
         try {
             const response = await api.get(`courier/${orderId}/check_status/`);
             setTrackingStatus(response.data);
-            if (response.data.delivery_status && response.data.delivery_status.toLowerCase() === 'unknown') {
-                setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: 'cancelled' } : o));
-                try {
-                    const orderRes = await api.get(`orders/${orderId}/`);
-                    setSelectedOrder(orderRes.data);
-                } catch (err) {
-                    setSelectedOrder(prev => prev ? { ...prev, status: 'cancelled' } : null);
+            if (response.data.delivery_status) {
+                const statusLower = response.data.delivery_status.toLowerCase();
+                if (statusLower === 'unknown' || statusLower === 'delivered') {
+                    const newStatus = statusLower === 'unknown' ? 'cancelled' : 'delivered';
+                    setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: newStatus } : o));
+                    try {
+                        const orderRes = await api.get(`orders/${orderId}/`);
+                        setSelectedOrder(orderRes.data);
+                    } catch (err) {
+                        setSelectedOrder(prev => prev ? { ...prev, status: newStatus } : null);
+                    }
                 }
             }
         } catch (error) {
