@@ -181,6 +181,7 @@ def compress_image(image_field, max_width=1200):
 class Product(models.Model):
     name = models.CharField(max_length=200)
     slug = models.SlugField(unique=True, blank=True, null=True)
+    sku = models.CharField(max_length=50, unique=True, blank=True, help_text="Auto-generated Stock Keeping Unit")
     description = models.TextField()
     short_description = models.TextField(blank=True, help_text="Enter key features, one per line")
     regular_price = models.DecimalField(max_digits=10, decimal_places=2)
@@ -214,6 +215,13 @@ class Product(models.Model):
     def save(self, *args, **kwargs):
         if not self.slug:
             self.slug = slugify(self.name)
+            
+        if not self.sku:
+            while True:
+                new_sku = 'SKU-' + ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
+                if not Product.objects.filter(sku=new_sku).exists():
+                    self.sku = new_sku
+                    break
 
         if self.image and not self.image.name.endswith('.webp'):
             compress_image(self.image)
@@ -246,6 +254,79 @@ class Product(models.Model):
             counts[str(review.rating)] += 1
             
         return {rating: (count / total) * 100 for rating, count in counts.items()}
+
+class ProductVariant(models.Model):
+    product = models.ForeignKey(Product, related_name='variants', on_delete=models.CASCADE)
+    color = models.ForeignKey(Color, on_delete=models.SET_NULL, null=True, blank=True)
+    size = models.ForeignKey(Size, on_delete=models.SET_NULL, null=True, blank=True)
+    sku = models.CharField(max_length=100, unique=True, blank=True, help_text="Auto-generated unique variation SKU")
+    stock = models.PositiveIntegerField(default=0)
+    price_override = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+
+    class Meta:
+        unique_together = ('product', 'color', 'size')
+        ordering = ['id']
+
+    def save(self, *args, **kwargs):
+        if not self.sku:
+            parts = []
+            
+            # 1. BRAND
+            if self.product.brand:
+                brand_code = ''.join([c for c in self.product.brand.name.upper() if c.isalnum()])[:4]
+                if not brand_code:
+                    brand_code = 'GEN'
+                parts.append(brand_code)
+            else:
+                parts.append('GEN')
+                
+            # 2. STYLE / PRODUCT
+            # Extract first word or up to 4 chars of product name
+            words = [w.upper() for w in self.product.name.split() if w.isalnum()]
+            if words:
+                style_code = words[0][:4]
+            else:
+                style_code = 'PROD'
+            parts.append(style_code)
+            
+            # 3. COLOR
+            if self.color:
+                # e.g., 'Black' -> 'BLK', 'Red' -> 'RED', 'Blue' -> 'BLU'
+                color_name = ''.join(c for c in self.color.name.upper() if c.isalpha())
+                if len(color_name) >= 3:
+                    color_code = color_name[:3]
+                else:
+                    color_code = color_name.ljust(3, 'X')
+                parts.append(color_code)
+            
+            # 4. SIZE
+            if self.size:
+                if self.size.code:
+                    size_code = ''.join(c for c in self.size.code.upper() if c.isalnum())
+                else:
+                    # e.g., 'Small' -> 'SM', 'Medium' -> 'MD', 'Large' -> 'LG'
+                    size_name = ''.join(c for c in self.size.name.upper() if c.isalnum())
+                    if size_name == 'SMALL': size_code = 'SM'
+                    elif size_name == 'MEDIUM': size_code = 'MD'
+                    elif size_name == 'LARGE': size_code = 'LG'
+                    elif size_name == 'EXTRA LARGE': size_code = 'XL'
+                    else: size_code = size_name[:2]
+                parts.append(size_code)
+                
+            base_sku = "-".join(parts)
+            self.sku = base_sku
+            
+            # Ensure uniqueness
+            original_sku = self.sku
+            counter = 1
+            while ProductVariant.objects.filter(sku=self.sku).exclude(pk=self.pk).exists():
+                self.sku = f"{original_sku}-{counter}"
+                counter += 1
+                
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.product.name} Variant - {self.sku}"
 
 class ProductImage(models.Model):
     product = models.ForeignKey(Product, related_name='images', on_delete=models.CASCADE)

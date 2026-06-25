@@ -32,6 +32,8 @@ const OrderManager = () => {
     const [incompleteOrders, setIncompleteOrders] = useState([]);
     const [loadingIncomplete, setLoadingIncomplete] = useState(false);
     const [conversionStats, setConversionStats] = useState(null);
+    const [availableColors, setAvailableColors] = useState([]);
+    const [availableSizes, setAvailableSizes] = useState([]);
 
     // Pagination
     const [currentPage, setCurrentPage] = useState(1);
@@ -100,6 +102,9 @@ const OrderManager = () => {
             fetchOrders();
             fetchIncompleteOrders();
             fetchConversionStats();
+            
+            api.get('colors/').then(res => setAvailableColors(res.data)).catch(console.error);
+            api.get('sizes/').then(res => setAvailableSizes(res.data)).catch(console.error);
         }
     }, [token]);
 
@@ -1147,9 +1152,24 @@ const OrderManager = () => {
                                                                 </div>
                                                                 <div className="min-w-0">
                                                                     <p className="truncate max-w-[180px]">{item.name || 'Unknown'}</p>
-                                                                    <p className="text-[9px] text-zinc-400 font-bold uppercase tracking-tighter mt-0.5">
-                                                                        {item.color_name || 'N/A'} / {item.size_name || 'N/A'}
-                                                                    </p>
+                                                                    <div className="flex gap-2 mt-1">
+                                                                        <select 
+                                                                            value={item.color || ''}
+                                                                            onChange={(e) => handleItemChange(item.id, 'color', e.target.value ? Number(e.target.value) : null)}
+                                                                            className="w-20 px-1 py-0.5 bg-white border border-zinc-300 rounded text-[9px] font-bold text-zinc-900 outline-none"
+                                                                        >
+                                                                            <option value="">No Color</option>
+                                                                            {availableColors.map((c: any) => <option key={c.id} value={c.id}>{c.name}</option>)}
+                                                                        </select>
+                                                                        <select 
+                                                                            value={item.size || ''}
+                                                                            onChange={(e) => handleItemChange(item.id, 'size', e.target.value ? Number(e.target.value) : null)}
+                                                                            className="w-20 px-1 py-0.5 bg-white border border-zinc-300 rounded text-[9px] font-bold text-zinc-900 outline-none"
+                                                                        >
+                                                                            <option value="">No Size</option>
+                                                                            {availableSizes.map((s: any) => <option key={s.id} value={s.id}>{s.name}</option>)}
+                                                                        </select>
+                                                                    </div>
                                                                 </div>
                                                             </div>
                                                         </td>

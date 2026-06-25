@@ -561,6 +561,14 @@ const ProductDetail = () => {
                                         <span className="text-xs font-bold">{product.categories[0].name}</span>
                                     </Link>
                                 )}
+
+                                {/* SKU Badge */}
+                                {product.sku && (
+                                    <div className="flex items-center gap-1.5 px-3 py-1 bg-neutral-100 text-neutral-600 rounded-full border border-neutral-200 transition-all shadow-sm">
+                                        <span className="text-[10px] font-black uppercase tracking-tighter opacity-50">SKU:</span>
+                                        <span className="text-xs font-bold">{product.sku}</span>
+                                    </div>
+                                )}
                             </div>
 
                             <div className="flex justify-between items-start gap-4">
