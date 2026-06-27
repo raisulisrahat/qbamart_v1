@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { pushToDataLayer } from '../utils/dataLayer';
 
 interface CartItem {
   id: number;
@@ -42,23 +43,30 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const cleanPrice = rawPrice.toString().replace(/[^0-9.]/g, '');
     const priceNum = parseFloat(cleanPrice) || 0;
 
-    if ((window as any).dataLayer) {
-      (window as any).dataLayer.push({
-        event: isOrderNow ? "order_now" : "add_to_cart",
-        ecommerce: {
-          currency: "BDT",
-          value: priceNum * quantity,
-          items: [{
-            item_id: product.id?.toString(),
-            item_name: product.name,
-            price: cleanPrice,
-            quantity: quantity,
-            item_color: color?.name || undefined,
-            item_size: size?.name || undefined
-          }]
-        }
+    if ((window as any).fbq) {
+      (window as any).fbq('track', isOrderNow ? 'InitiateCheckout' : 'AddToCart', {
+        value: priceNum * quantity,
+        currency: 'BDT',
+        content_type: 'product',
+        contents: [{ id: product.id?.toString(), quantity: quantity }]
       });
     }
+
+    pushToDataLayer({
+      event: isOrderNow ? "order_now" : "add_to_cart",
+      ecommerce: {
+        currency: "BDT",
+        value: priceNum * quantity,
+        items: [{
+          item_id: product.id?.toString(),
+          item_name: product.name,
+          price: cleanPrice,
+          quantity: quantity,
+          item_color: color?.name || undefined,
+          item_size: size?.name || undefined
+        }]
+      }
+    });
 
     setCart(prev => {
       const cartKey = `${product.slug}-${color?.id || 'none'}-${size?.id || 'none'}`;

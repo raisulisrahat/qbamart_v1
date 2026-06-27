@@ -199,8 +199,19 @@ const ProductDetail = () => {
             }
         }
     }, [activeImage, gallery, availableColors, selectedColor]);
-        useEffect(() => {
+    useEffect(() => {
         if (product) {
+            if ((window as any).fbq) {
+                (window as any).fbq('track', 'ViewContent', {
+                    value: product.sale_price || product.regular_price,
+                    currency: 'BDT',
+                    content_type: 'product',
+                    content_ids: [product.id?.toString()],
+                    content_name: product.name,
+                    content_category: product.categories?.[0]?.name,
+                });
+            }
+
             pushToDataLayer({
                 event: 'view_item',
                 ecommerce: {

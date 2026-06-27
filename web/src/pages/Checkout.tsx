@@ -45,6 +45,48 @@ const Checkout = () => {
       .catch(err => console.error("Error fetching IP:", err));
   }, []);
 
+  const hasSentBeginCheckoutRef = useRef(false);
+
+  useEffect(() => {
+    if (cart.length > 0 && !hasSentBeginCheckoutRef.current) {
+        hasSentBeginCheckoutRef.current = true;
+        const totalAmountVal = cartTotal + shippingCost;
+        
+        if ((window as any).fbq) {
+            (window as any).fbq('track', 'InitiateCheckout', {
+                value: totalAmountVal,
+                currency: 'BDT',
+                content_type: 'product',
+                contents: cart.map(item => ({ id: item.id, quantity: item.quantity }))
+            });
+        }
+
+        pushToDataLayer({
+            event: 'begin_checkout',
+            ecommerce: {
+                currency: 'BDT',
+                value: totalAmountVal,
+                items: cart.map(item => {
+                  const itemData: any = {
+                    item_name: item.name,
+                    item_id: item.id,
+                    price: parseFloat(item.price.toString().replace(/[^0-9.]/g, '')) || 0,
+                    quantity: item.quantity,
+                    color: item.color?.name || '',
+                    size: item.size?.name || ''
+                  };
+                  if (item.color) itemData.item_variant = item.color.name;
+                  if (item.size) {
+                      if (itemData.item_variant) itemData.item_variant += ` / ${item.size.name}`;
+                      else itemData.item_variant = item.size.name;
+                  }
+                  return itemData;
+                })
+            }
+        });
+    }
+  }, [cart, cartTotal, shippingCost]);
+
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
@@ -593,7 +635,7 @@ const Checkout = () => {
                 </p>
                 <div className="h-[1px] bg-neutral-200/60" />
                 <div className="flex justify-between items-center text-sm">
-                  <span className="text-neutral-500 font-bold">Username (Phone):</span>
+                  <span className="text-neutral-500 font-bold">Phone Number:</span>
                   <span className="font-bold text-neutral-800 bg-white px-3 py-1 rounded-lg border border-neutral-200">{formData.phone}</span>
                 </div>
               </div>
