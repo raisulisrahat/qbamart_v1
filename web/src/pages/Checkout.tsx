@@ -77,6 +77,9 @@ const Checkout = () => {
                 value: totalAmountVal,
                 currency: 'BDT',
                 content_type: 'product',
+                content_ids: cart.map(item => item.sku || item.id?.toString()),
+                content_name: cart.map(item => item.name).join(', '),
+                content_category: cart.map(item => item.category).filter(Boolean).join(', ') || undefined,
                 contents: cart.map(item => ({ id: item.id, quantity: item.quantity }))
             });
         }
@@ -305,6 +308,9 @@ const Checkout = () => {
                 value: totalAmountVal,
                 currency: 'BDT',
                 content_type: 'product',
+                content_ids: cart.map(item => item.sku || item.id?.toString()),
+                content_name: cart.map(item => item.name).join(', '),
+                content_category: cart.map(item => item.category).filter(Boolean).join(', ') || undefined,
                 contents: cart.map(item => ({ id: item.id, quantity: item.quantity }))
             });
         }
@@ -548,6 +554,9 @@ const Checkout = () => {
                 value: parseFloat(res.data?.total_amount) || (cartTotal + shippingCost),
                 currency: 'BDT',
                 content_type: 'product',
+                content_ids: cart.map(item => item.sku || item.id?.toString()),
+                content_name: cart.map(item => item.name).join(', '),
+                content_category: cart.map(item => item.category).filter(Boolean).join(', ') || undefined,
                 contents: cart.map(item => ({ id: item.id, quantity: item.quantity }))
             });
         }

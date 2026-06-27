@@ -114,6 +114,17 @@ const StepFunnel = () => {
                     }]
                 }
             });
+            if ((window as any).fbq) {
+                (window as any).fbq('track', 'InitiateCheckout', {
+                    value: currentPrice,
+                    currency: 'BDT',
+                    content_type: 'product',
+                    content_ids: [product.sku || product.id?.toString()],
+                    content_name: product.name,
+                    content_category: product.categories?.[0]?.name || undefined
+                });
+            }
+
             hasSentBeginCheckoutRef.current = true;
         }
     }, [product]);
@@ -365,7 +376,9 @@ const StepFunnel = () => {
                     value: finalTotal,
                     currency: 'BDT',
                     content_name: product.name,
-                    content_type: 'product'
+                    content_type: 'product',
+                    content_ids: [product.sku || product.id?.toString()],
+                    content_category: product.categories?.[0]?.name || undefined
                 });
             }
 

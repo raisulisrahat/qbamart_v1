@@ -12,6 +12,8 @@ interface CartItem {
   size?: { id: number, name: string, code: string };
   cartKey: string;
   stock?: number;
+  sku?: string;
+  category?: string;
 }
 
 interface CartContextType {
@@ -44,10 +46,13 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const priceNum = parseFloat(cleanPrice) || 0;
 
     if ((window as any).fbq) {
-      (window as any).fbq('track', isOrderNow ? 'InitiateCheckout' : 'AddToCart', {
+      (window as any).fbq('track', 'AddToCart', {
         value: priceNum * quantity,
         currency: 'BDT',
         content_type: 'product',
+        content_ids: [product.sku || product.id?.toString()],
+        content_name: product.name,
+        content_category: product.categories?.[0]?.name,
         contents: [{ id: product.id?.toString(), quantity: quantity }]
       });
     }
@@ -101,7 +106,9 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         color,
         size,
         cartKey,
-        stock: product.stock
+        stock: product.stock,
+        sku: product.sku,
+        category: product.categories?.[0]?.name
       }];
     });
   };

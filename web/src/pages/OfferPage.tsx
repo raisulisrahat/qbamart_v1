@@ -255,6 +255,39 @@ const OfferPage = () => {
 
     const subtotal = calculateSubtotal();
 
+    const hasSentBeginCheckoutRef = useRef(false);
+
+    useEffect(() => {
+        if (funnelData && !hasSentBeginCheckoutRef.current) {
+            pushToDataLayer({
+                event: 'begin_checkout',
+                ecommerce: {
+                    value: currentPrice,
+                    currency: 'BDT',
+                    items: [{
+                        item_name: funnelData.product_details.name,
+                        item_id: funnelData.product_details.id?.toString(),
+                        price: currentPrice.toString(),
+                        quantity: 1
+                    }]
+                }
+            });
+            
+            if ((window as any).fbq) {
+                (window as any).fbq('track', 'InitiateCheckout', {
+                    value: currentPrice,
+                    currency: 'BDT',
+                    content_type: 'product',
+                    content_ids: [funnelData.product_details.sku || funnelData.product_details.id?.toString()],
+                    content_name: funnelData.product_details.name,
+                    content_category: funnelData.product_details.categories?.[0]?.name || undefined
+                });
+            }
+
+            hasSentBeginCheckoutRef.current = true;
+        }
+    }, [funnelData, currentPrice]);
+
     // Track Purchase Event when isSuccess becomes true
     const hasTrackedSuccessRef = useRef(false);
 
@@ -266,10 +299,12 @@ const OfferPage = () => {
             // Facebook Purchase Event
             if ((window as any).fbq) {
                 (window as any).fbq('track', 'Purchase', {
-                    value: currentPrice,
+                    value: createdOrder ? parseFloat(createdOrder.total_amount) : (subtotal + shippingCost),
                     currency: 'BDT',
                     content_name: funnelData.product_details.name,
-                    content_type: 'product'
+                    content_type: 'product',
+                    content_ids: [funnelData.product_details.sku || funnelData.product_details.id?.toString()],
+                    content_category: funnelData.product_details.categories?.[0]?.name || undefined
                 });
             }
 
