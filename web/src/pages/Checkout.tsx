@@ -45,6 +45,26 @@ const Checkout = () => {
       .catch(err => console.error("Error fetching IP:", err));
   }, []);
 
+
+
+  const [formData, setFormData] = useState({
+    name: '',
+    phone: '',
+    address: '',
+    district: '',
+    upazila: '',
+  });
+
+  const [districts, setDistricts] = useState<{id: number, name: string}[]>([]);
+  const [upazilas, setUpazilas] = useState<{id: number, name: string}[]>([]);
+  const [shippingZones, setShippingZones] = useState<{id: number, name: string, shipping_cost: string}[]>([]);
+  const [paymentMethods, setPaymentMethods] = useState<{id: number, name: string, provider: string}[]>([]);
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<number | null>(null);
+  const [isLoadingLocations, setIsLoadingLocations] = useState(false);
+  const [shippingZoneId, setShippingZoneId] = useState<number | null>(null); // Default to null
+
+  const [shippingCost, setShippingCost] = useState(0);
+
   const hasSentBeginCheckoutRef = useRef(false);
 
   useEffect(() => {
@@ -86,24 +106,6 @@ const Checkout = () => {
         });
     }
   }, [cart, cartTotal, shippingCost]);
-
-  const [formData, setFormData] = useState({
-    name: '',
-    phone: '',
-    address: '',
-    district: '',
-    upazila: '',
-  });
-
-  const [districts, setDistricts] = useState<{id: number, name: string}[]>([]);
-  const [upazilas, setUpazilas] = useState<{id: number, name: string}[]>([]);
-  const [shippingZones, setShippingZones] = useState<{id: number, name: string, shipping_cost: string}[]>([]);
-  const [paymentMethods, setPaymentMethods] = useState<{id: number, name: string, provider: string}[]>([]);
-  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<number | null>(null);
-  const [isLoadingLocations, setIsLoadingLocations] = useState(false);
-  const [shippingZoneId, setShippingZoneId] = useState<number | null>(null); // Default to null
-
-  const [shippingCost, setShippingCost] = useState(0);
 
   // Set initial default shipping zone to Outside Dhaka when zones load
   useEffect(() => {
