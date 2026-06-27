@@ -206,9 +206,9 @@ const ProductDetail = () => {
                     value: product.sale_price || product.regular_price,
                     currency: 'BDT',
                     content_type: 'product',
-                    content_ids: [product.id?.toString()],
+                    content_ids: [product.sku || product.id?.toString()],
                     content_name: product.name,
-                    content_category: product.categories?.[0]?.name,
+                    content_category: product.categories?.[0]?.name || undefined,
                 });
             }
 

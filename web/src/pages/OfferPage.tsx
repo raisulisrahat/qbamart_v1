@@ -292,11 +292,16 @@ const OfferPage = () => {
     const hasTrackedSuccessRef = useRef(false);
 
     useEffect(() => {
-        if (isSuccess && !hasTrackedSuccessRef.current) {
-            hasTrackedSuccessRef.current = true;
-            window.scrollTo(0, 0);
+        if (isSuccess && createdOrder && !hasTrackedSuccessRef.current) {
+            const orderIdStr = createdOrder.id?.toString() || `offer_${Date.now()}`;
+            const trackedKey = `tracked_purchase_${orderIdStr}`;
             
-            // Facebook Purchase Event
+            if (!sessionStorage.getItem(trackedKey)) {
+                sessionStorage.setItem(trackedKey, 'true');
+                hasTrackedSuccessRef.current = true;
+                window.scrollTo(0, 0);
+                
+                // Facebook Purchase Event
             if ((window as any).fbq) {
                 (window as any).fbq('track', 'Purchase', {
                     value: createdOrder ? parseFloat(createdOrder.total_amount) : (subtotal + shippingCost),
@@ -349,6 +354,7 @@ const OfferPage = () => {
                         }]
                     }
                 });
+            }
             }
         }
     }, [isSuccess, createdOrder, funnelData, currentPrice, selectedVariants, subtotal, shippingCost, formData, upazilas, districts, siteSettings, ipAddress]);
@@ -701,7 +707,6 @@ const OfferPage = () => {
                 setTempPassword(res.data.temp_password || res.data.password || res.data.guest_password);
             }
 
-            // Cleanup the draft order since the purchase is successful!
             if (draftOrderId) {
                 try {
                     await deleteDraftOrder(draftOrderId);
@@ -711,6 +716,7 @@ const OfferPage = () => {
                 setDraftOrderId(null);
             }
 
+            setCreatedOrder(res.data);
             setIsSuccess(true);
         } catch (err) {
             console.error("Order failed", err);

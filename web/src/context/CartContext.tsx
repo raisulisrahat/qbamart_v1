@@ -53,7 +53,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         content_ids: [product.sku || product.id?.toString()],
         content_name: product.name,
         content_category: product.categories?.[0]?.name,
-        contents: [{ id: product.id?.toString(), quantity: quantity }]
+        contents: [{ id: product.sku || product.id?.toString(), quantity: quantity }]
       });
     }
 
