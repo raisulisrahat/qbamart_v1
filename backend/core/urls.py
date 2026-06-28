@@ -138,6 +138,7 @@ class IndexView(View):
 
         # Open Graph
         lines += [
+            f'  <meta property="og:type" content="website" />',
             f'  <meta property="og:site_name" content="Qbamart" />',
             f'  <meta property="og:title" content="{title}" />',
             f'  <meta property="og:description" content="{desc}" />',
@@ -168,6 +169,7 @@ class IndexView(View):
         # Twitter — use first image only
         primary_image = images[0] if images else ''
         lines += [
+            f'  <meta name="twitter:card" content="summary_large_image" />',
             f'  <meta name="twitter:title" content="{title}" />',
             f'  <meta name="twitter:description" content="{desc}" />',
         ]

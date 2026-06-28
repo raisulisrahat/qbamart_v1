@@ -1,0 +1,16 @@
+# Qbamart
+> Qbamart is a premium e-commerce platform built with a Django REST Framework backend and a React/Vite frontend.
+
+Qbamart offers a seamless shopping experience tailored for the Bangladeshi market, featuring secure OTP authentication, robust product and order management, dynamic SEO generation, and an intuitive admin dashboard. 
+
+## Documentation
+- [SEO Setup](https://qbamart.com/SEO.md): Details about SEO routes and metadata implementation.
+
+## Project Structure
+- [Frontend (React)](https://qbamart.com): Modern Single Page Application (SPA) providing a fast, responsive user interface.
+- [Backend (Django API)](https://api.qbamart.com): Scalable backend API handling users, products, orders, and payment integrations.
+
+## Useful Links
+- [Main Site](https://qbamart.com)
+- [API Endpoint](https://api.qbamart.com/api/)
+- [Sitemap](https://qbamart.com/sitemap.xml)

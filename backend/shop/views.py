@@ -1913,6 +1913,7 @@ class MetaView(View):
                             {f'<meta property="fb:app_id" content="{fb_app_id}">' if fb_app_id else '<meta property="fb:app_id" content="966242223397117">'}
                             
                             <!-- Twitter -->
+                            <meta name="twitter:card" content="summary_large_image">
                             <meta name="twitter:title" content="{title}">
                             <meta name="twitter:description" content="{description}">
                             <meta name="twitter:image" content="{image}">
