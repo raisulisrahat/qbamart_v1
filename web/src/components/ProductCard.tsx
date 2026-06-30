@@ -1,12 +1,10 @@
 import { Link, useNavigate } from 'react-router-dom';
-import { ShoppingCart, Eye, Heart } from 'lucide-react';
+import { ShoppingCart, Eye, Heart, Check, X } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { resolveImageUrl } from '../utils/image';
 import { useWishlist } from '../context/WishlistContext';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
-
-import { Check, X } from 'lucide-react';
 
 interface ProductCardProps {
   product: {
@@ -24,6 +22,7 @@ interface ProductCardProps {
 
 const ProductCard = ({ product }: ProductCardProps) => {
   const { addToWishlist, removeFromWishlist, isInWishlist, wishlist } = useWishlist();
+  const { addToCart, cart } = useCart();
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
@@ -35,6 +34,8 @@ const ProductCard = ({ product }: ProductCardProps) => {
 
   const isWishlisted = isInWishlist(product.id);
   const wishlistItem = wishlist.find(item => item.product.id === product.id);
+  const isCarted = cart.some(item => item.id === product.id);
+  const isAvailable = product.stock !== undefined ? product.stock > 0 : true;
 
   const toggleWishlist = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -50,7 +51,15 @@ const ProductCard = ({ product }: ProductCardProps) => {
     }
   };
 
-  const isAvailable = product.stock !== undefined ? product.stock > 0 : true;
+  const handleAddToCart = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (isAvailable && !isCarted) {
+      addToCart(product, 1);
+    } else if (isCarted) {
+      navigate('/cart');
+    }
+  };
 
   return (
     <motion.div 
@@ -63,20 +72,21 @@ const ProductCard = ({ product }: ProductCardProps) => {
       <div className="relative aspect-square overflow-hidden m-1.5 rounded-xl bg-neutral-50">
         <Link to={`/product/${product.slug}`} className="block w-full h-full">
           <img 
-            src={resolveImageUrl(product.image) || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=800&auto=format&fit=crop'} 
+            src={resolveImageUrl(product.image)} 
             alt={product.name}
             className={`w-full h-full object-cover transition-transform duration-500 ${isAvailable ? 'group-hover:scale-105' : 'grayscale'}`}
           />
         </Link>
         
         {discount && isAvailable && (
-          <div className="absolute top-3 left-3 bg-brand text-white text-[10px] font-bold px-2 py-1 rounded-full">
+          <div className="absolute top-3 left-3 bg-brand text-white text-[10px] font-bold px-2 py-1 rounded-full shadow-sm z-10">
             -{discount}%
           </div>
         )}
 
-        {/* Wishlist Sidebar Button */}
-        <div className="absolute top-3 right-3 translate-x-12 group-hover:translate-x-0 transition-transform duration-300">
+        {/* Action Buttons (Wishlist & Cart) */}
+        <div className="absolute top-3 right-3 flex flex-col gap-2 translate-x-12 group-hover:translate-x-0 transition-transform duration-300 z-10">
+           {/* Wishlist Button */}
            <button 
              onClick={toggleWishlist}
              className={`p-2.5 rounded-lg shadow-lg border backdrop-blur-md transition-all ${
@@ -84,16 +94,32 @@ const ProductCard = ({ product }: ProductCardProps) => {
                 ? 'bg-brand text-white border-brand' 
                 : 'bg-white/90 text-neutral-400 border-neutral-100 hover:text-brand'
              }`}
+             title={isWishlisted ? "Remove from wishlist" : "Add to wishlist"}
            >
              <Heart className={`w-4 h-4 ${isWishlisted ? 'fill-current' : ''}`} />
            </button>
+
+           {/* Add to Cart Button */}
+           {isAvailable && (
+             <button 
+               onClick={handleAddToCart}
+               className={`p-2.5 rounded-lg shadow-lg border backdrop-blur-md transition-all ${
+                 isCarted 
+                  ? 'bg-brand text-white border-brand' 
+                  : 'bg-white/90 text-neutral-400 border-neutral-100 hover:text-brand'
+               }`}
+               title={isCarted ? "View Cart" : "Add to Cart"}
+             >
+               <ShoppingCart className={`w-4 h-4 ${isCarted ? 'fill-current' : ''}`} />
+             </button>
+           )}
         </div>
       </div>
 
       {/* Content */}
-      <div className="px-2 pb-2 flex flex-col flex-grow space-y-0.5">
+      <div className="px-3 pb-3 pt-1 flex flex-col flex-grow space-y-1">
         <Link to={`/product/${product.slug}`}>
-          <h3 className="text-xs font-bold text-neutral-800 line-clamp-1 group-hover:text-brand transition-colors">
+          <h3 className="text-sm font-bold text-neutral-800 line-clamp-1 group-hover:text-brand transition-colors">
             {product.name}
           </h3>
         </Link>
@@ -104,7 +130,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
               <span key={c.id} className="flex items-center">
                 <Link 
                   to={`/products?category=${c.slug}`}
-                  className="text-[10px] text-neutral-400 hover:text-brand transition-colors"
+                  className="text-[10px] font-medium text-neutral-400 hover:text-brand transition-colors"
                   onClick={(e) => e.stopPropagation()}
                 >
                   {c.name}
@@ -148,18 +174,18 @@ const ProductCard = ({ product }: ProductCardProps) => {
           )}
         </div>
 
-        <div className="pt-1 md:pt-2">
+        <div className="pt-2 md:pt-3">
           {isAvailable ? (
             <Link 
               to={`/product/${product.slug}`}
-              className="w-full bg-brand hover:bg-brand-hover text-white text-[10px] md:text-[11px] font-black py-2 rounded-lg transition-colors flex items-center justify-center uppercase tracking-wider"
+              className="w-full bg-brand hover:bg-brand-hover text-white text-[10px] md:text-xs font-black py-2.5 rounded-lg transition-colors flex items-center justify-center uppercase tracking-wider shadow-sm hover:shadow-md"
             >
               Order Now
             </Link>
           ) : (
             <button 
               disabled
-              className="w-full bg-neutral-200 text-neutral-400 cursor-not-allowed text-[10px] md:text-[11px] font-black py-2 rounded-lg transition-colors flex items-center justify-center uppercase tracking-wider"
+              className="w-full bg-neutral-200 text-neutral-400 cursor-not-allowed text-[10px] md:text-xs font-black py-2.5 rounded-lg transition-colors flex items-center justify-center uppercase tracking-wider"
             >
               Out Of Stock
             </button>

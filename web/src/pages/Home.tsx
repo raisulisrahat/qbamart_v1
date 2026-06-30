@@ -347,11 +347,11 @@ import 'swiper/css/pagination';
       {/* </section> */}
 
       {/* Categories Carousel in a White Card */}
-      <section className="bg-white rounded-[2rem] border border-neutral-100 shadow-sm p-6 md:p-10 space-y-8 relative group">
+      <section className="bg-white rounded-[2rem] shadow-sm p-5 md:p-8 space-y-8 relative group">
         <div className="flex justify-between items-center">
           <div className="space-y-1">
-            <h2 className="text-xl md:text-2xl font-bold text-neutral-900 uppercase tracking-tight">Popular Categories</h2>
-            <p className="text-sm text-neutral-500">Explore items by their specialized usage</p>
+            <h1 className="text-xl md:text-2xl font-bold text-neutral-900 uppercase tracking-tight">Our Categories</h1>
+            <p className="text-sm text-neutral-500">Explore our wide range of categories</p>
           </div>
 
           {/* Navigation Arrows in Header */}
@@ -392,30 +392,26 @@ import 'swiper/css/pagination';
               <Link
                 key={category.id}
                 to={`/products?category=${category.slug}`}
-                className="flex-shrink-0 w-28 sm:w-36 md:w-40 snap-start group flex flex-col items-center space-y-4 p-2"
+                className="flex-shrink-0 snap-start group pb-4 pt-2 px-1"
               >
-                <div className="w-full aspect-square relative rounded-[1.5rem] bg-white border border-neutral-100 shadow-[0_4px_20px_rgb(0,0,0,0.03)] group-hover:shadow-[0_20px_40px_rgb(0,0,0,0.08)] group-hover:-translate-y-2 transition-all duration-500 flex items-center justify-center overflow-hidden">
-                  {/* Subtle hover gradient background */}
-                  <div className="absolute inset-0 bg-gradient-to-br from-brand/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                  
-                  <div className="w-14 h-14 sm:w-20 sm:h-20 relative z-10 transition-transform duration-500 group-hover:scale-110">
+                <div className="flex flex-col items-center justify-center gap-3 p-1.5 pr-5 rounded-full bg-white hover:-translate-y-0.5 transition-all duration-300">
+                  <div className="w-12 h-12 sm:w-14 sm:h-14 bg-neutral-50 rounded-full flex items-center justify-center p-2.5 group-hover:bg-brand/5 transition-colors shrink-0">
                     {category.image ? (
                       <img
                         src={resolveImageUrl(category.image)}
-                        className="w-full h-full object-contain filter drop-shadow-sm group-hover:drop-shadow-md transition-all duration-500"
+                        className="w-full h-full object-contain filter group-hover:scale-110 transition-transform duration-300"
                         alt={category.name}
                         onError={(e) => {
                           (e.target as HTMLImageElement).src = 'https://api.iconify.design/lucide:shopping-bag.svg?color=%23C0561F';
                         }}
                       />
                     ) : (
-                      <ShoppingBag className="w-full h-full text-neutral-300 group-hover:text-brand transition-colors duration-500" />
+                      <ShoppingBag className="w-full h-full text-neutral-300 group-hover:text-brand transition-colors" />
                     )}
                   </div>
-                </div>
-                
-                <div className="text-center px-1">
-                  <h3 className="text-[11px] sm:text-sm font-extrabold text-neutral-700 line-clamp-1 group-hover:text-brand transition-colors tracking-tight">{category.name}</h3>
+                  <span className="text-xs sm:text-sm font-bold text-neutral-700 group-hover:text-brand transition-colors whitespace-nowrap">
+                    {category.name}
+                  </span>
                 </div>
               </Link>
             ))}

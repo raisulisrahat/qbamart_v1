@@ -103,41 +103,41 @@ const ReviewSection: React.FC<ReviewSectionProps> = ({ product }) => {
   return (
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-10">
       {/* Summary Section */}
-      <div className="bg-white border border-neutral-100 rounded-3xl p-6 lg:p-8 grid grid-cols-1 md:grid-cols-12 gap-8 items-center">
-        <div className="md:col-span-4 text-center space-y-2 py-2 md:border-r border-neutral-100 flex flex-col items-center justify-center">
-          <div className="text-5xl font-black text-neutral-900 leading-none tracking-tighter">
+      <div className="bg-white border border-neutral-100 rounded-3xl p-6 lg:p-10 mx-auto flex flex-col md:flex-row items-center justify-center gap-8 md:gap-16">
+        <div className="text-center space-y-2 py-2 md:border-r border-neutral-100 md:pr-16 flex flex-col items-center justify-center min-w-[200px]">
+          <div className="text-5xl lg:text-6xl font-black text-neutral-900 leading-none tracking-tighter">
             {(average_rating || 0).toFixed(1)}
           </div>
-          <div className="flex justify-center mt-1">
+          <div className="flex justify-center mt-2">
             {[...Array(5)].map((_, i) => (
               <Star 
                 key={i} 
-                className={`w-4 h-4 ${i < Math.round(average_rating) ? 'fill-brand text-brand' : 'text-neutral-200'}`} 
+                className={`w-4 h-4 md:w-5 md:h-5 ${i < Math.round(average_rating) ? 'fill-brand text-brand' : 'text-neutral-200'}`} 
               />
             ))}
           </div>
-          <p className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest mt-1">Based on {rating_count} reviews</p>
+          <p className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest mt-2">Based on {rating_count} reviews</p>
         </div>
 
-        <div className="md:col-span-8 space-y-2.5 w-full max-w-lg md:px-6">
+        <div className="space-y-3 w-full max-w-sm">
           {[5, 4, 3, 2, 1].map((rating) => (
-            <div key={rating} className="flex items-center space-x-3">
-              <div className="flex space-x-0.5 w-16">
+            <div key={rating} className="flex items-center space-x-4">
+              <div className="flex space-x-0.5 w-20">
                 {[...Array(5)].map((_, i) => (
                   <Star 
                     key={i} 
-                    className={`w-2.5 h-2.5 ${i < rating ? 'fill-neutral-300 text-neutral-300' : 'text-neutral-100'}`} 
+                    className={`w-3 h-3 ${i < rating ? 'fill-neutral-300 text-neutral-300' : 'text-neutral-100'}`} 
                   />
                 ))}
               </div>
-              <div className="flex-grow h-1.5 bg-neutral-50 rounded-full overflow-hidden">
+              <div className="flex-grow h-2 bg-neutral-50 rounded-full overflow-hidden">
                 <motion.div 
                   initial={{ width: 0 }}
                   whileInView={{ width: `${(rating_breakdown?.[rating.toString()] || 0)}%` }}
                   className="h-full bg-brand rounded-full"
                 />
               </div>
-              <span className="text-[10px] font-black text-neutral-400 w-6">{Math.round(rating_breakdown?.[rating.toString()] || 0)}</span>
+              <span className="text-xs font-black text-neutral-400 w-8 text-right">{Math.round(rating_breakdown?.[rating.toString()] || 0)}</span>
             </div>
           ))}
         </div>
@@ -149,7 +149,7 @@ const ReviewSection: React.FC<ReviewSectionProps> = ({ product }) => {
           user ? (
             <button 
               onClick={() => setShowForm(true)}
-              className="px-6 py-3 bg-brand hover:bg-black text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all active:scale-95 shadow-md shadow-brand/10"
+              className="px-8 py-3.5 bg-brand hover:bg-black text-white rounded-xl text-xs font-black uppercase tracking-widest transition-all active:scale-95 shadow-md shadow-brand/10"
             >
               Write a Review
             </button>

@@ -981,7 +981,7 @@ const ProductDetail = () => {
                     </div>
                 </div>
 
-                <div className="mt-12 max-w-4xl overflow-hidden">
+                <div className="mt-12 overflow-hidden">
                     <ReviewSection product={product} />
                 </div>
 
