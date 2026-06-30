@@ -57,8 +57,13 @@ const FacebookPixel = ({ pixelId: customPixelId }: PixelProps) => {
                         const now = Date.now();
                         const lastTime = f._fbq_dedupe[key] || 0;
                         
-                        // Suppress if same event fired within last 1 second (1000ms)
-                        if (now - lastTime < 1000) {
+                        // For PageView, NEVER fire again on the same path
+                        if (eventName === 'PageView' && lastTime > 0) {
+                            return;
+                        }
+                        
+                        // For other events, suppress if fired within last 2 seconds (2000ms)
+                        if (now - lastTime < 2000) {
                             return;
                         }
                         f._fbq_dedupe[key] = now;
