@@ -37,6 +37,55 @@ const FacebookPixel = ({ pixelId: customPixelId }: PixelProps) => {
         };
 
         fbScript();
+
+        // Monkey-patch to deduplicate fbq calls
+        const patchFbq = () => {
+            const f = window as any;
+            if (f.fbq && !f.fbq.isPatched) {
+                const originalFbq = f.fbq;
+                const newFbq = function() {
+                    const args = Array.from(arguments);
+                    const isTrack = args[0] === 'track' || args[0] === 'trackSingle';
+                    
+                    if (isTrack) {
+                        const eventName = args[0] === 'track' ? args[1] : args[2];
+                        const eventId = args[0] === 'track' ? args[2]?.eventID : args[3]?.eventID;
+                        
+                        const key = `${args[0]}_${eventName}_${window.location.pathname}_${eventId || ''}`;
+                        if (!f._fbq_dedupe) f._fbq_dedupe = {};
+                        
+                        const now = Date.now();
+                        const lastTime = f._fbq_dedupe[key] || 0;
+                        
+                        // Suppress if same event fired within last 1 second (1000ms)
+                        if (now - lastTime < 1000) {
+                            return;
+                        }
+                        f._fbq_dedupe[key] = now;
+                    }
+                    
+                    if (originalFbq.callMethod) {
+                        originalFbq.callMethod.apply(originalFbq, args);
+                    } else if (originalFbq.queue) {
+                        originalFbq.queue.push(args);
+                    } else {
+                        originalFbq.apply(f, args);
+                    }
+                };
+                newFbq.isPatched = true;
+                
+                // Copy properties over
+                Object.keys(originalFbq).forEach(key => {
+                    newFbq[key] = originalFbq[key];
+                });
+                
+                f.fbq = newFbq;
+                f._fbq = newFbq;
+            }
+        };
+
+        patchFbq();
+
         (window as any).fbq('init', pixelId);
         (window as any).fbq('track', 'PageView');
     }, [pixelId]);

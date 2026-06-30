@@ -114,16 +114,7 @@ const StepFunnel = () => {
                     }]
                 }
             });
-            if ((window as any).fbq) {
-                (window as any).fbq('track', 'InitiateCheckout', {
-                    value: currentPrice,
-                    currency: 'BDT',
-                    content_type: 'product',
-                    content_ids: [product.sku || product.id?.toString()],
-                    content_name: product.name,
-                    content_category: product.categories?.[0]?.name || undefined
-                });
-            }
+            // Facebook pixel event removed to rely on GTM
 
             hasSentBeginCheckoutRef.current = true;
         }
@@ -326,7 +317,7 @@ const StepFunnel = () => {
         const cleanPhone = phone.replace(/\D/g, '');
         if (cleanPhone.length !== 11 || !cleanPhone.startsWith('01')) {
             alert(language === 'bn' 
-                ? 'দয়া করে একটি সঠিক ১১ ডিজিটের মোবাইল নম্বর দিন (যেমন: 017XXXXXXXX)।' 
+                ? 'দয়া করে একটি সঠিক ১১ ডিজিটের মোবাইল নম্বর দিন (যেমন: 017XXXXXXXX).' 
                 : 'Please enter a valid 11-digit mobile number starting with 01 (e.g. 017XXXXXXXX).'
             );
             return;
@@ -370,17 +361,7 @@ const StepFunnel = () => {
 
             setIsSuccess(true);
             
-            // Facebook Purchase Event
-            if ((window as any).fbq) {
-                (window as any).fbq('track', 'Purchase', {
-                    value: finalTotal,
-                    currency: 'BDT',
-                    content_name: product.name,
-                    content_type: 'product',
-                    content_ids: [product.sku || product.id?.toString()],
-                    content_category: product.categories?.[0]?.name || undefined
-                });
-            }
+            // Facebook Purchase Event removed to rely on GTM
 
             // Google Tag Manager dataLayer Purchase Event
             const finalAddress = res.data?.address || `${formData.address}${formData.upazila ? `, ${upazilas.find(u => u.id == formData.upazila)?.name || formData.upazila}` : ''}${formData.district ? `, ${districts.find(d => d.id == formData.district)?.name || formData.district}` : ''}`;

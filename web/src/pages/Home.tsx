@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowRight, Zap, CreditCard, Truck, Headset, ChevronRight, Plus, ChevronLeft, ShoppingBag } from 'lucide-react';
+import { ArrowRight, Zap, CreditCard, Truck, Headset, ChevronRight, Plus, ChevronLeft, ShoppingBag, PhoneCall, ShoppingCart } from 'lucide-react';
 import { getBanners, getProducts, getCategories, getBlogPosts, BASE_URL } from '../services/api';
 import ProductCard from '../components/ProductCard';
 import ProductSkeleton from '../components/ProductSkeleton';
@@ -19,7 +19,7 @@ import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
 
-const Home = () => {
+  const Home = () => {
   const { t } = useLanguage();
   const { addToCart } = useCart();
 
@@ -36,6 +36,13 @@ const Home = () => {
 
   const parentCategories = categories?.filter((c: any) => !c.parent);
   const trendingCategories = parentCategories?.slice(0, 6) || [];
+    // Service Highlights
+  const services = [
+      { icon: <ShoppingCart className="w-5 h-5 text-white" />, title: "Products", desc: t('Premimum Quality Products') },
+      { icon: <CreditCard className="w-5 h-5 text-white" />, title: t('Payment Methods'), desc: t('Cash on delivery') },      
+      { icon: <Headset className="w-5 h-5 text-white" />, title: t('Customer Service'), desc: t('24/7 dedicated support') },
+      { icon: <Truck className="w-5 h-5 text-white" />, title: t('Fast Delivery'), desc: t('All over Bangladesh') },
+  ];
 
   const getFilteredProducts = () => {
     if (!products) return [];
@@ -314,24 +321,30 @@ const Home = () => {
       </div>
 
       {/* Benefits */}
-      <section className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {[
-          { icon: Truck, title: 'Fast Delivery', desc: 'All over Bangladesh' },
-          { icon: CreditCard, title: 'Payment Method', desc: 'Cash On Delivery' },
-          { icon: ShoppingBag, title: 'Items', desc: 'Premium Quality Products' },
-          { icon: Headset, title: 'Customer Service', desc: '24/7 dedicated assistance' },
-        ].map((item, i) => (
-          <div key={i} className="flex items-center space-x-3 p-4 bg-white rounded-xl border border-neutral-100 shadow-sm hover:shadow-md transition-shadow">
-            <div className="bg-brand/10 p-2 rounded-lg text-brand">
-              <item.icon className="w-5 h-5" />
-            </div>
-            <div>
-              <h4 className="font-bold text-neutral-900 text-xs">{item.title}</h4>
-              <p className="text-[10px] text-neutral-500">{item.desc}</p>
-            </div>
-          </div>
-        ))}
-      </section>
+      {/* <section className="grid grid-cols-2 lg:grid-cols-4 gap-4"> */}
+                {/* Floating Service Highlights - Unique Design */}
+                <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mt-6 md:mt-8 relative z-10 px-2 sm:px-0">
+                    {services.map((service, index) => (
+                        <div key={index}
+                            className="group bg-white/80 backdrop-blur-md rounded-2xl p-4 md:p-5 border border-white/50 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all duration-500 hover:-translate-y-2 flex items-center gap-3 md:gap-4 overflow-hidden relative mx-1 sm:mx-0"
+                        >
+                            {/* Decorative Background Blob */}
+                            <div className="absolute -right-8 -top-8 w-24 h-24 bg-gray-50 rounded-full group-hover:bg-brand/10 transition-colors duration-500"></div>
+
+                            <div className="relative w-12 h-12 md:w-14 md:h-14 rounded-full bg-gray-50 flex items-center justify-center group-hover:bg-brand transition-colors duration-500 shrink-0 shadow-sm group-hover:shadow-md group-hover:shadow-brand/30">
+                                {React.cloneElement(service.icon, {
+                                    className: `w-5 h-5 md:w-6 md:h-6 text-gray-800 group-hover:text-white transition-colors duration-500`
+                                })}
+                            </div>
+
+                            <div className="flex flex-col relative flex-grow min-w-0">
+                                <h4 className="font-bold text-gray-900 text-[12px] md:text-xs group-hover:text-brand transition-colors duration-300 truncate">{service.title}</h4>
+                                <p className="text-[10px] md:text-[11px] text-gray-500 group-hover:text-gray-600 transition-colors duration-300 line-clamp-2 md:line-clamp-none leading-tight md:leading-normal mt-0.5">{service.desc}</p>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+      {/* </section> */}
 
       {/* Categories Carousel in a White Card */}
       <section className="bg-white rounded-[2rem] border border-neutral-100 shadow-sm p-6 md:p-10 space-y-8 relative group">

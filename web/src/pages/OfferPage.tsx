@@ -273,16 +273,7 @@ const OfferPage = () => {
                 }
             });
             
-            if ((window as any).fbq) {
-                (window as any).fbq('track', 'InitiateCheckout', {
-                    value: currentPrice,
-                    currency: 'BDT',
-                    content_type: 'product',
-                    content_ids: [funnelData.product_details.sku || funnelData.product_details.id?.toString()],
-                    content_name: funnelData.product_details.name,
-                    content_category: funnelData.product_details.categories?.[0]?.name || undefined
-                });
-            }
+            // Facebook pixel event removed to rely on GTM
 
             hasSentBeginCheckoutRef.current = true;
         }
@@ -302,16 +293,7 @@ const OfferPage = () => {
                 window.scrollTo(0, 0);
                 
                 // Facebook Purchase Event
-            if ((window as any).fbq) {
-                (window as any).fbq('track', 'Purchase', {
-                    value: createdOrder ? parseFloat(createdOrder.total_amount) : (subtotal + shippingCost),
-                    currency: 'BDT',
-                    content_name: funnelData.product_details.name,
-                    content_type: 'product',
-                    content_ids: [funnelData.product_details.sku || funnelData.product_details.id?.toString()],
-                    content_category: funnelData.product_details.categories?.[0]?.name || undefined
-                });
-            }
+            // Facebook Purchase Event removed to rely on GTM
 
             // Google Tag Manager dataLayer Purchase Event
             if ((window as any).dataLayer) {

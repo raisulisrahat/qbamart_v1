@@ -45,18 +45,6 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const cleanPrice = rawPrice.toString().replace(/[^0-9.]/g, '');
     const priceNum = parseFloat(cleanPrice) || 0;
 
-    if ((window as any).fbq) {
-      (window as any).fbq('track', 'AddToCart', {
-        value: priceNum * quantity,
-        currency: 'BDT',
-        content_type: 'product',
-        content_ids: [product.sku || product.id?.toString()],
-        content_name: product.name,
-        content_category: product.categories?.[0]?.name,
-        contents: [{ id: product.sku || product.id?.toString(), quantity: quantity }]
-      });
-    }
-
     pushToDataLayer({
       event: isOrderNow ? "order_now" : "add_to_cart",
       ecommerce: {

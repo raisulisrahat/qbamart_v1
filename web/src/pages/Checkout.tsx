@@ -72,17 +72,7 @@ const Checkout = () => {
         hasSentBeginCheckoutRef.current = true;
         const totalAmountVal = cartTotal + shippingCost;
         
-        if ((window as any).fbq) {
-            (window as any).fbq('track', 'InitiateCheckout', {
-                value: totalAmountVal,
-                currency: 'BDT',
-                content_type: 'product',
-                content_ids: cart.map(item => item.sku || item.id?.toString()),
-                content_name: cart.map(item => item.name).join(', '),
-                content_category: cart.map(item => item.category).filter(Boolean).join(', ') || undefined,
-                contents: cart.map(item => ({ id: item.sku || item.id?.toString(), quantity: item.quantity }))
-            });
-        }
+        // Facebook pixel event removed to rely on GTM
 
         pushToDataLayer({
             event: 'begin_checkout',
@@ -306,17 +296,7 @@ const Checkout = () => {
         const totalAmountVal = cartTotal + shippingCost;
         const totalQuantityVal = cart.reduce((total, item) => total + item.quantity, 0);
 
-        if ((window as any).fbq) {
-            (window as any).fbq('track', 'Purchase', {
-                value: totalAmountVal,
-                currency: 'BDT',
-                content_type: 'product',
-                content_ids: cart.map(item => item.sku || item.id?.toString()),
-                content_name: cart.map(item => item.name).join(', '),
-                content_category: cart.map(item => item.category).filter(Boolean).join(', ') || undefined,
-                contents: cart.map(item => ({ id: item.sku || item.id?.toString(), quantity: item.quantity }))
-            });
-        }
+        // Facebook Purchase event removed to rely on GTM
 
         pushToDataLayer({
           event: 'purchase',
@@ -557,17 +537,7 @@ const Checkout = () => {
         sessionStorage.setItem(trackedKey, 'true');
         hasTrackedSuccessRef.current = true;
         
-        if ((window as any).fbq) {
-            (window as any).fbq('track', 'Purchase', {
-                value: parseFloat(res.data?.total_amount) || (cartTotal + shippingCost),
-                currency: 'BDT',
-                content_type: 'product',
-                content_ids: cart.map(item => item.sku || item.id?.toString()),
-                content_name: cart.map(item => item.name).join(', '),
-                content_category: cart.map(item => item.category).filter(Boolean).join(', ') || undefined,
-                contents: cart.map(item => ({ id: item.sku || item.id?.toString(), quantity: item.quantity }))
-            });
-        }
+        // Facebook Purchase event removed to rely on GTM
 
         pushToDataLayer({
           event: 'purchase',
