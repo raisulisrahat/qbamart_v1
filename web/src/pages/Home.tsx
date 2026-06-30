@@ -392,23 +392,31 @@ import 'swiper/css/pagination';
               <Link
                 key={category.id}
                 to={`/products?category=${category.slug}`}
-                className="flex-shrink-0 w-28 sm:w-36 md:w-44 snap-start group flex flex-col items-center space-y-4"
+                className="flex-shrink-0 w-28 sm:w-36 md:w-40 snap-start group flex flex-col items-center space-y-4 p-2"
               >
-                <div className="w-20 h-20 sm:w-28 sm:h-28 group-hover:scale-105 transition-transform duration-500 flex items-center justify-center bg-neutral-50 rounded-full overflow-hidden p-4">
-                  {category.image ? (
-                    <img
-                      src={resolveImageUrl(category.image)}
-                      className="w-full h-full object-contain"
-                      alt={category.name}
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).src = 'https://api.iconify.design/lucide:shopping-bag.svg?color=%23C0561F';
-                      }}
-                    />
-                  ) : (
-                    <ShoppingBag className="w-8 h-8 text-brand" />
-                  )}
+                <div className="w-full aspect-square relative rounded-[1.5rem] bg-white border border-neutral-100 shadow-[0_4px_20px_rgb(0,0,0,0.03)] group-hover:shadow-[0_20px_40px_rgb(0,0,0,0.08)] group-hover:-translate-y-2 transition-all duration-500 flex items-center justify-center overflow-hidden">
+                  {/* Subtle hover gradient background */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-brand/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                  
+                  <div className="w-14 h-14 sm:w-20 sm:h-20 relative z-10 transition-transform duration-500 group-hover:scale-110">
+                    {category.image ? (
+                      <img
+                        src={resolveImageUrl(category.image)}
+                        className="w-full h-full object-contain filter drop-shadow-sm group-hover:drop-shadow-md transition-all duration-500"
+                        alt={category.name}
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = 'https://api.iconify.design/lucide:shopping-bag.svg?color=%23C0561F';
+                        }}
+                      />
+                    ) : (
+                      <ShoppingBag className="w-full h-full text-neutral-300 group-hover:text-brand transition-colors duration-500" />
+                    )}
+                  </div>
                 </div>
-                <h3 className="text-xs sm:text-sm font-bold text-neutral-800 text-center line-clamp-1 group-hover:text-brand transition-colors">{category.name}</h3>
+                
+                <div className="text-center px-1">
+                  <h3 className="text-[11px] sm:text-sm font-extrabold text-neutral-700 line-clamp-1 group-hover:text-brand transition-colors tracking-tight">{category.name}</h3>
+                </div>
               </Link>
             ))}
           </div>
