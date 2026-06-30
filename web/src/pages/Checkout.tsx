@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link, useSearchParams } from 'react-router-dom';
-import { CheckCircle, ArrowLeft, CreditCard, ShieldCheck, Mail, Phone, User, MapPin, Lock, ChevronRight, AlertCircle, Plus, Minus } from 'lucide-react';
+import { CheckCircle, ArrowLeft, CreditCard, ShieldCheck, Mail, Phone, User, MapPin, Lock, ChevronRight, AlertCircle, Plus, Minus, Trash2 } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { createOrder, getDistricts, getUpazilas, getPaymentMethods, getShippingZones, createDraftOrder, updateDraftOrder, deleteDraftOrder } from '../services/api';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -13,7 +13,7 @@ import { pushToDataLayer } from '../utils/dataLayer';
 const Checkout = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { cart, cartTotal, clearCart, updateQuantity } = useCart();
+  const { cart, cartTotal, clearCart, updateQuantity, removeFromCart } = useCart();
   const { isAuthenticated, user } = useAuth();
   const { settings, siteTitle } = useSettings();
   
@@ -897,33 +897,49 @@ const Checkout = () => {
                     <div className="flex-grow min-w-0 space-y-1">
                       <div className="flex justify-between items-start gap-2">
                         <h4 className="text-[13px] font-bold text-neutral-900 leading-tight line-clamp-2">{item.name}</h4>
-                        <div className="flex items-center border border-neutral-200 rounded-md bg-white overflow-hidden shadow-sm flex-shrink-0">
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.preventDefault();
-                              if (updateQuantity) {
-                                updateQuantity(item.cartKey, Math.max(1, item.quantity - 1));
-                              }
-                            }}
-                            className="px-2 py-1 text-neutral-500 hover:bg-neutral-100 hover:text-brand transition-colors focus:outline-none"
-                          >
-                            <Minus className="w-3 h-3" />
-                          </button>
-                          <div className="w-6 text-center text-[10px] font-bold text-neutral-700 bg-neutral-50 py-1 border-x border-neutral-200">
-                            {item.quantity}
+                        <div className="flex items-center gap-2">
+                          <div className="flex items-center border border-neutral-200 rounded-md bg-white overflow-hidden shadow-sm flex-shrink-0">
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                if (updateQuantity) {
+                                  updateQuantity(item.cartKey, Math.max(1, item.quantity - 1));
+                                }
+                              }}
+                              className="px-2 py-1 text-neutral-500 hover:bg-neutral-100 hover:text-brand transition-colors focus:outline-none"
+                            >
+                              <Minus className="w-3 h-3" />
+                            </button>
+                            <div className="w-6 text-center text-[10px] font-bold text-neutral-700 bg-neutral-50 py-1 border-x border-neutral-200">
+                              {item.quantity}
+                            </div>
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                if (updateQuantity) {
+                                  updateQuantity(item.cartKey, item.quantity + 1);
+                                }
+                              }}
+                              className="px-2 py-1 text-neutral-500 hover:bg-neutral-100 hover:text-brand transition-colors focus:outline-none"
+                            >
+                              <Plus className="w-3 h-3" />
+                            </button>
                           </div>
+                          
                           <button
                             type="button"
                             onClick={(e) => {
                               e.preventDefault();
-                              if (updateQuantity) {
-                                updateQuantity(item.cartKey, item.quantity + 1);
+                              if (removeFromCart) {
+                                removeFromCart(item.cartKey);
                               }
                             }}
-                            className="px-2 py-1 text-neutral-500 hover:bg-neutral-100 hover:text-brand transition-colors focus:outline-none"
+                            className="p-1.5 text-red-400 hover:bg-red-50 hover:text-red-600 rounded-md transition-colors"
+                            title="Remove item"
                           >
-                            <Plus className="w-3 h-3" />
+                            <Trash2 className="w-3.5 h-3.5" />
                           </button>
                         </div>
                       </div>
