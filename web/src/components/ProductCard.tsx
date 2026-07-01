@@ -178,6 +178,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
           {isAvailable ? (
             <Link 
               to={`/product/${product.slug}`}
+              aria-label={`Order ${product.name} Now`}
               className="w-full bg-brand hover:bg-brand-hover text-white text-[10px] md:text-xs font-black py-2.5 rounded-lg transition-colors flex items-center justify-center uppercase tracking-wider shadow-sm hover:shadow-md"
             >
               Order Now

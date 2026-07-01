@@ -292,12 +292,14 @@ import 'swiper/css/pagination';
               <>
                 <button
                   onClick={prevSlide}
+                  aria-label="Previous Slide"
                   className="absolute left-2 md:left-4 top-1/2 -translate-y-1/2 p-2 md:p-3 bg-white/20 backdrop-blur-md text-white rounded-full md:opacity-0 group-hover:opacity-100 transition-all hover:bg-white/40 border border-white/20"
                 >
                   <ChevronLeft className="w-4 h-4 md:w-6 md:h-6" />
                 </button>
                 <button
                   onClick={nextSlide}
+                  aria-label="Next Slide"
                   className="absolute right-2 md:right-4 top-1/2 -translate-y-1/2 p-2 md:p-3 bg-white/20 backdrop-blur-md text-white rounded-full md:opacity-0 group-hover:opacity-100 transition-all hover:bg-white/40 border border-white/20"
                 >
                   <ChevronRight className="w-4 h-4 md:w-6 md:h-6" />
@@ -309,6 +311,7 @@ import 'swiper/css/pagination';
                     <button
                       key={idx}
                       onClick={() => setCurrentSlide(idx)}
+                      aria-label={`Go to slide ${idx + 1}`}
                       className={`h-1.5 transition-all duration-300 rounded-full ${currentSlide === idx ? 'w-8 bg-white' : 'w-2 bg-white/40'
                         }`}
                     />
@@ -361,6 +364,7 @@ import 'swiper/css/pagination';
                 const el = document.getElementById('category-carousel');
                 if (el) el.scrollLeft -= 240;
               }}
+              aria-label="Previous Categories"
               className="w-10 h-10 bg-neutral-100/80 hover:bg-neutral-200 text-neutral-600 rounded-full flex items-center justify-center transition-all active:scale-95"
             >
               <ChevronLeft className="w-5 h-5" />
@@ -370,6 +374,7 @@ import 'swiper/css/pagination';
                 const el = document.getElementById('category-carousel');
                 if (el) el.scrollLeft += 240;
               }}
+              aria-label="Next Categories"
               className="w-10 h-10 bg-neutral-100/80 hover:bg-neutral-200 text-neutral-600 rounded-full flex items-center justify-center transition-all active:scale-95"
             >
               <ChevronRight className="w-5 h-5" />
@@ -394,13 +399,13 @@ import 'swiper/css/pagination';
                 to={`/products?category=${category.slug}`}
                 className="flex-shrink-0 snap-start group pb-4 pt-2 px-1"
               >
-                <div className="flex flex-col items-center justify-center gap-3 p-1.5 pr-5 rounded-full bg-white hover:-translate-y-0.5 transition-all duration-300">
-                  <div className="w-12 h-12 sm:w-14 sm:h-14 bg-neutral-50 rounded-full flex items-center justify-center p-2.5 group-hover:bg-brand/5 transition-colors shrink-0">
+                <div className="flex flex-col items-center justify-center gap-3 p-2.5 pr-5 bg-white hover:-translate-y-0.5 transition-all duration-300">
+                  <div className="w-12 h-12 sm:w-14 sm:h-14 flex items-center justify-center transition-colors shrink-0">
                     {category.image ? (
                       <img
                         src={resolveImageUrl(category.image)}
                         className="w-full h-full object-contain filter group-hover:scale-110 transition-transform duration-300"
-                        alt={category.name}
+                        alt=""
                         onError={(e) => {
                           (e.target as HTMLImageElement).src = 'https://api.iconify.design/lucide:shopping-bag.svg?color=%23C0561F';
                         }}
@@ -432,7 +437,7 @@ import 'swiper/css/pagination';
           <div className="flex flex-wrap gap-2 sm:gap-4 md:gap-5 justify-center md:justify-end">
             <button
               onClick={() => setActiveTab('All')}
-              className={`text-[8px] md:text-[8.5px] font-black uppercase tracking-widest transition-all hover:text-brand relative py-2 ${activeTab === 'All' ? 'text-brand' : 'text-gray-400'}`}
+              className={`text-[8px] md:text-[8.5px] font-black uppercase tracking-widest transition-all hover:text-brand relative py-2 ${activeTab === 'All' ? 'text-brand' : 'text-gray-500'}`}
             >
               All
               {activeTab === 'All' && <span className="absolute bottom-0 left-0 w-full h-0.5 bg-brand rounded-full"></span>}
@@ -441,7 +446,7 @@ import 'swiper/css/pagination';
               <button
                 key={cat.id}
                 onClick={() => setActiveTab(cat.name)}
-                className={`text-[8px] md:text-[8.5px] font-black uppercase tracking-widest transition-all hover:text-brand relative py-2 ${activeTab === cat.name ? 'text-brand' : 'text-gray-400'}`}
+                className={`text-[8px] md:text-[8.5px] font-black uppercase tracking-widest transition-all hover:text-brand relative py-2 ${activeTab === cat.name ? 'text-brand' : 'text-gray-500'}`}
               >
                 {cat.name}
                 {activeTab === cat.name && <span className="absolute bottom-0 left-0 w-full h-0.5 bg-brand rounded-full"></span>}

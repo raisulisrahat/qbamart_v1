@@ -279,7 +279,7 @@ const Navbar = () => {
               ) : (
                 <Link 
                   to="/login"
-                  className="flex items-center space-x-2 px-6 py-3 bg-brand text-white rounded-xl hover:bg-brand-hover transition-all shadow-lg shadow-brand/10 font-bold text-sm active:scale-95"
+                  className="flex items-center space-x-2 px-6 py-3 bg-brand text-white rounded-xl hover:bg-brand/90 transition-all shadow-lg shadow-brand/10 font-bold text-sm active:scale-95"
                 >
                   <LogIn className="w-5 h-5" />
                   <span>Login</span>

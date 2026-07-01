@@ -16,7 +16,7 @@ const Footer = () => {
             <Link to="/" className="flex items-center">
               <img src={footerLogo} alt={siteTitle || 'Qbamart'} className="h-8 md:h-10 w-auto" />
             </Link>
-            <p className="text-[13px] leading-relaxed max-w-xs font-medium text-neutral-500">
+            <p className="text-[13px] leading-relaxed max-w-xs font-medium text-neutral-700">
               {siteTitle || 'Qbamart'} is Bangladesh's most reliable and trusted e-commerce destination.
             </p>
             <div className="space-y-3">
@@ -34,7 +34,7 @@ const Footer = () => {
           {/* Categories Col */}
           <div>
             <h4 className="text-neutral-900 font-bold mb-6 text-base">Collection</h4>
-            <ul className="space-y-3 text-[13px] font-medium text-neutral-500">
+            <ul className="space-y-3 text-[13px] font-medium text-neutral-700">
               <li><Link to="/products" className="hover:text-brand transition-colors">All Products</Link></li>
               <li><Link to="/offer" className="hover:text-brand transition-colors">Special Offers</Link></li>
               <li><Link to="/brands" className="hover:text-brand transition-colors">Brands</Link></li>
@@ -46,7 +46,7 @@ const Footer = () => {
           {/* Informational Links Col */}
           <div>
             <h4 className="text-neutral-900 font-bold mb-6 text-base">Informational Links</h4>
-            <ul className="space-y-3 text-[13px] font-medium text-neutral-500">
+            <ul className="space-y-3 text-[13px] font-medium text-neutral-700">
               <li><Link to="/about-us" className="hover:text-brand transition-colors">About Us</Link></li>
               <li><Link to="/contact-us" className="hover:text-brand transition-colors">Contact Us</Link></li>
               <li><Link to="/shipping-policy" className="hover:text-brand transition-colors">Shipping Policy</Link></li>
@@ -58,7 +58,7 @@ const Footer = () => {
           {/* Contact Col */}
           <div>
             <h4 className="text-neutral-900 font-bold mb-6 text-base">Contact Us</h4>
-            <ul className="space-y-4 text-[13px] font-medium text-neutral-500">
+            <ul className="space-y-4 text-[13px] font-medium text-neutral-700">
               <li className="flex items-start space-x-3 group">
                 <div className="w-5 h-5 flex items-center justify-center text-brand"><Phone className="w-4 h-4" /></div>
                 <div>
@@ -85,7 +85,7 @@ const Footer = () => {
           </div>
         </div>
 
-        <div className="border-t border-neutral-100 pt-8 flex flex-col md:flex-row justify-between items-center text-xs space-y-4 md:space-y-0 text-neutral-400 font-medium">
+        <div className="border-t border-neutral-300 pt-8 flex flex-col md:flex-row justify-between items-center text-xs space-y-4 md:space-y-0 text-neutral-700 font-medium">
           <p>© 2026 {siteTitle || 'Qbamart'}. Powered by <a href="https://ctsolutionbd.com" target="_blank" rel="noopener noreferrer" className="hover:text-brand transition-colors">Cyber and Tech Solution</a>.</p>
           <div className="flex space-x-6 uppercase tracking-widest">
             <Link to="/privacy-policy" className="hover:text-brand">Privacy Policy</Link>

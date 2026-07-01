@@ -84,6 +84,7 @@ const ChatBubble: React.FC = () => {
         whileHover={{ scale: 1.1, rotate: isOpen ? 0 : 10 }}
         whileTap={{ scale: 0.9 }}
         onClick={() => setIsOpen(!isOpen)}
+        aria-label="Toggle chat"
         className={`w-15 h-15 rounded-full flex items-center justify-center shadow-2xl cursor-pointer pointer-events-auto relative overflow-hidden group transition-colors duration-500 ${
           isOpen ? 'bg-neutral-800 text-white' : 'bg-brand text-white'
         }`}

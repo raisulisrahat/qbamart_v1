@@ -68,8 +68,11 @@ const FlashSaleSection = () => {
               </h3>
             </div>
 
+          </div>
+
+          <div className="flex items-center gap-3">
             {/* Premium Countdown: Ultra Compact */}
-            <div className="flex items-center space-x-2 bg-white px-2.5 py-1 rounded-xl border border-neutral-100 shadow-sm">
+            <div className="flex items-center space-x-2 bg-white px-5 py-2.5 rounded-xl border border-neutral-100 shadow-sm">
               <Clock className="w-3 h-3 text-neutral-400" />
               <div className="flex items-center space-x-2 text-neutral-900 font-mono text-sm md:text-base font-bold">
                 <div className="flex flex-col items-center">
@@ -88,9 +91,6 @@ const FlashSaleSection = () => {
                 </div>
               </div>
             </div>
-          </div>
-
-          <div className="flex items-center gap-3">
             {isCarousel && (
               <div className="hidden md:flex items-center space-x-1.5 mr-2">
                 <button 
@@ -107,13 +107,6 @@ const FlashSaleSection = () => {
                 </button>
               </div>
             )}
-            <Link 
-              to="/flash-sale" 
-              className="group flex items-center space-x-2 bg-neutral-900 text-white hover:bg-brand px-4 py-1.5 rounded-xl font-bold text-[10px] uppercase tracking-wider transition-all shadow-md active:scale-95"
-            >
-              <span>View All</span>
-              <ChevronRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
-            </Link>
           </div>
         </div>
 
@@ -162,23 +155,32 @@ const FlashSaleSection = () => {
                   <ProductCard product={product} />
                   
                   {/* Simplified Availability Progress: More Compact */}
-                  <div className="px-0.5 space-y-1">
-                    <div className="flex justify-between text-[9px] font-bold uppercase tracking-wider">
-                      <span className="text-neutral-400 font-black">{stock > 0 ? `${stock} Left` : 'Sold Out'}</span>
-                      <span className="text-brand">{soldPercentage}% Sold</span>
-                    </div>
-                    <div className="h-1 w-full bg-neutral-50 rounded-full overflow-hidden">
-                      <motion.div 
+                  {/* <div className="px-0.5 space-y-1"></div> */}
+                    {/* <div className="flex justify-between text-[9px] font-bold uppercase tracking-wider"></div> */}
+                      {/* <span className="text-neutral-400 font-black">{stock > 0 ? `${stock} Left` : 'Sold Out'}</span> */}
+                      {/* <span className="text-brand">{soldPercentage}% Sold</span> */}
+                    
+                    {/* <div className="h-1 w-full bg-neutral-50 rounded-full overflow-hidden"></div> */}
+                      {/* <motion.div 
                         initial={{ width: 0 }}
                         whileInView={{ width: `${soldPercentage}%` }}
                         transition={{ duration: 1.2, delay: 0.3 }}
                         className="h-full bg-brand" 
-                      />
-                    </div>
-                  </div>
+                      /> */}
+                    
+                  
                 </motion.div>
               );
             })}
+          </div>
+          
+          <div className="flex justify-center mt-6">
+            <Link 
+              to="/flash-sale" 
+              className="group flex items-center space-x-2 bg-brand text-white hover:bg-brand/90 px-6 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all shadow-md active:scale-95"
+            >
+              <span className='flex items-center justify-center gap-1'>View All <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" /></span>
+            </Link>
           </div>
         </div>
       </div>
