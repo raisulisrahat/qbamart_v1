@@ -173,6 +173,7 @@ const Navbar = () => {
           {/* Mobile Only: Left Menu Icon */}
           <div className="flex md:hidden items-center justify-start w-1/3">
             <button
+              aria-label="Open Menu"
               onClick={() => setIsOpen(true)}
               className="p-2 text-neutral-600 active:scale-95 hover:bg-neutral-50 rounded-lg transition-all"
             >
@@ -194,12 +195,14 @@ const Navbar = () => {
           {/* Mobile Only: Right Icons (Search & Cart) */}
           <div className="flex md:hidden items-center justify-end space-x-1 w-1/3">
             <button 
+              aria-label="Search"
               onClick={() => setIsMobileSearchOpen(!isMobileSearchOpen)}
               className="p-2 text-neutral-600 active:scale-95 transition-transform"
             >
               <Search className="w-5 h-5" />
             </button>
             <button 
+              aria-label="View Cart"
               onClick={() => setIsCartOpen(true)}
               className="p-2 text-neutral-600 relative active:scale-95 transition-transform"
             >
@@ -221,7 +224,7 @@ const Navbar = () => {
     
 
             {/* Wishlist */}
-            <Link to="/wishlist" className="p-2 text-neutral-600 hover:bg-neutral-100 rounded-full transition-colors relative group">
+            <Link to="/wishlist" aria-label="Wishlist" className="p-2 text-neutral-600 hover:bg-neutral-100 rounded-full transition-colors relative group">
               <Heart className="w-5 h-5 group-hover:scale-110 transition-transform" />
               {wishlist.length > 0 && (
                 <span className="absolute top-1 right-1 w-4 h-4 bg-brand text-white text-[10px] font-bold flex items-center justify-center rounded-full shadow-sm">
@@ -232,6 +235,7 @@ const Navbar = () => {
             
             {/* Cart */}
             <button 
+              aria-label="View Cart"
               onClick={() => setIsCartOpen(true)}
               className="p-2 text-neutral-600 hover:bg-neutral-100 rounded-full transition-colors relative group"
             >
@@ -255,6 +259,7 @@ const Navbar = () => {
             >
               {isAuthenticated ? (
                 <button 
+                  aria-label="Profile Menu"
                   onClick={() => setShowProfileMenu(!showProfileMenu)}
                   className="flex items-center space-x-2 p-1 pl-2 hover:bg-neutral-100 rounded-full transition-all group"
                 >

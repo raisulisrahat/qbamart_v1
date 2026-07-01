@@ -22,11 +22,11 @@ const Footer = () => {
             <div className="space-y-3">
               <h4 className="text-neutral-900 font-bold text-base">Subscribe us</h4>
               <div className="flex space-x-2">
-                <a href={settings?.facebook_url || "#"} className="w-8 h-8 rounded-full bg-[#1877F2] flex items-center justify-center text-white hover:scale-110 transition-transform"><Facebook className="w-4 h-4" /></a>
-                <a href={settings?.twitter_url || "#"} className="w-8 h-8 rounded-full bg-black flex items-center justify-center text-white hover:scale-110 transition-transform"><Twitter className="w-4 h-4" /></a>
-                <a href={settings?.instagram_url || "#"} className="w-8 h-8 rounded-full bg-[#E4405F] flex items-center justify-center text-white hover:scale-110 transition-transform"><Instagram className="w-4 h-4" /></a>
-                <a href={settings?.youtube_url || "#"} className="w-8 h-8 rounded-full bg-[#FF0000] flex items-center justify-center text-white hover:scale-110 transition-transform"><Youtube className="w-4 h-4" /></a>
-                <a href={settings?.discord_url || "#"} className="w-8 h-8 rounded-full bg-[#5865F2] flex items-center justify-center text-white hover:scale-110 transition-transform"><MessageSquare className="w-4 h-4" /></a>
+                <a href={settings?.facebook_url || "#"} aria-label="Facebook" className="w-8 h-8 rounded-full bg-[#1877F2] flex items-center justify-center text-white hover:scale-110 transition-transform"><Facebook className="w-4 h-4" /></a>
+                <a href={settings?.twitter_url || "#"} aria-label="Twitter" className="w-8 h-8 rounded-full bg-black flex items-center justify-center text-white hover:scale-110 transition-transform"><Twitter className="w-4 h-4" /></a>
+                <a href={settings?.instagram_url || "#"} aria-label="Instagram" className="w-8 h-8 rounded-full bg-[#E4405F] flex items-center justify-center text-white hover:scale-110 transition-transform"><Instagram className="w-4 h-4" /></a>
+                <a href={settings?.youtube_url || "#"} aria-label="YouTube" className="w-8 h-8 rounded-full bg-[#FF0000] flex items-center justify-center text-white hover:scale-110 transition-transform"><Youtube className="w-4 h-4" /></a>
+                <a href={settings?.discord_url || "#"} aria-label="Discord" className="w-8 h-8 rounded-full bg-[#5865F2] flex items-center justify-center text-white hover:scale-110 transition-transform"><MessageSquare className="w-4 h-4" /></a>
               </div>
             </div>
           </div>

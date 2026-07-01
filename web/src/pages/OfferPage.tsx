@@ -74,6 +74,7 @@ const OfferPage = () => {
         shipping_zone: '',
         payment_method: '1', // COD default
     });
+    const [phoneError, setPhoneError] = useState<string | null>(null);
 
     const [selectedVariants, setSelectedVariants] = useState<any[]>([]);
     const [selectedZone, setSelectedZone] = useState<any>(null);
@@ -347,6 +348,13 @@ const OfferPage = () => {
         if (name === 'phone_number') {
             const cleaned = value.replace(/\D/g, '').slice(0, 11);
             setFormData(prev => ({ ...prev, phone_number: cleaned }));
+            if (phoneError) {
+                setPhoneError(null);
+                const phoneInputs = document.querySelectorAll('input[name="phone_number"]');
+                phoneInputs.forEach(input => {
+                    (input as HTMLElement).style.border = '';
+                });
+            }
         } else {
             setFormData(prev => ({ ...prev, [name]: value }));
         }
@@ -613,12 +621,25 @@ const OfferPage = () => {
         const phone = formData.phone_number || '';
         const cleanPhone = phone.replace(/\D/g, '');
         if (cleanPhone.length !== 11 || !cleanPhone.startsWith('01')) {
-            alert(language === 'bn' 
+            setPhoneError(language === 'bn' 
                 ? 'দয়া করে একটি সঠিক ১১ ডিজিটের মোবাইল নম্বর দিন (যেমন: 017XXXXXXXX)।' 
                 : 'Please enter a valid 11-digit mobile number starting with 01 (e.g. 017XXXXXXXX).'
             );
+            setTimeout(() => {
+                const phoneInputs = document.querySelectorAll('input[name="phone_number"]');
+                if (phoneInputs.length > 0) {
+                    const lastInput = phoneInputs[phoneInputs.length - 1]; // Often the mobile one is last
+                    (lastInput as HTMLElement).style.border = '2px solid #ef4444';
+                    (lastInput as HTMLElement).scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    // Also style the others just in case
+                    phoneInputs.forEach(input => {
+                        (input as HTMLElement).style.border = '2px solid #ef4444';
+                    });
+                }
+            }, 50);
             return;
         }
+        setPhoneError(null);
 
         setSubmitting(true);
 
@@ -840,6 +861,12 @@ const OfferPage = () => {
                 image={funnelData.product_details.image}
             />
             <FacebookPixel pixelId={funnelData.pixel_id} />
+            {phoneError && (
+                <div className="fixed top-4 right-4 z-[9999] bg-red-500 text-white px-6 py-3 rounded-xl shadow-2xl flex items-center gap-3 animate-bounce">
+                    <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    <span className="font-bold text-sm">{phoneError}</span>
+                </div>
+            )}
             {renderLayout()}
             <ChatBubble />
         </>

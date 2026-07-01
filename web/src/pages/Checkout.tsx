@@ -20,6 +20,7 @@ const Checkout = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [paymentError, setPaymentError] = useState<string | null>(null);
+  const [phoneError, setPhoneError] = useState<string | null>(null);
   const [tempPassword, setTempPassword] = useState<string | null>(null);
   const [draftOrderId, setDraftOrderId] = useState<number | null>(() => {
     const saved = sessionStorage.getItem('draft_order_id_checkout');
@@ -478,9 +479,11 @@ const Checkout = () => {
     const phone = formData.phone || '';
     const cleanPhone = phone.replace(/\D/g, '');
     if (cleanPhone.length !== 11 || !cleanPhone.startsWith('01')) {
-      alert('Please enter a valid 11-digit contact number starting with 01 (e.g. 017XXXXXXXX).');
+      setPhoneError('Please enter a valid 11-digit contact number starting with 01 (e.g. 017XXXXXXXX).');
+      document.getElementById('checkout-phone-input')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
       return;
     }
+    setPhoneError(null);
 
     setIsSubmitting(true);
     
@@ -726,13 +729,23 @@ const Checkout = () => {
                   <div className="space-y-2">
                     <label className="text-[11px] font-bold uppercase tracking-wider text-neutral-500 ml-1">মোবাইল নম্বর</label>
                     <input 
+                      id="checkout-phone-input"
                       required
                       type="tel" 
                       placeholder="আপনার মোবাইল নাম্বার"
-                      className="w-full px-4 py-2.5 bg-neutral-50 border border-neutral-200 rounded-lg text-sm transition-all focus:bg-white focus:border-brand focus:ring-2 focus:ring-red-100/50 outline-none placeholder:text-neutral-400"
+                      className={`w-full px-4 py-2.5 bg-neutral-50 border ${phoneError ? 'border-red-500 focus:border-red-500 focus:ring-red-100/50' : 'border-neutral-200 focus:border-brand focus:ring-red-100/50'} rounded-lg text-sm transition-all focus:bg-white focus:ring-2 outline-none placeholder:text-neutral-400`}
                       value={formData.phone}
-                      onChange={e => setFormData({...formData, phone: e.target.value.replace(/\D/g, '').slice(0, 11)})}
+                      onChange={e => {
+                        setFormData({...formData, phone: e.target.value.replace(/\D/g, '').slice(0, 11)});
+                        if (phoneError) setPhoneError(null);
+                      }}
                     />
+                    {phoneError && (
+                      <div className="text-red-500 text-xs font-semibold mt-1 flex items-center space-x-1">
+                        <AlertCircle className="w-3.5 h-3.5" />
+                        <span>{phoneError}</span>
+                      </div>
+                    )}
                   </div>
 
                   {settings?.enable_district_upazila !== false ? (
@@ -885,7 +898,6 @@ const Checkout = () => {
             <div className="bg-white rounded-2xl p-8 border border-neutral-100 shadow-sm space-y-8">
               <div className="border-b border-neutral-50 pb-4">
                 <h3 className="text-lg font-bold text-neutral-900">অর্ডার সামারি</h3>
-                <p className="text-[11px] font-medium text-neutral-400 uppercase tracking-wider">অর্ডার কনফার্ম করার পূর্বে শেষ রিভিউ</p>
               </div>
               
               <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">

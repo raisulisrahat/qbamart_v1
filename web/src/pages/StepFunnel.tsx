@@ -52,6 +52,7 @@ const StepFunnel = () => {
     
     const [submitting, setSubmitting] = useState(false);
     const [isSuccess, setIsSuccess] = useState(false);
+    const [phoneError, setPhoneError] = useState<string | null>(null);
     const [draftOrderId, setDraftOrderId] = useState<number | null>(() => {
         const saved = sessionStorage.getItem(`draft_order_id_stepfunnel_${slug}`);
         return saved ? parseInt(saved, 10) : null;
@@ -316,12 +317,14 @@ const StepFunnel = () => {
         const phone = formData.phone_number || '';
         const cleanPhone = phone.replace(/\D/g, '');
         if (cleanPhone.length !== 11 || !cleanPhone.startsWith('01')) {
-            alert(language === 'bn' 
+            setPhoneError(language === 'bn' 
                 ? 'দয়া করে একটি সঠিক ১১ ডিজিটের মোবাইল নম্বর দিন (যেমন: 017XXXXXXXX).' 
                 : 'Please enter a valid 11-digit mobile number starting with 01 (e.g. 017XXXXXXXX).'
             );
+            document.getElementById('stepfunnel-phone-input')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
             return;
         }
+        setPhoneError(null);
 
         setSubmitting(true);
 
@@ -566,15 +569,27 @@ const StepFunnel = () => {
                                                 value={formData.customer_name}
                                                 onChange={handleChange}
                                             />
+                                            <div>
                                             <input
+                                                id="stepfunnel-phone-input"
                                                 type="tel"
                                                 name="phone_number"
                                                 required
-                                                className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-5 focus:border-brand outline-none transition-all font-bold placeholder-white/30"
+                                                className={`w-full bg-white/5 border ${phoneError ? 'border-red-500 focus:border-red-500 focus:ring-1 focus:ring-red-500' : 'border-white/10 focus:border-brand'} rounded-2xl px-6 py-5 outline-none transition-all font-bold placeholder-white/30`}
                                                 placeholder="আপনার মোবাইল নাম্বার"
                                                 value={formData.phone_number}
-                                                onChange={handleChange}
+                                                onChange={(e) => {
+                                                    handleChange(e);
+                                                    if (phoneError) setPhoneError(null);
+                                                }}
                                             />
+                                            {phoneError && (
+                                                <div className="text-red-400 text-xs font-semibold mt-2 ml-2 flex items-center gap-1">
+                                                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                                    {phoneError}
+                                                </div>
+                                            )}
+                                            </div>
                                         </div>
 
                                         {siteSettings?.enable_district_upazila !== false ? (

@@ -3,7 +3,9 @@ node_modules/
 venv/
 .venv/
 env/
-.env
+*/.env
+web/.env
+*/.env.example
 .env.*.local
 __pycache__/
 *.pyc
@@ -57,6 +59,8 @@ Thumbs.db
 
 # Project Specific
 web/dist/
+web/.env
+*/.env.*
 web/node_modules/
 npm-build.log
 *.sqlite3

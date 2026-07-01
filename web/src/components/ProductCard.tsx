@@ -160,11 +160,11 @@ const ProductCard = ({ product }: ProductCardProps) => {
             <>
               {salePrice && salePrice < regPrice && (
                 <span className="text-sm text-neutral-400 line-through">
-                  ৳{product.regular_price}
+                  ৳{Math.round(regPrice)}
                 </span>
               )}
               <span className="text-base font-bold text-brand">
-                ৳{product.sale_price || product.regular_price}
+                ৳{Math.round(salePrice || regPrice)}
               </span>
             </>
           ) : (
