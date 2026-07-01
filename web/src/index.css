@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
 @theme {
-    --color-brand: #5173FB;
-    --color-brand-hover: #3a5bd9;
+    --color-brand: #2A4CBF;
+    --color-brand-hover: #1E3A9C;
 }
 
 @layer base {
@@ -21,8 +21,8 @@
     }
 
     :root {
-        --color-brand: #5173FB;
-        --color-brand-hover: #3a5bd9;
+        --color-brand: #2A4CBF;
+        --color-brand-hover: #1E3A9C;
         --next-bg: #FFFFFF;
         --next-sidebar: #FFFFFF;
         --next-border: #E2E2E2;

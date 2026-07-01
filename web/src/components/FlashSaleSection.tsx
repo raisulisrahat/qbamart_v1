@@ -77,17 +77,17 @@ const FlashSaleSection = () => {
               <div className="flex items-center space-x-2 text-neutral-900 font-mono text-sm md:text-base font-bold">
                 <div className="flex flex-col items-center">
                   <span className="tabular-nums">{String(timeLeft.hours).padStart(2, '0')}</span>
-                  <span className="text-[7px] uppercase tracking-widest text-neutral-400 font-sans -mt-1 font-black">Hr</span>
+                  <span className="text-[7px] uppercase tracking-widest text-neutral-600 font-sans -mt-1 font-black">Hr</span>
                 </div>
-                <span className="text-neutral-200 font-sans font-normal">:</span>
+                <span className="text-neutral-400 font-sans font-normal">:</span>
                 <div className="flex flex-col items-center">
                   <span className="tabular-nums">{String(timeLeft.minutes).padStart(2, '0')}</span>
-                  <span className="text-[7px] uppercase tracking-widest text-neutral-400 font-sans -mt-1 font-black">Min</span>
+                  <span className="text-[7px] uppercase tracking-widest text-neutral-600 font-sans -mt-1 font-black">Min</span>
                 </div>
-                <span className="text-neutral-200 font-sans font-normal">:</span>
+                <span className="text-neutral-400 font-sans font-normal">:</span>
                 <div className="flex flex-col items-center">
                   <span className="tabular-nums">{String(timeLeft.seconds).padStart(2, '0')}</span>
-                  <span className="text-[7px] uppercase tracking-widest text-neutral-400 font-sans -mt-1 font-black">Sec</span>
+                  <span className="text-[7px] uppercase tracking-widest text-neutral-600 font-sans -mt-1 font-black">Sec</span>
                 </div>
               </div>
             </div>
