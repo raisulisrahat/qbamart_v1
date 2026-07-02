@@ -680,19 +680,11 @@ class OrderViewSet(viewsets.ModelViewSet):
             import requests
             import threading
             
-            def send_telegram_alert(token, chat_id, order_obj, store_name):
+            def send_telegram_alert(token, chat_id, text_content):
                 url = f"https://api.telegram.org/bot{token}/sendMessage"
-                text = (
-                    f"🛒 *New Order Received!*\n\n"
-                    f"📦 *Order ID:* #{str(order_obj.id).zfill(8)}\n"
-                    f"👤 *Customer:* {order_obj.customer_name}\n"
-                    f"📞 *Phone:* {order_obj.phone_number}\n"
-                    f"💰 *Total Amount:* ৳{order_obj.total_amount}\n"
-                    f"🏠 *Store:* {store_name}\n"
-                )
                 payload = {
                     "chat_id": chat_id,
-                    "text": text,
+                    "text": text_content,
                     "parse_mode": "Markdown"
                 }
                 try:
@@ -701,7 +693,30 @@ class OrderViewSet(viewsets.ModelViewSet):
                     pass
             
             store_name = settings.site_title or "Store"
-            threading.Thread(target=send_telegram_alert, args=(settings.telegram_bot_token, settings.telegram_chat_id, order, store_name)).start()
+            
+            items_text = ""
+            for idx, item in enumerate(order.items.all(), 1):
+                variant_parts = []
+                if item.color:
+                    variant_parts.append(item.color.name)
+                if item.size:
+                    variant_parts.append(item.size.name)
+                
+                variant_info = f" ({', '.join(variant_parts)})" if variant_parts else ""
+                items_text += f"{idx}. {item.product.name}{variant_info} x{item.quantity}\n"
+            
+            text_content = (
+                f"🛒 *New Order Received!*\n\n"
+                f"📦 *Order ID:* #{str(order.id).zfill(8)}\n"
+                f"👤 *Customer:* {order.customer_name}\n"
+                f"📞 *Phone:* {order.phone_number}\n"
+                f"📍 *Address:* {order.address}\n\n"
+                f"🛍️ *Products:*\n{items_text}\n"
+                f"💰 *Total Amount:* ৳{order.total_amount}\n"
+                f"🏠 *Store:* {store_name}"
+            )
+            
+            threading.Thread(target=send_telegram_alert, args=(settings.telegram_bot_token, settings.telegram_chat_id, text_content)).start()
 
     @action(detail=False, methods=['post'], permission_classes=[IsFullAdmin])
     def bulk_delete(self, request):
