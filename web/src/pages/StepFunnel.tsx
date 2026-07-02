@@ -224,7 +224,7 @@ const StepFunnel = () => {
             } catch (err) {
                 console.error("Draft auto-save failed:", err);
             }
-        }, 60000); // 1 minute delay
+        }, 2000);
 
         return () => clearTimeout(timer);
     }, [formData, product, selectedZone, shippingCost, finalTotal, draftOrderId]);
@@ -345,22 +345,15 @@ const StepFunnel = () => {
                     : (formData.shipping_zone ? parseInt(formData.shipping_zone) : (shippingZones[0]?.id || 1)),
                 shipping_cost: shippingCost,
                 total_amount: finalTotal,
-                payment_method: 1
+                payment_method: 1,
+                draft_order_id: draftOrderId
             };
 
             const res = await createOrder(orderData);
 
             // Mark as submitted to prevent any subsequent draft saves/updates
             isOrderSubmittedRef.current = true;
-
-            if (draftOrderId) {
-                try {
-                    await deleteDraftOrder(draftOrderId);
-                } catch (delErr) {
-                    console.error("Failed to delete draft order after success:", delErr);
-                }
-                setDraftOrderId(null);
-            }
+            setDraftOrderId(null);
 
             setIsSuccess(true);
             

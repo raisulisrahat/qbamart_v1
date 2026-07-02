@@ -492,7 +492,7 @@ const OfferPage = () => {
             } catch (err) {
                 console.error("Draft auto-save failed", err);
             }
-        }, 60000); // 1 minute delay
+        }, 2000);
 
         return () => clearTimeout(timer);
     }, [formData, selectedVariants, shippingCost, subtotal, funnelData, draftOrderId, shippingZones, districts, siteSettings]);
@@ -701,6 +701,10 @@ const OfferPage = () => {
                 }
             }
 
+            if (draftOrderId) {
+                (orderData as any).draft_order_id = draftOrderId;
+            }
+
             const res = await createOrder(orderData);
             
             // Mark as submitted to prevent any subsequent draft saves/updates
@@ -710,14 +714,7 @@ const OfferPage = () => {
                 setTempPassword(res.data.temp_password || res.data.password || res.data.guest_password);
             }
 
-            if (draftOrderId) {
-                try {
-                    await deleteDraftOrder(draftOrderId);
-                } catch (delErr) {
-                    console.error("Failed to delete draft order after success:", delErr);
-                }
-                setDraftOrderId(null);
-            }
+            setDraftOrderId(null);
 
             setCreatedOrder(res.data);
             setIsSuccess(true);

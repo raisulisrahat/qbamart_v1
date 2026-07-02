@@ -385,7 +385,7 @@ const Checkout = () => {
       } catch (err) {
         console.error('Draft auto-save failed:', err);
       }
-    }, 60000); // 1 minute delay
+    }, 2000);
 
     return () => clearTimeout(timer);
   }, [formData, cart, shippingZoneId, selectedPaymentMethod, shippingCost, cartTotal, draftOrderId]);
@@ -503,23 +503,15 @@ const Checkout = () => {
         shipping_zone: shippingZoneId,
         payment_method: selectedPaymentMethod,
         shipping_cost: shippingCost,
-        total_amount: cartTotal + shippingCost
+        total_amount: cartTotal + shippingCost,
+        draft_order_id: draftOrderId
       };
       
       const res = await createOrder(orderData);
       
       // Mark as submitted to prevent any subsequent draft saves/updates
       isOrderSubmittedRef.current = true;
-      
-      // Cleanup the draft order since the purchase is initiated/successful!
-      if (draftOrderId) {
-        try {
-          await deleteDraftOrder(draftOrderId);
-        } catch (delErr) {
-          console.error("Failed to delete draft order:", delErr);
-        }
-        setDraftOrderId(null);
-      }
+      setDraftOrderId(null);
 
       if (res.data?.bkash_url) {
         // Save form data to session storage before redirecting to bkash

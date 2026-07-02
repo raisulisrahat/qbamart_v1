@@ -575,7 +575,19 @@ class OrderViewSet(viewsets.ModelViewSet):
         return Order.objects.filter(user=user).exclude(status='draft')
 
     def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
+        draft_id = request.data.get('draft_order_id')
+        instance = None
+        if draft_id:
+            try:
+                instance = Order.objects.get(id=draft_id, status='draft')
+            except Order.DoesNotExist:
+                pass
+                
+        if instance:
+            serializer = self.get_serializer(instance, data=request.data)
+        else:
+            serializer = self.get_serializer(data=request.data)
+            
         serializer.is_valid(raise_exception=True)
         self.temp_password = None
         self.perform_create(serializer)
@@ -1157,11 +1169,17 @@ class IncompleteOrderViewSet(viewsets.ModelViewSet):
     ordering_fields = ['created_at', 'total_amount']
 
     def get_queryset(self):
+        from django.utils import timezone
+        import datetime
+        one_minute_ago = timezone.now() - datetime.timedelta(minutes=1)
+        
         user = self.request.user
+        qs = Order.objects.filter(status='draft', created_at__lt=one_minute_ago)
+        
         if user and user.is_authenticated and hasattr(user, 'profile') and user.profile.role in ['admin', 'moderator', 'ads_manager']:
-            return Order.objects.filter(status='draft')
+            return qs
         if user and user.is_authenticated:
-            return Order.objects.filter(user=user, status='draft')
+            return qs.filter(user=user)
         return Order.objects.none()
 
     def get_permissions(self):
