@@ -385,7 +385,7 @@ const Checkout = () => {
       } catch (err) {
         console.error('Draft auto-save failed:', err);
       }
-    }, 2000);
+    }, 30000); // 1 minute delay
 
     return () => clearTimeout(timer);
   }, [formData, cart, shippingZoneId, selectedPaymentMethod, shippingCost, cartTotal, draftOrderId]);

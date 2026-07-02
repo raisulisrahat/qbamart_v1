@@ -492,7 +492,7 @@ const OfferPage = () => {
             } catch (err) {
                 console.error("Draft auto-save failed", err);
             }
-        }, 2000);
+        }, 60000); // 1 minute delay
 
         return () => clearTimeout(timer);
     }, [formData, selectedVariants, shippingCost, subtotal, funnelData, draftOrderId, shippingZones, districts, siteSettings]);

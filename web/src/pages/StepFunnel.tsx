@@ -224,7 +224,7 @@ const StepFunnel = () => {
             } catch (err) {
                 console.error("Draft auto-save failed:", err);
             }
-        }, 2000);
+        }, 60000); // 1 minute delay
 
         return () => clearTimeout(timer);
     }, [formData, product, selectedZone, shippingCost, finalTotal, draftOrderId]);
