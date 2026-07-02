@@ -668,6 +668,11 @@ class SiteSettings(models.Model):
     session_timeout_minutes = models.PositiveIntegerField(default=60, help_text="User session timeout in minutes")
     enable_district_upazila = models.BooleanField(default=True, help_text="Enable District and Upazila fields in checkout")
 
+    # Telegram Bot Integration
+    telegram_bot_token = models.CharField(max_length=255, blank=True, null=True, help_text="Telegram Bot Token")
+    telegram_chat_id = models.CharField(max_length=255, blank=True, null=True, help_text="Telegram Chat ID (e.g., your ID or group ID)")
+    enable_telegram_order_alert = models.BooleanField(default=False, help_text="Send alert to Telegram when a new order is placed")
+
     # SMS Configuration (BulkSMSBD)
     sms_api_key = models.CharField(max_length=255, blank=True, null=True, help_text="API Key for BulkSMSBD")
     sms_sender_id = models.CharField(max_length=50, blank=True, null=True, help_text="Approved Sender ID")

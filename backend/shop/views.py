@@ -674,6 +674,34 @@ class OrderViewSet(viewsets.ModelViewSet):
             from .sms_utils import send_sms
             message = f"আপনার অর্ডার #{str(order.id).zfill(8)} সফলভাবে গ্রহণ করা হয়েছে। {settings.site_title}-এর সাথে কেনাকাটা করার জন্য ধন্যবাদ!"
             send_sms(order.phone_number, message)
+            
+        # 4. Send Telegram Alert
+        if settings and settings.enable_telegram_order_alert and settings.telegram_bot_token and settings.telegram_chat_id:
+            import requests
+            import threading
+            
+            def send_telegram_alert(token, chat_id, order_obj, store_name):
+                url = f"https://api.telegram.org/bot{token}/sendMessage"
+                text = (
+                    f"🛒 *New Order Received!*\n\n"
+                    f"📦 *Order ID:* #{str(order_obj.id).zfill(8)}\n"
+                    f"👤 *Customer:* {order_obj.customer_name}\n"
+                    f"📞 *Phone:* {order_obj.phone_number}\n"
+                    f"💰 *Total Amount:* ৳{order_obj.total_amount}\n"
+                    f"🏠 *Store:* {store_name}\n"
+                )
+                payload = {
+                    "chat_id": chat_id,
+                    "text": text,
+                    "parse_mode": "Markdown"
+                }
+                try:
+                    requests.post(url, json=payload, timeout=5)
+                except Exception:
+                    pass
+            
+            store_name = settings.site_title or "Store"
+            threading.Thread(target=send_telegram_alert, args=(settings.telegram_bot_token, settings.telegram_chat_id, order, store_name)).start()
 
     @action(detail=False, methods=['post'], permission_classes=[IsFullAdmin])
     def bulk_delete(self, request):

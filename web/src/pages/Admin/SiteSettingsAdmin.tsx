@@ -17,7 +17,8 @@ import {
   Youtube,
   Phone,
   MessageCircle,
-  AlertCircle
+  AlertCircle,
+  Send
 } from 'lucide-react';
 import { getSiteSettings, updateSiteSettings } from '../../services/api';
 import { motion } from 'framer-motion';
@@ -94,6 +95,19 @@ const SiteSettingsAdmin = () => {
           className="w-full pl-12 pr-4 py-3.5 bg-neutral-50 border border-neutral-100 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand transition-all text-neutral-800 font-medium"
         />
       </div>
+    </div>
+  );
+
+  const CheckboxField = ({ label, name }: any) => (
+    <div className="flex items-center space-x-3 pt-6">
+      <input 
+        type="checkbox"
+        name={name}
+        checked={!!formData[name]}
+        onChange={handleChange}
+        className="w-5 h-5 text-brand bg-neutral-50 border-neutral-200 rounded focus:ring-brand"
+      />
+      <label className="text-sm font-bold text-neutral-700">{label}</label>
     </div>
   );
 
@@ -181,10 +195,19 @@ const SiteSettingsAdmin = () => {
           <p className="mt-4 text-xs text-neutral-400 italic">Required for automated shipment creation in Carrybee portal.</p>
         </Section>
 
+        <Section title="Telegram Integration" icon={Send}>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <InputField label="Bot Token" name="telegram_bot_token" icon={Key} type="password" />
+            <InputField label="Chat ID" name="telegram_chat_id" icon={Target} />
+            <CheckboxField label="Enable Telegram Order Alert" name="enable_telegram_order_alert" />
+          </div>
+          <p className="mt-4 text-xs text-neutral-400 italic">Receive notifications on Telegram for every new order placed.</p>
+        </Section>
+
         <Section title="Marketing Pixels & Tracking" icon={Target}>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
              <InputField label="Facebook Pixel ID" name="facebook_pixel_id" icon={Target} />
-             <InputField label="Google Tag ID (gtag.js)" name="google_tag_id" icon={Target} placeholder="e.g. G-X06QEH8RN6" />
+             <InputField label="Google Analytics ID" name="google_tag_id" icon={Target} placeholder="e.g. G-XXXXXXXXXX" />
              <InputField label="Google Tag Manager ID" name="google_tag_manager_id" icon={Target} placeholder="e.g. GTM-XXXXXXX" />
           </div>
         </Section>

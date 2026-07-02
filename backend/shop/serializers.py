@@ -637,7 +637,8 @@ class SiteSettingsSerializer(serializers.ModelSerializer):
                     'webhook_auth_token',
                     'facebook_capi_token', 'facebook_ad_account_id',
                     'sms_api_key',
-                    'bkash_app_key', 'bkash_app_secret', 'bkash_username', 'bkash_password'
+                    'bkash_app_key', 'bkash_app_secret', 'bkash_username', 'bkash_password',
+                    'telegram_bot_token', 'telegram_chat_id'
                 ]
                 for field in sensitive_fields:
                     data.pop(field, None)
