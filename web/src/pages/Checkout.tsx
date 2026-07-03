@@ -370,7 +370,8 @@ const Checkout = () => {
         shipping_zone: shippingZoneId,
         payment_method: selectedPaymentMethod || 1,
         shipping_cost: shippingCost,
-        total_amount: cartTotal + shippingCost
+        total_amount: cartTotal + shippingCost,
+        source_url: sessionStorage.getItem('meta_ad_link') || window.location.href
       };
 
       try {
@@ -413,7 +414,8 @@ const Checkout = () => {
         shipping_zone: shippingZoneId,
         payment_method: selectedPaymentMethod || 1,
         shipping_cost: shippingCost,
-        total_amount: cartTotal + shippingCost
+        total_amount: cartTotal + shippingCost,
+        source_url: sessionStorage.getItem('meta_ad_link') || window.location.href
       };
 
       const token = localStorage.getItem('token');
@@ -504,7 +506,8 @@ const Checkout = () => {
         payment_method: selectedPaymentMethod,
         shipping_cost: shippingCost,
         total_amount: cartTotal + shippingCost,
-        draft_order_id: draftOrderId
+        draft_order_id: draftOrderId,
+        source_url: sessionStorage.getItem('meta_ad_link') || window.location.href
       };
       
       const res = await createOrder(orderData);

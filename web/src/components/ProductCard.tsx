@@ -1,6 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { ShoppingCart, Eye, Heart, Check, X } from 'lucide-react';
-import { motion } from 'framer-motion';
+
 import { resolveImageUrl } from '../utils/image';
 import { useWishlist } from '../context/WishlistContext';
 import { useAuth } from '../context/AuthContext';
@@ -62,11 +62,8 @@ const ProductCard = ({ product }: ProductCardProps) => {
   };
 
   return (
-    <motion.div 
-      initial={{ opacity: 0 }}
-      whileInView={{ opacity: 1 }}
-      viewport={{ once: true }}
-      className={`group relative bg-white rounded-xl overflow-hidden border border-neutral-100 hover:shadow-xl transition-all duration-300 flex flex-col ${!isAvailable ? 'opacity-75' : ''}`}
+    <div 
+      className={`group relative bg-white rounded-xl overflow-hidden border border-neutral-100 hover:shadow-xl transition-all duration-300 flex flex-col h-full ${!isAvailable ? 'opacity-75' : ''}`}
     >
       {/* Image Container */}
       <div className="relative aspect-square overflow-hidden m-1.5 rounded-xl bg-neutral-50">
@@ -193,7 +190,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
           )}
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 };
 

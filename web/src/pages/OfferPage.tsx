@@ -457,7 +457,8 @@ const OfferPage = () => {
                 shipping_zone: getShippingZoneId(),
                 shipping_cost: shippingCost,
                 total_amount: subtotal + shippingCost,
-                payment_method: 1
+                payment_method: 1,
+                source_url: sessionStorage.getItem('meta_ad_link') || window.location.href
             };
 
             if (orderData.items.length === 0) {
@@ -539,7 +540,8 @@ const OfferPage = () => {
                 shipping_zone: getShippingZoneId(),
                 shipping_cost: shippingCost,
                 total_amount: subtotal + shippingCost,
-                payment_method: 1
+                payment_method: 1,
+                source_url: sessionStorage.getItem('meta_ad_link') || window.location.href
             };
 
             if (orderData.items.length === 0) {
@@ -677,7 +679,8 @@ const OfferPage = () => {
                 shipping_zone: getShippingZoneId(),
                 shipping_cost: shippingCost,
                 total_amount: subtotal + shippingCost,
-                payment_method: 1 // COD default for funnels
+                payment_method: 1, // COD default for funnels
+                source_url: sessionStorage.getItem('meta_ad_link') || window.location.href
             };
 
             // If no items selected and no variants (default case)

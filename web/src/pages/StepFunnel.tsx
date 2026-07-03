@@ -209,7 +209,8 @@ const StepFunnel = () => {
                     : (formData.shipping_zone ? parseInt(formData.shipping_zone) : (shippingZones[0]?.id || 1)),
                 shipping_cost: shippingCost,
                 total_amount: finalTotal,
-                payment_method: 1
+                payment_method: 1,
+                source_url: sessionStorage.getItem('meta_ad_link') || window.location.href
             };
 
             try {
@@ -254,7 +255,8 @@ const StepFunnel = () => {
                     : (formData.shipping_zone ? parseInt(formData.shipping_zone) : (shippingZones[0]?.id || 1)),
                 shipping_cost: shippingCost,
                 total_amount: finalTotal,
-                payment_method: 1
+                payment_method: 1,
+                source_url: sessionStorage.getItem('meta_ad_link') || window.location.href
             };
 
             const token = localStorage.getItem('token');
@@ -346,7 +348,8 @@ const StepFunnel = () => {
                 shipping_cost: shippingCost,
                 total_amount: finalTotal,
                 payment_method: 1,
-                draft_order_id: draftOrderId
+                draft_order_id: draftOrderId,
+                source_url: sessionStorage.getItem('meta_ad_link') || window.location.href
             };
 
             const res = await createOrder(orderData);

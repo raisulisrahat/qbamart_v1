@@ -377,6 +377,7 @@ class Order(models.Model):
     ip_address = models.GenericIPAddressField(null=True, blank=True)
     user_agent = models.TextField(null=True, blank=True)
     location = models.CharField(max_length=255, null=True, blank=True)
+    source_url = models.TextField(null=True, blank=True, help_text="Link the user clicked (e.g. from Meta Ads)")
 
     ORDER_STATUS = (
         ('draft', 'Draft/Incomplete'),

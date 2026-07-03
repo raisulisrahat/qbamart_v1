@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import api, { BASE_URL } from '../../services/api';
-import { Edit, Trash2, Search, Eye, CheckCircle, XCircle, Download, X, Calendar, Filter, AlertCircle, AlertTriangle, Package, Truck, Bike, PhoneCall, RefreshCw, ShoppingBag, Globe, ChevronLeft, ChevronRight, Copy, MapPin, Compass } from 'lucide-react';
+import { Edit, Trash2, Search, Eye, CheckCircle, XCircle, Download, X, Calendar, Filter, AlertCircle, AlertTriangle, Package, Truck, Bike, PhoneCall, RefreshCw, ShoppingBag, Globe, ChevronLeft, ChevronRight, Copy, MapPin, Compass, Link as LinkIcon } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { BarChart, Bar, XAxis, Tooltip, ResponsiveContainer } from 'recharts';
@@ -1482,6 +1482,22 @@ const OrderManager = () => {
                                             <p className="text-xs font-medium text-zinc-600 mt-0.5 break-words leading-relaxed">{selectedOrder.user_agent || 'N/A'}</p>
                                         </div>
                                     </div>
+                                    
+                                    {selectedOrder.source_url && (
+                                    <div className="flex items-start gap-3 pt-3 border-t border-zinc-200/50">
+                                        <div className="p-2 bg-blue-50 text-blue-500 rounded-lg mt-0.5">
+                                            <LinkIcon size={14} />
+                                        </div>
+                                        <div className="min-w-0 flex-1">
+                                            <p className="text-[9px] font-bold text-blue-400 uppercase tracking-widest">Marketing Tracking Link</p>
+                                            <div className="text-xs font-medium text-blue-600 mt-0.5 break-words leading-relaxed">
+                                                <a href={selectedOrder.source_url} target="_blank" rel="noopener noreferrer" className="hover:underline">
+                                                    {selectedOrder.source_url}
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    )}
                                 </div>
                             </div>
                         </div>

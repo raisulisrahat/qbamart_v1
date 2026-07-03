@@ -13,7 +13,7 @@ import ScrollToTop from './components/ScrollToTop';
 import FacebookPixel from './components/FacebookPixel';
 import GoogleTag from './components/GoogleTag';
 import GoogleTagManager from './components/GoogleTagManager';
-import React, { lazy, Suspense } from 'react';
+import React, { lazy, Suspense, useEffect } from 'react';
 import Home from './pages/Home'; // Let's keep the home page synchronously loaded to minimize First Contentful Paint delay on homepage
 const ProductDetail = lazy(() => import('./pages/ProductDetail'));
 const Shop = lazy(() => import('./pages/Shop'));
@@ -54,6 +54,13 @@ import UserLayout from './components/UserLayout';
 const queryClient = new QueryClient();
 
 function App() {
+  useEffect(() => {
+    const searchParams = new URLSearchParams(window.location.search);
+    if (searchParams.has('fbclid') || searchParams.has('utm_source') || searchParams.has('utm_campaign')) {
+      sessionStorage.setItem('meta_ad_link', window.location.href);
+    }
+  }, []);
+
   return (
     <QueryClientProvider client={queryClient}>
       <SettingsProvider>
