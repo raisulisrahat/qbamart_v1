@@ -58,24 +58,31 @@ const FlashSaleSection = () => {
       {/* Background Glow */}
       <div className="absolute -inset-4 bg-gradient-to-r from-brand/5/50 to-transparent rounded-[40px] blur-3xl -z-10 opacity-0 group-hover/section:opacity-100 transition-opacity duration-1000" />
       
-      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row gap-4 items-stretch">
-        {/* Left Side: Banner */}
-        {secondaryBanner && (
-          <Link to={secondaryBanner.link || '/flash-sale'} className="hidden md:block w-[300px] lg:w-[360px] xl:w-[400px] flex-shrink-0 rounded-[24px] overflow-hidden shadow-sm relative group">
-            <img src={resolveImageUrl(secondaryBanner.image)} alt={secondaryBanner.title || 'Flash Sale'} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
-          </Link>
-        )}
-        
-        {/* Right Side: Flash Sale Products */}
-        <div className="flex-1 bg-white rounded-[24px] border-2 border-red-600/20 shadow-sm overflow-hidden flex flex-col">
-          {/* Header Section: Compact & Refined */}
-          <div className="px-5 md:px-8 py-4 flex flex-col md:flex-row items-center justify-between gap-3 border-b border-red-50 bg-red-50/30">
-            <div className="flex items-center gap-3 md:gap-4 text-center md:text-left">
-              <h3 className="text-xl md:text-2xl font-bold text-neutral-900 tracking-tight leading-tight">
-                Flash Sale
+      <div className='mx-auto px-4 sm:px-6 lg:px-8 '>
+          {secondaryBanner && (
+            <Link to={secondaryBanner.link || '/flash-sale'} className="w-full aspect-[16/9] sm:aspect-square flex-shrink-0 rounded-xl overflow-hidden shadow-sm relative group mb-6">
+              <img src={resolveImageUrl(secondaryBanner.image)} alt={secondaryBanner.title || 'Flash Sale'} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+            </Link>
+          )}
+      </div>
+      <div className="bg-white rounded-[24px] border border-neutral-100 shadow-sm overflow-hidden">
+        {/* Header Section: Compact & Refined */}
+        <div className="px-5 md:px-8 py-3 md:py-4 flex flex-col md:flex-row items-center justify-between gap-3 border-b border-neutral-50 bg-neutral-50/30">
+          <div className="flex flex-col md:flex-row items-center gap-3 md:gap-6 text-center md:text-left">
+            <div className="space-y-0">
+              <div className="flex items-center justify-center md:justify-start space-x-1.5">
+                <div className="relative flex h-1.5 w-1.5">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-brand"></span>
+                </div>
+                <h2 className="text-[9px] font-black text-brand uppercase tracking-[0.2em]">Flash Sale</h2>
+              </div>
+              <h3 className="text-base md:text-lg font-bold text-neutral-900 tracking-tight leading-tight">
+                {activeSale.title}
               </h3>
-              <span className="text-sm md:text-base font-bold text-red-600">Ending Offer</span>
             </div>
+
+          </div>
 
           <div className="flex items-center gap-3">
             {/* Premium Countdown: Ultra Compact */}
@@ -117,13 +124,13 @@ const FlashSaleSection = () => {
           </div>
         </div>
 
-        <div className="px-4 md:px-6 pt-5 pb-5 md:pb-8 flex-1 flex flex-col justify-center">
+        <div className="px-4 md:px-6 pt-3 md:pt-5 pb-5 md:pb-8 flex flex-col md:flex-row gap-4">
           <div className="flex-1 overflow-hidden">
             <div 
               id="flash-sale-scroll"
               className={isCarousel 
                 ? "flex overflow-x-auto gap-4 sm:gap-5 pb-4 scrollbar-hide snap-x" 
-                : "grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5"}
+                : "grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5"}
             >
             {activeSale.items.filter((item: any) => item.product?.stock !== undefined ? item.product.stock > 0 : true).map((item: any, idx: number) => {
               const product = { ...item.product };
@@ -185,13 +192,12 @@ const FlashSaleSection = () => {
             <div className="flex justify-center mt-6">
               <Link 
                 to="/flash-sale" 
-                className="group flex items-center space-x-2 bg-neutral-900 text-white hover:bg-black px-8 py-3 rounded-xl font-bold text-xs uppercase tracking-wider transition-all shadow-md active:scale-95"
+                className="group flex items-center space-x-2 bg-brand text-white hover:bg-brand/90 px-6 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all shadow-md active:scale-95"
               >
-                <span className='flex items-center justify-center gap-2'>View All Offers <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" /></span>
+                <span className='flex items-center justify-center gap-1'>View All <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" /></span>
               </Link>
             </div>
           </div>
-        </div>
         </div>
       </div>
     </section>
