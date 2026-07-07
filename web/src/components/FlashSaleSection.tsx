@@ -3,8 +3,9 @@ import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import { Zap, ChevronRight, Clock, ChevronLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { getFlashSales } from '../services/api';
+import { getFlashSales, getBanners } from '../services/api';
 import ProductCard from './ProductCard';
+import { resolveImageUrl } from '../utils/image';
 
 interface TimeLeft {
   hours: number;
@@ -18,7 +19,13 @@ const FlashSaleSection = () => {
     queryFn: () => getFlashSales().then(res => res.data),
   });
 
+  const { data: banners } = useQuery({
+    queryKey: ['banners'],
+    queryFn: () => getBanners().then(res => res.data),
+  });
+
   const activeSale = flashSales?.find((sale: any) => sale.is_active);
+  const secondaryBanner = banners?.find((b: any) => b.type === 'secondary' && b.is_active !== false);
   const [timeLeft, setTimeLeft] = useState<TimeLeft | null>(null);
 
   useEffect(() => {
@@ -110,13 +117,19 @@ const FlashSaleSection = () => {
           </div>
         </div>
 
-        <div className="px-4 md:px-6 pt-3 md:pt-5 pb-5 md:pb-8">
-          <div 
-            id="flash-sale-scroll"
-            className={isCarousel 
-              ? "flex overflow-x-auto gap-4 sm:gap-5 pb-4 scrollbar-hide snap-x" 
-              : "grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5"}
-          >
+        <div className="px-4 md:px-6 pt-3 md:pt-5 pb-5 md:pb-8 flex flex-col md:flex-row gap-4">
+          {secondaryBanner && (
+             <Link to={secondaryBanner.link || '/flash-sale'} className="hidden md:block w-[240px] flex-shrink-0 rounded-xl overflow-hidden shadow-sm relative group">
+                <img src={resolveImageUrl(secondaryBanner.image)} alt={secondaryBanner.title || 'Flash Sale'} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+             </Link>
+          )}
+          <div className="flex-1 overflow-hidden">
+            <div 
+              id="flash-sale-scroll"
+              className={isCarousel 
+                ? "flex overflow-x-auto gap-4 sm:gap-5 pb-4 scrollbar-hide snap-x" 
+                : "grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5"}
+            >
             {activeSale.items.filter((item: any) => item.product?.stock !== undefined ? item.product.stock > 0 : true).map((item: any, idx: number) => {
               const product = { ...item.product };
               const discount = item.discount_percentage || activeSale.discount_percentage;
@@ -172,15 +185,16 @@ const FlashSaleSection = () => {
                 </motion.div>
               );
             })}
-          </div>
-          
-          <div className="flex justify-center mt-6">
-            <Link 
-              to="/flash-sale" 
-              className="group flex items-center space-x-2 bg-brand text-white hover:bg-brand/90 px-6 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all shadow-md active:scale-95"
-            >
-              <span className='flex items-center justify-center gap-1'>View All <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" /></span>
-            </Link>
+            </div>
+            
+            <div className="flex justify-center mt-6">
+              <Link 
+                to="/flash-sale" 
+                className="group flex items-center space-x-2 bg-brand text-white hover:bg-brand/90 px-6 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all shadow-md active:scale-95"
+              >
+                <span className='flex items-center justify-center gap-1'>View All <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" /></span>
+              </Link>
+            </div>
           </div>
         </div>
       </div>
