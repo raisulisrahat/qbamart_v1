@@ -218,11 +218,9 @@ const FlashSalePage = () => {
                     style={{ opacity: 0, transform: 'translateY(20px)' }}
                     className="group"
                   >
-                    <div className="relative bg-white rounded-3xl p-2 border border-neutral-100 hover:border-brand/20 transition-all duration-300 hover:shadow-xl group-hover:-translate-y-1.5">
                       <div className="relative mb-4">
                         <ProductCard product={product} />
                       </div>
-                    </div>
                   </motion.div>
                 );
               })}
