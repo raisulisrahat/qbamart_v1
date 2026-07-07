@@ -13,8 +13,8 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
           {/* Brand Col */}
           <div className="space-y-6">
-            <Link to="/" className="flex items-center">
-              <img src={footerLogo} alt={siteTitle || 'Qbamart'} className="h-8 md:h-10 w-auto" />
+            <Link to="/" className="flex items-center" aria-label="Home">
+              <img src={footerLogo} alt={siteTitle || 'Qbamart'} width="120" height="32" className="h-8 md:h-10 w-auto" />
             </Link>
             <p className="text-[13px] leading-relaxed max-w-xs font-medium text-neutral-700">
               {siteTitle || 'Qbamart'} is Bangladesh's most reliable and trusted e-commerce destination.
