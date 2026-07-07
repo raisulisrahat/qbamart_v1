@@ -119,14 +119,9 @@ const FlashSalePage = () => {
               <h3 className="text-3xl md:text-4xl font-black text-neutral-900 leading-none tracking-tighter">
                 {activeSale.title}
                 <span className="block mt-2 text-transparent bg-clip-text bg-gradient-to-r from-brand to-[#E07030]">
-                  Up to {activeSale.discount_percentage || '50'}% OFF
+                  Up to {activeSale.discount_percentage}% OFF
                 </span>
               </h3>
-              
-              <p className="text-neutral-500 text-[13px] font-medium max-w-md mx-auto lg:mx-0 leading-relaxed opacity-70">
-                Elevate your lifestyle with premium products at prices that won't last. Handpicked deals, exclusively for you.
-              </p>
-
               <div className="flex flex-wrap items-center gap-8 justify-center lg:justify-start pt-4">
                 <div className="flex items-center space-x-2 text-neutral-800">
                   <div className="w-8 h-8 bg-neutral-50 rounded-xl flex items-center justify-center border border-neutral-100 shadow-sm">
@@ -226,28 +221,6 @@ const FlashSalePage = () => {
                     <div className="relative bg-white rounded-3xl p-2 border border-neutral-100 hover:border-brand/20 transition-all duration-300 hover:shadow-xl group-hover:-translate-y-1.5">
                       <div className="relative mb-4">
                         <ProductCard product={product} />
-                        {/* Sold Badge */}
-                        <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-md text-[8px] font-bold text-neutral-900 px-3 py-1.5 rounded-full shadow-sm border border-neutral-100 uppercase tracking-widest">
-                          {soldPercentage}% SOLD
-                        </div>
-                      </div>
-
-                      <div className="px-4 pb-4 space-y-6">
-                        {/* Elegant Progress Bar */}
-                        <div className="space-y-2">
-                           <div className="flex justify-between text-[9px] font-bold uppercase tracking-wider">
-                             <span className="text-neutral-400 font-black">{stock > 0 ? `${stock} Left` : 'Sold Out'}</span>
-                             <span className="text-brand">{soldPercentage}% Sold</span>
-                           </div>
-                           <div className="h-1 w-full bg-neutral-50 rounded-full overflow-hidden">
-                              <motion.div 
-                                initial={{ width: 0 }}
-                                whileInView={{ width: `${soldPercentage}%` }}
-                                transition={{ duration: 1.5, ease: "circOut" }}
-                                className="h-full bg-brand rounded-full"
-                              />
-                           </div>
-                        </div>
                       </div>
                     </div>
                   </motion.div>
