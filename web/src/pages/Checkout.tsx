@@ -351,7 +351,7 @@ const Checkout = () => {
 
   // Debounced draft auto-save
   useEffect(() => {
-    const hasContact = formData.phone.length >= 3 || formData.name.length >= 3;
+    const hasContact = formData.phone.length >= 11 && formData.name.length >= 3;
     if (!hasContact || cart.length === 0) return;
 
     const timer = setTimeout(async () => {
@@ -386,7 +386,7 @@ const Checkout = () => {
       } catch (err) {
         console.error('Draft auto-save failed:', err);
       }
-    }, 2000);
+    }, 30000);
 
     return () => clearTimeout(timer);
   }, [formData, cart, shippingZoneId, selectedPaymentMethod, shippingCost, cartTotal, draftOrderId]);
@@ -397,7 +397,7 @@ const Checkout = () => {
   useEffect(() => {
     saveDraftImmediatelyRef.current = () => {
       if (isOrderSubmittedRef.current) return;
-      const hasContact = formData.phone.length >= 3 || formData.name.length >= 3;
+      const hasContact = formData.phone.length >= 11 && formData.name.length >= 3;
       if (!hasContact || cart.length === 0) return;
 
       const orderData = {

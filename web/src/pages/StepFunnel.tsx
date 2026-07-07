@@ -188,7 +188,7 @@ const StepFunnel = () => {
 
     // Debounced draft auto-save
     useEffect(() => {
-        const hasContact = formData.phone_number.length >= 3 || formData.customer_name.length >= 3;
+        const hasContact = formData.phone_number.length >= 11 && formData.customer_name.length >= 3;
         if (!hasContact || !product) return;
 
         const timer = setTimeout(async () => {
@@ -225,7 +225,7 @@ const StepFunnel = () => {
             } catch (err) {
                 console.error("Draft auto-save failed:", err);
             }
-        }, 2000);
+        }, 30000);
 
         return () => clearTimeout(timer);
     }, [formData, product, selectedZone, shippingCost, finalTotal, draftOrderId]);
@@ -236,7 +236,7 @@ const StepFunnel = () => {
     useEffect(() => {
         saveDraftImmediatelyRef.current = () => {
             if (isOrderSubmittedRef.current) return;
-            const hasContact = formData.phone_number.length >= 3 || formData.customer_name.length >= 3;
+            const hasContact = formData.phone_number.length >= 11 && formData.customer_name.length >= 3;
             if (!hasContact || !product) return;
 
             const orderData = {

@@ -134,7 +134,7 @@ const BlogDetail = () => {
           initial={{ opacity: 0, scale: 0.98 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.2, duration: 0.5 }}
-          className="relative aspect-[16/9] md:aspect-[2.2/1] rounded-[2.5rem] overflow-hidden"
+          className="relative aspect-[16/9] md:aspect-[2.2/1]"
         >
           {post.image && (
             <img 

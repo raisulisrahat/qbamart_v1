@@ -665,7 +665,7 @@ class OrderViewSet(viewsets.ModelViewSet):
 
         # 2. Save the Order
         if user.is_authenticated:
-            order = serializer.save(user=user, ip_address=ip, user_agent=ua, location=loc)
+            order = serializer.save(user=user, ip_address=ip, user_agent=ua, location=loc, status='pending')
             
             # Log the order placement activity
             UserActivityLog.objects.create(
@@ -676,7 +676,7 @@ class OrderViewSet(viewsets.ModelViewSet):
                 location=loc
             )
         else:
-            order = serializer.save(ip_address=ip, user_agent=ua, location=loc)
+            order = serializer.save(ip_address=ip, user_agent=ua, location=loc, status='pending')
         
         self.order = order
         

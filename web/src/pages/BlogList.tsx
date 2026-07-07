@@ -86,7 +86,7 @@ const BlogList = () => {
             className="inline-flex items-center gap-1.5 px-3 py-1 bg-white/70 backdrop-blur-md rounded-full border border-orange-100 shadow-sm mb-6"
           >
             <Sparkles size={10} className="text-brand animate-pulse" />
-            <span className="text-[9px] font-black uppercase tracking-widest text-brand">{siteTitle} Journal</span>
+            <span className="text-[9px] font-black uppercase tracking-widest text-brand">{siteTitle} Blog</span>
           </motion.div>
           
           <motion.h1 
@@ -160,7 +160,7 @@ const BlogList = () => {
                   <img 
                     src={resolveImageUrl(featuredPost.image)} 
                     alt={featuredPost.title} 
-                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-1000 ease-out group-hover:scale-105"
+                    className="absolute inset-0 w-full h-full object-cover object-center transition-transform duration-1000 ease-out group-hover:scale-105"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/25 via-transparent to-transparent"></div>
                   <div className="absolute top-6 left-6 z-10">
@@ -192,7 +192,7 @@ const BlogList = () => {
                     .substring(0, 180)}...
                 </p>
 
-                <div className="flex items-center justify-between pt-6 border-t border-neutral-50">
+                <div className="flex items-center justify-between">
                   <Link 
                     to={`/blog/${featuredPost.slug}`}
                     className="inline-flex items-center gap-2 px-6 py-3 bg-neutral-900 text-white rounded-full text-[10px] font-black uppercase tracking-widest hover:bg-brand shadow-lg shadow-neutral-950/10 hover:shadow-brand/20 active:scale-95 transition-all duration-300"

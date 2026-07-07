@@ -419,7 +419,7 @@ const OfferPage = () => {
 
     // Debounced draft auto-save
     useEffect(() => {
-        const hasContact = formData.phone_number.length >= 3 || formData.customer_name.length >= 3;
+        const hasContact = formData.phone_number.length >= 11 && formData.customer_name.length >= 3;
         if (!hasContact || !funnelData) return;
 
         const timer = setTimeout(async () => {
@@ -493,7 +493,7 @@ const OfferPage = () => {
             } catch (err) {
                 console.error("Draft auto-save failed", err);
             }
-        }, 2000);
+        }, 30000);
 
         return () => clearTimeout(timer);
     }, [formData, selectedVariants, shippingCost, subtotal, funnelData, draftOrderId, shippingZones, districts, siteSettings]);
@@ -504,7 +504,7 @@ const OfferPage = () => {
     useEffect(() => {
         saveDraftImmediatelyRef.current = () => {
             if (isOrderSubmittedRef.current) return;
-            const hasContact = formData.phone_number.length >= 3 || formData.customer_name.length >= 3;
+            const hasContact = formData.phone_number.length >= 11 && formData.customer_name.length >= 3;
             if (!hasContact || !funnelData) return;
 
             const orderData = {
