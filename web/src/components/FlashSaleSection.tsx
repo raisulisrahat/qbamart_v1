@@ -58,6 +58,13 @@ const FlashSaleSection = () => {
       {/* Background Glow */}
       <div className="absolute -inset-4 bg-gradient-to-r from-brand/5/50 to-transparent rounded-[40px] blur-3xl -z-10 opacity-0 group-hover/section:opacity-100 transition-opacity duration-1000" />
       
+      <div className='mx-auto px-4 sm:px-6 lg:px-8 '>
+          {secondaryBanner && (
+            <Link to={secondaryBanner.link || '/flash-sale'} className="w-full aspect-[16/9] sm:aspect-square flex-shrink-0 rounded-xl overflow-hidden shadow-sm relative group mb-6">
+              <img src={resolveImageUrl(secondaryBanner.image)} alt={secondaryBanner.title || 'Flash Sale'} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+            </Link>
+          )}
+      </div>
       <div className="bg-white rounded-[24px] border border-neutral-100 shadow-sm overflow-hidden">
         {/* Header Section: Compact & Refined */}
         <div className="px-5 md:px-8 py-3 md:py-4 flex flex-col md:flex-row items-center justify-between gap-3 border-b border-neutral-50 bg-neutral-50/30">
@@ -118,11 +125,6 @@ const FlashSaleSection = () => {
         </div>
 
         <div className="px-4 md:px-6 pt-3 md:pt-5 pb-5 md:pb-8 flex flex-col md:flex-row gap-4">
-          {secondaryBanner && (
-             <Link to={secondaryBanner.link || '/flash-sale'} className="hidden md:block w-[240px] flex-shrink-0 rounded-xl overflow-hidden shadow-sm relative group">
-                <img src={resolveImageUrl(secondaryBanner.image)} alt={secondaryBanner.title || 'Flash Sale'} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
-             </Link>
-          )}
           <div className="flex-1 overflow-hidden">
             <div 
               id="flash-sale-scroll"
