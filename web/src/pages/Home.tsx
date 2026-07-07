@@ -405,7 +405,7 @@ import 'swiper/css/pagination';
                       <img
                         src={resolveImageUrl(category.image)}
                         className="w-full h-full object-contain filter group-hover:scale-110 transition-transform duration-300"
-                        alt=""
+                        alt={category.name}
                         onError={(e) => {
                           (e.target as HTMLImageElement).src = 'https://api.iconify.design/lucide:shopping-bag.svg?color=%23C0561F';
                         }}
