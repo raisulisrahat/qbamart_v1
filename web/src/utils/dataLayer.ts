@@ -26,3 +26,21 @@ export const pushToDataLayer = (data: any) => {
     // Push the new event
     dataLayer.push(data);
 };
+
+export const splitName = (fullName: string) => {
+  const name = (fullName || '').trim();
+  if (!name) {
+    return { first_name: '', last_name: '' };
+  }
+  const parts = name.split(/\s+/);
+  if (parts.length === 1) {
+    return {
+      first_name: parts[0],
+      last_name: ''
+    };
+  }
+  return {
+    first_name: parts[0],
+    last_name: parts.slice(1).join(' ')
+  };
+};

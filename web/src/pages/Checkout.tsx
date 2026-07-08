@@ -8,7 +8,7 @@ import { useAuth } from '../context/AuthContext';
 import { useSettings } from '../context/SettingsContext';
 import Breadcrumbs from '../components/Breadcrumbs';
 import SEO from '../components/SEO';
-import { pushToDataLayer } from '../utils/dataLayer';
+import { pushToDataLayer, splitName } from '../utils/dataLayer';
 
 const Checkout = () => {
   const navigate = useNavigate();
@@ -299,9 +299,13 @@ const Checkout = () => {
 
         // Facebook Purchase event removed to rely on GTM
 
+        const nameData = splitName(finalName);
+
         pushToDataLayer({
           event: 'purchase',
           customer_name: finalName,
+          first_name: nameData.first_name,
+          last_name: nameData.last_name,
           customer_phone: finalPhone,
           customer_address: finalAddress,
           total_amount: totalAmountVal,
@@ -537,9 +541,14 @@ const Checkout = () => {
         
         // Facebook Purchase event removed to rely on GTM
 
+        const customerNameVal = res.data?.customer_name || formData.name;
+        const nameData = splitName(customerNameVal);
+
         pushToDataLayer({
           event: 'purchase',
-          customer_name: res.data?.customer_name || formData.name,
+          customer_name: customerNameVal,
+          first_name: nameData.first_name,
+          last_name: nameData.last_name,
           customer_phone: res.data?.phone_number || formData.phone,
           customer_address: res.data?.address || (formData.district ? `${formData.address}, ${formData.upazila}, ${formData.district}` : formData.address),
           total_amount: parseFloat(res.data?.total_amount) || (cartTotal + shippingCost),

@@ -86,14 +86,21 @@ def send_fb_capi_purchase(order):
             if hashed_email:
                 user_data['em'] = [hashed_email]
 
-        # 3. Clean & Hash First Name
+        # 3. Clean & Hash First & Last Name
         raw_name = order.customer_name
         if raw_name:
-            # Pick first word as first name
-            first_name = raw_name.split()[0] if raw_name.strip() else raw_name
-            hashed_fn = sha256_hash(first_name)
-            if hashed_fn:
-                user_data['fn'] = [hashed_fn]
+            name_parts = raw_name.strip().split()
+            if name_parts:
+                first_name = name_parts[0]
+                hashed_fn = sha256_hash(first_name)
+                if hashed_fn:
+                    user_data['fn'] = [hashed_fn]
+                
+                if len(name_parts) > 1:
+                    last_name = ' '.join(name_parts[1:])
+                    hashed_ln = sha256_hash(last_name)
+                    if hashed_ln:
+                        user_data['ln'] = [hashed_ln]
 
         # 4. Client Metadata
         if order.ip_address:

@@ -633,10 +633,20 @@ class OrderViewSet(viewsets.ModelViewSet):
                 # Express Registration: Create new account in passwordless state
                 # (We still set a random password under the hood but don't expose it to the user or return it)
                 random_password = ''.join(random.choices(string.ascii_letters + string.digits, k=8))
+                # Split customer name into first name and last name
+                name_parts = customer_name.strip().split()
+                if len(name_parts) == 1:
+                    first_name = name_parts[0]
+                    last_name = ''
+                else:
+                    first_name = name_parts[0]
+                    last_name = ' '.join(name_parts[1:])
+
                 user = User.objects.create_user(
                     username=customer_phone,
                     password=random_password,
-                    first_name=customer_name
+                    first_name=first_name,
+                    last_name=last_name
                 )
                 # We do not set self.temp_password so it's not returned to client
                 self.temp_password = None

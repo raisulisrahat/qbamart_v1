@@ -28,7 +28,7 @@ import SEO from '../components/SEO';
 import { useLanguage } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
 import ChatBubble from '../components/ChatBubble';
-import { pushToDataLayer } from '../utils/dataLayer';
+import { pushToDataLayer, splitName } from '../utils/dataLayer';
 
 const OfferPage = () => {
     const { slug } = useParams<{ slug: string }>();
@@ -306,9 +306,14 @@ const OfferPage = () => {
                     : formData.address);
                 const finalPhone = createdOrder.phone_number || formData.phone_number;
 
+                const finalName = createdOrder.customer_name || formData.customer_name;
+                const nameData = splitName(finalName);
+
                 (window as any).dataLayer.push({
                     event: 'purchase',
-                    customer_name: createdOrder.customer_name || formData.customer_name,
+                    customer_name: finalName,
+                    first_name: nameData.first_name,
+                    last_name: nameData.last_name,
                     customer_phone: finalPhone,
                     customer_address: finalAddress,
                     address: finalAddress,

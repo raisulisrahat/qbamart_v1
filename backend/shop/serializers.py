@@ -768,9 +768,19 @@ class RegisterSerializer(serializers.ModelSerializer):
         fields = ['phone_number', 'full_name', 'password']
 
     def create(self, validated_data):
+        full_name = validated_data['full_name']
+        name_parts = full_name.strip().split()
+        if len(name_parts) == 1:
+            first_name = name_parts[0]
+            last_name = ''
+        else:
+            first_name = name_parts[0]
+            last_name = ' '.join(name_parts[1:])
+
         user = User.objects.create_user(
             username=validated_data['phone_number'],
-            first_name=validated_data['full_name'],
+            first_name=first_name,
+            last_name=last_name,
             password=validated_data['password']
         )
         # Profile is created via signals or manually here if needed

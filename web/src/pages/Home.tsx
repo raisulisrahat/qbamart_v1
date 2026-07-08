@@ -432,7 +432,6 @@ import 'swiper/css/pagination';
         <div className="flex flex-col md:flex-row justify-between items-center mb-8 border-b border-gray-200 pb-4">
           <div className="flex flex-col items-center md:items-start mb-6 md:mb-0">
             <h2 className="text-base md:text-lg font-black text-gray-900 tracking-tight">Trending Products</h2>
-            <div className="h-0.5 w-6 bg-brand mt-1 rounded-full"></div>
           </div>
           <div className="flex flex-wrap gap-2 sm:gap-4 md:gap-5 justify-center md:justify-end">
             <button
@@ -505,16 +504,16 @@ import 'swiper/css/pagination';
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8">
           {bannersLoading ? (
             Array.from({ length: 2 }).map((_, i) => (
-              <div key={i} className="relative h-[220px] md:h-[300px] lg:h-[350px] rounded-3xl bg-neutral-200 animate-pulse"></div>
+              <div key={i} className="relative h-[150px] md:h-[220px] lg:h-[260px] rounded-3xl bg-neutral-200 animate-pulse"></div>
             ))
           ) : promoBanners.slice(0, 2).map((banner) => (
-            <Link to={banner.link || '#'} key={banner.id} className="relative h-[220px] md:h-[300px] lg:h-[350px] rounded-3xl overflow-hidden group shadow-xl block">
+            <Link to={banner.link || '#'} key={banner.id} className="relative h-[150px] md:h-[220px] lg:h-[260px] rounded-3xl overflow-hidden group shadow-xl block">
               {banner.image ? (
                 <img src={resolveImageUrl(banner.image)} alt={banner.title} className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105" loading="lazy" />
               ) : (
                 <div className="w-full h-full bg-gradient-to-br from-gray-800 to-black flex items-center justify-center text-gray-400">No Image</div>
               )}
-              <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent flex flex-col justify-center p-8 md:p-12">
+              <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent flex flex-col justify-center p-6 md:p-8">
                 <h3 className="text-base md:text-xl font-black text-white mb-3 leading-tight max-w-[85%] transform transition-transform group-hover:-translate-y-1 hover:underline">{banner.title}</h3>
               </div>
             </Link>

@@ -38,7 +38,7 @@ import { resolveImageUrl } from '../utils/image';
 import SEO from '../components/SEO';
 import FacebookPixel from '../components/FacebookPixel';
 import ChatBubble from '../components/ChatBubble';
-import { pushToDataLayer } from '../utils/dataLayer';
+import { pushToDataLayer, splitName } from '../utils/dataLayer';
 
 import 'swiper/css';
 import 'swiper/css/navigation';
@@ -366,9 +366,14 @@ const StepFunnel = () => {
             const finalAddress = res.data?.address || `${formData.address}${formData.upazila ? `, ${upazilas.find(u => u.id == formData.upazila)?.name || formData.upazila}` : ''}${formData.district ? `, ${districts.find(d => d.id == formData.district)?.name || formData.district}` : ''}`;
             const finalPhone = res.data?.phone_number || formData.phone_number;
 
+            const finalCustomerName = res.data?.customer_name || formData.customer_name;
+            const nameData = splitName(finalCustomerName);
+
             pushToDataLayer({
                 event: 'purchase',
-                    customer_name: res.data?.customer_name || formData.customer_name,
+                    customer_name: finalCustomerName,
+                    first_name: nameData.first_name,
+                    last_name: nameData.last_name,
                     customer_phone: finalPhone,
                     customer_address: finalAddress,
                     order_id: res.data?.id || `stepfunnel_${Date.now()}`,
