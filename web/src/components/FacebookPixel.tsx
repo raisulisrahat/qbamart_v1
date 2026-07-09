@@ -25,7 +25,7 @@ const FacebookPixel = ({ pixelId: customPixelId }: PixelProps) => {
             let n: any, t: any, s: any;
 
             if (f.fbq) return;
-            n = f.fbq = function() {
+            n = f.fbq = function () {
                 n.callMethod ? n.callMethod.apply(n, arguments) : n.queue.push(arguments);
             };
             if (!f._fbq) f._fbq = n;
@@ -42,76 +42,6 @@ const FacebookPixel = ({ pixelId: customPixelId }: PixelProps) => {
 
         fbScript();
 
-        // Invincible Deduplication Patch: Intercepts even when fbevents.js overwrites window.fbq
-        const setupInvinciblePatch = () => {
-            const f = window as any;
-            if (f._invinciblePatchApplied) return;
-            f._invinciblePatchApplied = true;
-
-            let realFbq = f.fbq;
-
-            const createWrappedFbq = (originalFbq: any) => {
-                const wrapped = function() {
-                    const args = Array.from(arguments);
-                    const isTrack = args[0] === 'track' || args[0] === 'trackSingle';
-                    
-                    if (isTrack) {
-                        const eventName = args[0] === 'track' ? args[1] : args[2];
-                        const key = `${args[0]}_${eventName}_${window.location.pathname}`;
-                        
-                        if (!f._fbq_dedupe) f._fbq_dedupe = {};
-                        const now = Date.now();
-                        const lastTime = f._fbq_dedupe[key] || 0;
-                        
-                        // For PageView, NEVER fire again on the same path
-                        if (eventName === 'PageView' && lastTime > 0) {
-                            console.warn(`[Pixel] Blocked duplicate ${eventName}`);
-                            return;
-                        }
-                        
-                        // For other events, suppress if fired within last 3 seconds
-                        if (now - lastTime < 3000) {
-                            console.warn(`[Pixel] Blocked duplicate ${eventName}`);
-                            return;
-                        }
-                        
-                        f._fbq_dedupe[key] = now;
-                    }
-                    
-                    if (originalFbq.callMethod) {
-                        return originalFbq.callMethod.apply(originalFbq, args);
-                    } else if (originalFbq.queue) {
-                        originalFbq.queue.push(args);
-                        return;
-                    } else {
-                        return originalFbq.apply(f, args);
-                    }
-                };
-                
-                Object.keys(originalFbq).forEach(k => {
-                    (wrapped as any)[k] = originalFbq[k];
-                });
-                
-                return wrapped;
-            };
-
-            // Wrap the initial stub
-            if (realFbq) {
-                realFbq = createWrappedFbq(realFbq);
-            }
-
-            // Intercept overwrites by fbevents.js
-            Object.defineProperty(window, 'fbq', {
-                get: () => realFbq,
-                set: (newFbq) => {
-                    realFbq = createWrappedFbq(newFbq);
-                },
-                configurable: true
-            });
-        };
-
-        setupInvinciblePatch();
-
         (window as any).fbq('init', pixelId);
         isInitialized.current = true;
     }, [pixelId]);
@@ -122,23 +52,34 @@ const FacebookPixel = ({ pixelId: customPixelId }: PixelProps) => {
         const f = window as any;
         if (f.fbq) {
             const eventId = generateEventId();
-            f.fbq('track', 'PageView', {}, { eventID: eventId });
             
+            // Format exactly like PixelYourSite
+            const customData = {
+                page_title: document.title || 'Shop',
+                post_type: 'page',
+                plugin: 'PixelYourSite',
+                user_role: 'guest',
+                event_url: window.location.host + window.location.pathname
+            };
+
+            f.fbq('track', 'PageView', customData, { eventID: eventId });
+
             // Also push to GTM for unified CAPI deduplication
             const dataLayer = (window as any).dataLayer = (window as any).dataLayer || [];
             dataLayer.push({
                 event: 'page_view',
                 event_id: eventId,
-                page_path: location.pathname
+                page_path: location.pathname,
+                ...customData
             });
         }
     }, [location.pathname, pixelId]);
 
     return (
         <noscript>
-            <img 
-                height="1" 
-                width="1" 
+            <img
+                height="1"
+                width="1"
                 style={{ display: 'none' }}
                 src={`https://www.facebook.com/tr?id=${pixelId}&ev=PageView&noscript=1`}
                 alt=""
