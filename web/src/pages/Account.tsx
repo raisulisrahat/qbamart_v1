@@ -6,14 +6,16 @@ import {
   Loader2, CheckCircle2, ChevronRight, ShoppingBag, CreditCard,
   ShieldCheck, Bell, Heart, LayoutDashboard, UserCircle, Edit3, XCircle
 } from 'lucide-react';
-import { updateProfile, BASE_URL, getMyOrders } from '../services/api';
+import { updateProfile, BASE_URL, getMyOrders, getDistricts, getUpazilas } from '../services/api';
 import { useQuery } from '@tanstack/react-query';
 import { Link, useLocation } from 'react-router-dom';
 import AccountSidebar from '../components/AccountSidebar';
 import SEO from '../components/SEO';
+import { useSettings } from '../context/SettingsContext';
 
 const Account = () => {
   const { user, logout, refreshProfile } = useAuth();
+  const { settings } = useSettings();
   const location = useLocation();
   const [activeTab, setActiveTab] = useState<'dashboard' | 'profile'>(
     location.pathname === '/account/profile' ? 'profile' : 'dashboard'
@@ -41,8 +43,45 @@ const Account = () => {
     full_name: '',
     address: '',
     city: '',
-    zip_code: ''
+    zip_code: '',
+    district: '',
+    upazila: ''
   });
+  
+  const [districts, setDistricts] = useState<{id: number, name: string}[]>([]);
+  const [upazilas, setUpazilas] = useState<{id: number, name: string}[]>([]);
+
+  React.useEffect(() => {
+    const fetchDistricts = async () => {
+        try {
+            const response = await getDistricts();
+            setDistricts(response.data);
+        } catch (err) {
+            console.error('Failed to fetch districts:', err);
+        }
+    };
+    if (settings?.enable_district_upazila !== false) {
+       fetchDistricts();
+    }
+  }, [settings?.enable_district_upazila]);
+
+  React.useEffect(() => {
+    const fetchUpazilas = async () => {
+        if (!formData.district) return;
+        const selectedDistrict = districts.find(d => d.name === formData.district);
+        if (selectedDistrict) {
+            try {
+                const response = await getUpazilas(selectedDistrict.id.toString());
+                setUpazilas(response.data);
+            } catch (err) {
+                console.error('Failed to fetch upazilas:', err);
+            }
+        }
+    };
+    if (settings?.enable_district_upazila !== false && formData.district && districts.length > 0) {
+        fetchUpazilas();
+    }
+  }, [formData.district, districts, settings?.enable_district_upazila]);
   const [enable2fa, setEnable2fa] = useState(false);
   const [verificationCode, setVerificationCode] = useState('');
   const [verifyError, setVerifyError] = useState('');
@@ -54,7 +93,9 @@ const Account = () => {
         full_name: user.user?.first_name || '',
         address: user.profile?.address || '',
         city: user.profile?.city || '',
-        zip_code: user.profile?.zip_code || ''
+        zip_code: user.profile?.zip_code || '',
+        district: user.profile?.district || '',
+        upazila: user.profile?.upazila || ''
       });
       setEnable2fa(user.profile?.enable_2fa !== false);
     }
@@ -109,6 +150,8 @@ const Account = () => {
       data.append('address', formData.address);
       data.append('city', formData.city);
       data.append('zip_code', formData.zip_code);
+      data.append('district', formData.district);
+      data.append('upazila', formData.upazila);
       
       if (selectedImage) {
         data.append('profile_picture', selectedImage);
@@ -326,33 +369,77 @@ const Account = () => {
                       </div>
                     </div>
 
-                    <div className="space-y-2">
-                      <label className="text-xs font-black text-neutral-400 uppercase tracking-widest ml-1">City</label>
-                      <input
-                        readOnly={!isEditing}
-                        value={formData.city}
-                        onChange={(e) => setFormData({...formData, city: e.target.value})}
-                        className={`w-full px-5 py-4 rounded-2xl text-sm font-bold transition-all outline-none border-2 ${
-                          isEditing 
-                            ? 'bg-white border-brand/20 focus:border-brand' 
-                            : 'bg-neutral-50 border-transparent text-neutral-500'
-                        }`}
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <label className="text-xs font-black text-neutral-400 uppercase tracking-widest ml-1">Zip Code</label>
-                      <input
-                        readOnly={!isEditing}
-                        value={formData.zip_code}
-                        onChange={(e) => setFormData({...formData, zip_code: e.target.value})}
-                        className={`w-full px-5 py-4 rounded-2xl text-sm font-bold transition-all outline-none border-2 ${
-                          isEditing 
-                            ? 'bg-white border-brand/20 focus:border-brand' 
-                            : 'bg-neutral-50 border-transparent text-neutral-500'
-                        }`}
-                      />
-                    </div>
+                    {settings?.enable_district_upazila !== false ? (
+                      <>
+                        <div className="space-y-2">
+                          <label className="text-xs font-black text-neutral-400 uppercase tracking-widest ml-1">জেলা</label>
+                          <select
+                            disabled={!isEditing}
+                            value={formData.district}
+                            onChange={(e) => setFormData({...formData, district: e.target.value, upazila: ''})}
+                            className={`w-full px-5 py-4 rounded-2xl text-sm font-bold transition-all outline-none border-2 appearance-none bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiM5Q0EzQUYiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48cG9seWxpbmUgcG9pbnRzPSI2IDkgMTIgMTUgMTggOSIvPjwvc3ZnPg==')] bg-no-repeat bg-[position:right_1rem_center] bg-[length:1.2em] ${
+                              isEditing 
+                                ? 'bg-white border-brand/20 focus:border-brand' 
+                                : 'bg-neutral-50 border-transparent text-neutral-500'
+                            }`}
+                          >
+                            <option value="">জেলা সিলেক্ট করুন</option>
+                            {districts.map(d => (
+                              <option key={d.id} value={d.name}>{d.name}</option>
+                            ))}
+                          </select>
+                        </div>
+    
+                        <div className="space-y-2">
+                          <label className="text-xs font-black text-neutral-400 uppercase tracking-widest ml-1">থানা / উপজেলা</label>
+                          <select
+                            disabled={!isEditing || !formData.district}
+                            value={formData.upazila}
+                            onChange={(e) => setFormData({...formData, upazila: e.target.value})}
+                            className={`w-full px-5 py-4 rounded-2xl text-sm font-bold transition-all outline-none border-2 appearance-none bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiM5Q0EzQUYiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48cG9seWxpbmUgcG9pbnRzPSI2IDkgMTIgMTUgMTggOSIvPjwvc3ZnPg==')] bg-no-repeat bg-[position:right_1rem_center] bg-[length:1.2em] ${
+                              isEditing 
+                                ? (formData.district ? 'bg-white border-brand/20 focus:border-brand' : 'bg-neutral-100 border-transparent text-neutral-400 cursor-not-allowed')
+                                : 'bg-neutral-50 border-transparent text-neutral-500'
+                            }`}
+                          >
+                            <option value="">থানা / উপজেলা সিলেক্ট করুন</option>
+                            {upazilas.map(u => (
+                              <option key={u.id} value={u.name}>{u.name}</option>
+                            ))}
+                          </select>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <div className="space-y-2">
+                          <label className="text-xs font-black text-neutral-400 uppercase tracking-widest ml-1">City</label>
+                          <input
+                            readOnly={!isEditing}
+                            value={formData.city}
+                            onChange={(e) => setFormData({...formData, city: e.target.value})}
+                            className={`w-full px-5 py-4 rounded-2xl text-sm font-bold transition-all outline-none border-2 ${
+                              isEditing 
+                                ? 'bg-white border-brand/20 focus:border-brand' 
+                                : 'bg-neutral-50 border-transparent text-neutral-500'
+                            }`}
+                          />
+                        </div>
+    
+                        <div className="space-y-2">
+                          <label className="text-xs font-black text-neutral-400 uppercase tracking-widest ml-1">Zip Code</label>
+                          <input
+                            readOnly={!isEditing}
+                            value={formData.zip_code}
+                            onChange={(e) => setFormData({...formData, zip_code: e.target.value})}
+                            className={`w-full px-5 py-4 rounded-2xl text-sm font-bold transition-all outline-none border-2 ${
+                              isEditing 
+                                ? 'bg-white border-brand/20 focus:border-brand' 
+                                : 'bg-neutral-50 border-transparent text-neutral-500'
+                            }`}
+                          />
+                        </div>
+                      </>
+                    )}
 
                     {isEditing && (
                       <div className="md:col-span-2 flex items-center space-x-4 pt-6">
@@ -371,7 +458,9 @@ const Account = () => {
                               full_name: user?.user?.first_name || '',
                               address: user?.profile?.address || '',
                               city: user?.profile?.city || '',
-                              zip_code: user?.profile?.zip_code || ''
+                              zip_code: user?.profile?.zip_code || '',
+                              district: user?.profile?.district || '',
+                              upazila: user?.profile?.upazila || ''
                             });
                             setSelectedImage(null);
                             setImagePreview(null);

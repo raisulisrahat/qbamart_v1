@@ -51,14 +51,39 @@ const StaffDashboard = lazy(() => import('./pages/Admin/StaffDashboard'));
 
 import UserLayout from './components/UserLayout';
 
+import Lenis from 'lenis';
+
 const queryClient = new QueryClient();
 
 function App() {
   useEffect(() => {
+    // Initialize Lenis Smooth Scroll
+    const lenis = new Lenis({
+      duration: 1.2,
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), 
+      orientation: 'vertical',
+      gestureOrientation: 'vertical',
+      smoothWheel: true,
+      wheelMultiplier: 1,
+      touchMultiplier: 2,
+    });
+
+    function raf(time: number) {
+      lenis.raf(time);
+      requestAnimationFrame(raf);
+    }
+
+    requestAnimationFrame(raf);
+
+    // Meta Ads Tracking
     const searchParams = new URLSearchParams(window.location.search);
     if (searchParams.has('fbclid') || searchParams.has('utm_source') || searchParams.has('utm_campaign')) {
       sessionStorage.setItem('meta_ad_link', window.location.href);
     }
+
+    return () => {
+      lenis.destroy();
+    };
   }, []);
 
   return (

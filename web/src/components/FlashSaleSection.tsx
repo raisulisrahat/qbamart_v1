@@ -129,8 +129,8 @@ const FlashSaleSection = () => {
             <div 
               id="flash-sale-scroll"
               className={isCarousel 
-                ? "flex overflow-x-auto gap-4 sm:gap-5 pb-4 scrollbar-hide snap-x" 
-                : "grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5"}
+                ? "flex overflow-x-auto gap-3 sm:gap-5 pb-4 scrollbar-hide snap-x" 
+                : "grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-5"}
             >
             {activeSale.items.filter((item: any) => item.product?.stock !== undefined ? item.product.stock > 0 : true).map((item: any, idx: number) => {
               const product = { ...item.product };
@@ -165,7 +165,7 @@ const FlashSaleSection = () => {
                   viewport={{ once: true }}
                   transition={{ delay: idx * 0.05 }}
                   style={{ opacity: 0, transform: 'translateY(15px)' }}
-                  className={isCarousel ? "flex-shrink-0 w-[200px] sm:w-[220px] md:w-[240px] snap-start flex flex-col space-y-3" : "flex flex-col space-y-3"}
+                  className={isCarousel ? "flex-shrink-0 w-[150px] sm:w-[200px] md:w-[240px] snap-start flex flex-col space-y-3" : "flex flex-col space-y-3"}
                 >
                   <ProductCard product={product} />
                   

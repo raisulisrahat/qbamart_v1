@@ -1,7 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Calendar, User, ArrowRight } from 'lucide-react';
-import { motion } from 'framer-motion';
 import { resolveImageUrl } from '../utils/image';
 
 interface BlogCardProps {
@@ -25,14 +24,13 @@ const BlogCard: React.FC<BlogCardProps> = ({ post }) => {
   });
 
   return (
-    <motion.div 
-      initial={{ opacity: 0, y: 15 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
+    <div 
       className="group flex flex-col h-full bg-white border border-zinc-100 rounded-3xl overflow-hidden hover:border-brand/20 hover:shadow-[0_20px_40px_rgba(81, 115, 251,0.06)] transition-all duration-500 relative"
     >
       <Link to={`/blog/${post.slug}`} className="relative aspect-[16/10] overflow-hidden bg-zinc-50 block">
         <img 
+          loading="lazy"
+          decoding="async"
           src={resolveImageUrl(post.image)} 
           alt={post.title} 
           className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
@@ -75,7 +73,7 @@ const BlogCard: React.FC<BlogCardProps> = ({ post }) => {
           </Link>
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 };
 
