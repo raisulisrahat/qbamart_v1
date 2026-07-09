@@ -19,7 +19,7 @@ import SEO from '../components/SEO';
 const ProductDetail = () => {
     const { addToCart, setIsCartOpen } = useCart();
     const { addToWishlist, removeFromWishlist, isInWishlist, wishlist } = useWishlist();
-    const { isAuthenticated } = useAuth();
+    const { isAuthenticated, user } = useAuth();
     const { siteTitle } = useSettings();
     const navigate = useNavigate();
 
@@ -28,6 +28,7 @@ const ProductDetail = () => {
     const inlineActionsRef = useRef<HTMLDivElement>(null);
     const [showStickyBar, setShowStickyBar] = useState(true);
     const hasTrackedViewRef = useRef<string | null>(null);
+    const hasTrackedPageViewRef = useRef<boolean>(false);
 
     useEffect(() => {
         const observer = new IntersectionObserver(
@@ -221,7 +222,19 @@ const ProductDetail = () => {
                 }
             });
         }
-    }, [product]);
+
+        if (product && !hasTrackedPageViewRef.current) {
+            hasTrackedPageViewRef.current = true;
+            pushToDataLayer({
+                event: 'page_view',
+                page_title: product.name,
+                event_url: window.location.href,
+                post_type: 'product',
+                post_id: String(product.id),
+                user_role: user ? user.role : 'guest'
+            });
+        }
+    }, [product, user]);
 
     const videoOptions = useMemo(() => {
         const activeItem = gallery[activeImage];

@@ -257,6 +257,21 @@ const OfferPage = () => {
     const subtotal = calculateSubtotal();
 
     const hasSentBeginCheckoutRef = useRef(false);
+    const hasSentPageViewRef = useRef(false);
+
+    useEffect(() => {
+        if (funnelData && !hasSentPageViewRef.current) {
+            pushToDataLayer({
+                event: 'page_view',
+                page_title: funnelData.title || 'Special Offer',
+                event_url: window.location.href,
+                post_type: 'funnel',
+                post_id: String(funnelData.id),
+                user_role: user ? user.role : 'guest'
+            });
+            hasSentPageViewRef.current = true;
+        }
+    }, [funnelData, user]);
 
     useEffect(() => {
         if (funnelData && !hasSentBeginCheckoutRef.current) {

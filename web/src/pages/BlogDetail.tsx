@@ -1,5 +1,6 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import { pushToDataLayer } from '../utils/dataLayer';
 import { useQuery } from '@tanstack/react-query';
 import api from '../utils/api';
 import { motion } from 'framer-motion';
@@ -17,10 +18,26 @@ const BlogDetail = () => {
     queryFn: () => api.get(`blog-posts/${slug}/`).then(res => res.data)
   });
 
+  const hasTrackedPageViewRef = useRef(false);
+
   // Smooth scroll to top on mount
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [slug]);
+
+  useEffect(() => {
+    if (post && !hasTrackedPageViewRef.current) {
+      pushToDataLayer({
+        event: 'page_view',
+        page_title: post.title,
+        event_url: window.location.href,
+        post_type: 'post',
+        post_id: String(post.id),
+        user_role: 'guest'
+      });
+      hasTrackedPageViewRef.current = true;
+    }
+  }, [post]);
 
   const handleShare = () => {
     if (navigator.share) {

@@ -31,6 +31,7 @@ import {
     CheckCircle2
 } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
+import { useAuth } from '../context/AuthContext';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation, Pagination, Autoplay, EffectFade } from 'swiper/modules';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -49,6 +50,7 @@ const StepFunnel = () => {
     const { slug } = useParams<{ slug: string }>();
     const navigate = useNavigate();
     const { t, language } = useLanguage();
+    const { user } = useAuth();
     
     const [submitting, setSubmitting] = useState(false);
     const [isSuccess, setIsSuccess] = useState(false);
@@ -98,6 +100,21 @@ const StepFunnel = () => {
     });
 
     const hasSentBeginCheckoutRef = useRef(false);
+    const hasSentPageViewRef = useRef(false);
+
+    useEffect(() => {
+        if (product && !hasSentPageViewRef.current) {
+            pushToDataLayer({
+                event: 'page_view',
+                page_title: product.name || 'Step Funnel',
+                event_url: window.location.href,
+                post_type: 'funnel',
+                post_id: String(product.id),
+                user_role: user ? user.role : 'guest'
+            });
+            hasSentPageViewRef.current = true;
+        }
+    }, [product, user]);
 
     useEffect(() => {
         if (product && !hasSentBeginCheckoutRef.current) {
