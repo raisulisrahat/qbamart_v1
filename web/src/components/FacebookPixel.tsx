@@ -42,34 +42,36 @@ const FacebookPixel = ({ pixelId: customPixelId }: PixelProps) => {
 
         fbScript();
 
-        // Aggressive Deduplication to block GTM's duplicate triggers
-        const patchFbq = () => {
+        // Invincible Deduplication Patch: Intercepts even when fbevents.js overwrites window.fbq
+        const setupInvinciblePatch = () => {
             const f = window as any;
-            if (f.fbq && !f.fbq.isPatched) {
-                const originalFbq = f.fbq;
-                const newFbq = function() {
+            if (f._invinciblePatchApplied) return;
+            f._invinciblePatchApplied = true;
+
+            let realFbq = f.fbq;
+
+            const createWrappedFbq = (originalFbq: any) => {
+                const wrapped = function() {
                     const args = Array.from(arguments);
                     const isTrack = args[0] === 'track' || args[0] === 'trackSingle';
                     
                     if (isTrack) {
                         const eventName = args[0] === 'track' ? args[1] : args[2];
-                        
-                        // Ignore eventId in the key so GTM's events (which often lack eventID) are caught and deduplicated against our native events!
                         const key = `${args[0]}_${eventName}_${window.location.pathname}`;
-                        if (!f._fbq_dedupe) f._fbq_dedupe = {};
                         
+                        if (!f._fbq_dedupe) f._fbq_dedupe = {};
                         const now = Date.now();
                         const lastTime = f._fbq_dedupe[key] || 0;
                         
                         // For PageView, NEVER fire again on the same path
                         if (eventName === 'PageView' && lastTime > 0) {
-                            console.warn(`[Pixel Deduplication] Blocked duplicate ${eventName}`);
+                            console.warn(`[Pixel] Blocked duplicate ${eventName}`);
                             return;
                         }
                         
-                        // For other events (ViewContent, AddToCart, InitiateCheckout), suppress if fired within last 3 seconds
+                        // For other events, suppress if fired within last 3 seconds
                         if (now - lastTime < 3000) {
-                            console.warn(`[Pixel Deduplication] Blocked duplicate ${eventName}`);
+                            console.warn(`[Pixel] Blocked duplicate ${eventName}`);
                             return;
                         }
                         
@@ -77,25 +79,38 @@ const FacebookPixel = ({ pixelId: customPixelId }: PixelProps) => {
                     }
                     
                     if (originalFbq.callMethod) {
-                        originalFbq.callMethod.apply(originalFbq, args);
+                        return originalFbq.callMethod.apply(originalFbq, args);
                     } else if (originalFbq.queue) {
                         originalFbq.queue.push(args);
+                        return;
                     } else {
-                        originalFbq.apply(f, args);
+                        return originalFbq.apply(f, args);
                     }
                 };
-                newFbq.isPatched = true;
                 
-                Object.keys(originalFbq).forEach(key => {
-                    newFbq[key] = originalFbq[key];
+                Object.keys(originalFbq).forEach(k => {
+                    (wrapped as any)[k] = originalFbq[k];
                 });
                 
-                f.fbq = newFbq;
-                f._fbq = newFbq;
+                return wrapped;
+            };
+
+            // Wrap the initial stub
+            if (realFbq) {
+                realFbq = createWrappedFbq(realFbq);
             }
+
+            // Intercept overwrites by fbevents.js
+            Object.defineProperty(window, 'fbq', {
+                get: () => realFbq,
+                set: (newFbq) => {
+                    realFbq = createWrappedFbq(newFbq);
+                },
+                configurable: true
+            });
         };
 
-        patchFbq();
+        setupInvinciblePatch();
 
         (window as any).fbq('init', pixelId);
         isInitialized.current = true;
