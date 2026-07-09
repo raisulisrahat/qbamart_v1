@@ -1,7 +1,5 @@
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import { useSettings } from '../context/SettingsContext';
-import { useLocation } from 'react-router-dom';
-import { generateEventId } from '../utils/dataLayer';
 
 interface PixelProps {
     pixelId?: string;
@@ -9,14 +7,12 @@ interface PixelProps {
 
 const FacebookPixel = ({ pixelId: customPixelId }: PixelProps) => {
     const { settings } = useSettings();
-    const location = useLocation();
     const pixelId = customPixelId || settings?.facebook_pixel_id;
-    const isInitialized = useRef(false);
 
     useEffect(() => {
-        if (!pixelId || isInitialized.current) return;
+        if (!pixelId) return;
 
-        // Initialize Facebook Pixel exactly like PixelYourSite
+        // Initialize Facebook Pixel
         const fbScript = () => {
             const f = window as any;
             const b = document;
@@ -25,7 +21,7 @@ const FacebookPixel = ({ pixelId: customPixelId }: PixelProps) => {
             let n: any, t: any, s: any;
 
             if (f.fbq) return;
-            n = f.fbq = function () {
+            n = f.fbq = function() {
                 n.callMethod ? n.callMethod.apply(n, arguments) : n.queue.push(arguments);
             };
             if (!f._fbq) f._fbq = n;
@@ -41,45 +37,68 @@ const FacebookPixel = ({ pixelId: customPixelId }: PixelProps) => {
         };
 
         fbScript();
-
+        (window as any).fbq('set', 'autoConfig', false, pixelId);
         (window as any).fbq('init', pixelId);
-        isInitialized.current = true;
-    }, [pixelId]);
+        (window as any).fbq('track', 'PageView');
 
-    // Fire PageView on route change with unique eventID for deduplication
-    useEffect(() => {
-        if (!pixelId) return;
-        const f = window as any;
-        if (f.fbq) {
-            const eventId = generateEventId();
-            
-            // Format exactly like PixelYourSite
-            const customData = {
-                page_title: document.title || 'Shop',
-                post_type: 'page',
-                plugin: 'PixelYourSite',
-                user_role: 'guest',
-                event_url: window.location.host + window.location.pathname
+        // MONKEY PATCH fbq to enforce strict single-fire for e-commerce events
+        // Use Object.defineProperty to prevent fbevents.js from completely overwriting our patch
+        let currentFbq = (window as any).fbq;
+        
+        const createPatchedFbq = (original: any) => {
+            const patched = function(...args: any[]) {
+                const command = args[0];
+                const eventName = args[0] === 'trackSingle' ? args[2] : args[1];
+                
+                if ((command === 'track' || command === 'trackSingle') && eventName === 'InitiateCheckout') {
+                    if ((window as any).__blocked_duplicate_fb_initiate_checkout) {
+                        console.log('Blocked duplicate InitiateCheckout from external source');
+                        return;
+                    }
+                    (window as any).__blocked_duplicate_fb_initiate_checkout = true;
+                }
+                
+                if ((command === 'track' || command === 'trackSingle') && eventName === 'Purchase') {
+                    if ((window as any).__blocked_duplicate_fb_purchase) {
+                        console.log('Blocked duplicate Purchase from external source');
+                        return;
+                    }
+                    (window as any).__blocked_duplicate_fb_purchase = true;
+                }
+                
+                if (original.callMethod) {
+                    original.callMethod.apply(original, args);
+                } else if (original.queue) {
+                    original.queue.push(args);
+                } else {
+                    original.apply(null, args);
+                }
             };
+            
+            // Preserve properties
+            Object.assign(patched, original);
+            return patched;
+        };
 
-            f.fbq('track', 'PageView', customData, { eventID: eventId });
+        let activeFbq = createPatchedFbq(currentFbq);
 
-            // Also push to GTM for unified CAPI deduplication
-            const dataLayer = (window as any).dataLayer = (window as any).dataLayer || [];
-            dataLayer.push({
-                event: 'page_view',
-                event_id: eventId,
-                page_path: location.pathname,
-                ...customData
-            });
-        }
-    }, [location.pathname, pixelId]);
+        Object.defineProperty(window, 'fbq', {
+            get: () => activeFbq,
+            set: (newVal) => {
+                // When fbevents.js loads, it sets window.fbq to a new function.
+                // We wrap the new function to keep our patch intact!
+                activeFbq = createPatchedFbq(newVal);
+            },
+            configurable: true
+        });
+
+    }, [pixelId]);
 
     return (
         <noscript>
-            <img
-                height="1"
-                width="1"
+            <img 
+                height="1" 
+                width="1" 
                 style={{ display: 'none' }}
                 src={`https://www.facebook.com/tr?id=${pixelId}&ev=PageView&noscript=1`}
                 alt=""
