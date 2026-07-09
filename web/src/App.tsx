@@ -10,7 +10,6 @@ import Footer from './components/Footer';
 import MobileBottomNav from './components/MobileBottomNav';
 import CartDrawer from './components/CartDrawer';
 import ScrollToTop from './components/ScrollToTop';
-import FacebookPixel from './components/FacebookPixel';
 import GoogleTag from './components/GoogleTag';
 import GoogleTagManager from './components/GoogleTagManager';
 import React, { lazy, Suspense, useEffect } from 'react';
@@ -70,7 +69,6 @@ function App() {
               <CartProvider>
                 <Router>
                 <ScrollToTop />
-                <FacebookPixel />
                 <GoogleTag />
                 <GoogleTagManager />
                 <div className="flex flex-col min-h-screen bg-neutral-50 font-sans selection:bg-indigo-100 selection:text-indigo-900">
