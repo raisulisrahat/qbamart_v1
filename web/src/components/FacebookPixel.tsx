@@ -41,6 +41,62 @@ const FacebookPixel = ({ pixelId: customPixelId }: PixelProps) => {
         };
 
         fbScript();
+
+        // Aggressive Deduplication to block GTM's duplicate triggers
+        const patchFbq = () => {
+            const f = window as any;
+            if (f.fbq && !f.fbq.isPatched) {
+                const originalFbq = f.fbq;
+                const newFbq = function() {
+                    const args = Array.from(arguments);
+                    const isTrack = args[0] === 'track' || args[0] === 'trackSingle';
+                    
+                    if (isTrack) {
+                        const eventName = args[0] === 'track' ? args[1] : args[2];
+                        
+                        // Ignore eventId in the key so GTM's events (which often lack eventID) are caught and deduplicated against our native events!
+                        const key = `${args[0]}_${eventName}_${window.location.pathname}`;
+                        if (!f._fbq_dedupe) f._fbq_dedupe = {};
+                        
+                        const now = Date.now();
+                        const lastTime = f._fbq_dedupe[key] || 0;
+                        
+                        // For PageView, NEVER fire again on the same path
+                        if (eventName === 'PageView' && lastTime > 0) {
+                            console.warn(`[Pixel Deduplication] Blocked duplicate ${eventName}`);
+                            return;
+                        }
+                        
+                        // For other events (ViewContent, AddToCart, InitiateCheckout), suppress if fired within last 3 seconds
+                        if (now - lastTime < 3000) {
+                            console.warn(`[Pixel Deduplication] Blocked duplicate ${eventName}`);
+                            return;
+                        }
+                        
+                        f._fbq_dedupe[key] = now;
+                    }
+                    
+                    if (originalFbq.callMethod) {
+                        originalFbq.callMethod.apply(originalFbq, args);
+                    } else if (originalFbq.queue) {
+                        originalFbq.queue.push(args);
+                    } else {
+                        originalFbq.apply(f, args);
+                    }
+                };
+                newFbq.isPatched = true;
+                
+                Object.keys(originalFbq).forEach(key => {
+                    newFbq[key] = originalFbq[key];
+                });
+                
+                f.fbq = newFbq;
+                f._fbq = newFbq;
+            }
+        };
+
+        patchFbq();
+
         (window as any).fbq('init', pixelId);
         isInitialized.current = true;
     }, [pixelId]);
