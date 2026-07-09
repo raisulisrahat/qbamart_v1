@@ -1,5 +1,7 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useSettings } from '../context/SettingsContext';
+import { useLocation } from 'react-router-dom';
+import { generateEventId } from '../utils/dataLayer';
 
 interface PixelProps {
     pixelId?: string;
@@ -7,12 +9,14 @@ interface PixelProps {
 
 const FacebookPixel = ({ pixelId: customPixelId }: PixelProps) => {
     const { settings } = useSettings();
+    const location = useLocation();
     const pixelId = customPixelId || settings?.facebook_pixel_id;
+    const isInitialized = useRef(false);
 
     useEffect(() => {
-        if (!pixelId) return;
+        if (!pixelId || isInitialized.current) return;
 
-        // Initialize Facebook Pixel
+        // Initialize Facebook Pixel exactly like PixelYourSite
         const fbScript = () => {
             const f = window as any;
             const b = document;
@@ -37,63 +41,27 @@ const FacebookPixel = ({ pixelId: customPixelId }: PixelProps) => {
         };
 
         fbScript();
-
-        // Monkey-patch to deduplicate fbq calls
-        const patchFbq = () => {
-            const f = window as any;
-            if (f.fbq && !f.fbq.isPatched) {
-                const originalFbq = f.fbq;
-                const newFbq = function() {
-                    const args = Array.from(arguments);
-                    const isTrack = args[0] === 'track' || args[0] === 'trackSingle';
-                    
-                    if (isTrack) {
-                        const eventName = args[0] === 'track' ? args[1] : args[2];
-                        const eventId = args[0] === 'track' ? args[2]?.eventID : args[3]?.eventID;
-                        
-                        const key = `${args[0]}_${eventName}_${window.location.pathname}_${eventId || ''}`;
-                        if (!f._fbq_dedupe) f._fbq_dedupe = {};
-                        
-                        const now = Date.now();
-                        const lastTime = f._fbq_dedupe[key] || 0;
-                        
-                        // For PageView, NEVER fire again on the same path
-                        if (eventName === 'PageView' && lastTime > 0) {
-                            return;
-                        }
-                        
-                        // For other events, suppress if fired within last 2 seconds (2000ms)
-                        if (now - lastTime < 2000) {
-                            return;
-                        }
-                        f._fbq_dedupe[key] = now;
-                    }
-                    
-                    if (originalFbq.callMethod) {
-                        originalFbq.callMethod.apply(originalFbq, args);
-                    } else if (originalFbq.queue) {
-                        originalFbq.queue.push(args);
-                    } else {
-                        originalFbq.apply(f, args);
-                    }
-                };
-                newFbq.isPatched = true;
-                
-                // Copy properties over
-                Object.keys(originalFbq).forEach(key => {
-                    newFbq[key] = originalFbq[key];
-                });
-                
-                f.fbq = newFbq;
-                f._fbq = newFbq;
-            }
-        };
-
-        patchFbq();
-
         (window as any).fbq('init', pixelId);
-        (window as any).fbq('track', 'PageView');
+        isInitialized.current = true;
     }, [pixelId]);
+
+    // Fire PageView on route change with unique eventID for deduplication
+    useEffect(() => {
+        if (!pixelId) return;
+        const f = window as any;
+        if (f.fbq) {
+            const eventId = generateEventId();
+            f.fbq('track', 'PageView', {}, { eventID: eventId });
+            
+            // Also push to GTM for unified CAPI deduplication
+            const dataLayer = (window as any).dataLayer = (window as any).dataLayer || [];
+            dataLayer.push({
+                event: 'page_view',
+                event_id: eventId,
+                page_path: location.pathname
+            });
+        }
+    }, [location.pathname, pixelId]);
 
     return (
         <noscript>

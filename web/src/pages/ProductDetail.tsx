@@ -27,6 +27,7 @@ const ProductDetail = () => {
     const [quantity, setQuantity] = useState(1);
     const inlineActionsRef = useRef<HTMLDivElement>(null);
     const [showStickyBar, setShowStickyBar] = useState(true);
+    const hasTrackedViewRef = useRef<string | null>(null);
 
     useEffect(() => {
         const observer = new IntersectionObserver(
@@ -200,9 +201,9 @@ const ProductDetail = () => {
         }
     }, [activeImage, gallery, availableColors, selectedColor]);
     useEffect(() => {
-        if (product) {
-            // Facebook pixel event removed to rely on GTM
-
+        if (product && hasTrackedViewRef.current !== product.id) {
+            hasTrackedViewRef.current = product.id;
+            
             pushToDataLayer({
                 event: 'view_item',
                 ecommerce: {
