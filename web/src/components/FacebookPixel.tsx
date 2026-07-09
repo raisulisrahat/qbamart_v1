@@ -12,34 +12,9 @@ const FacebookPixel = ({ pixelId: customPixelId }: PixelProps) => {
     useEffect(() => {
         if (!pixelId) return;
 
-        // Initialize Facebook Pixel
-        const fbScript = () => {
-            const f = window as any;
-            const b = document;
-            const e = 'script';
-            const v = 'https://connect.facebook.net/en_US/fbevents.js';
-            let n: any, t: any, s: any;
-
-            if (f.fbq) return;
-            n = f.fbq = function() {
-                n.callMethod ? n.callMethod.apply(n, arguments) : n.queue.push(arguments);
-            };
-            if (!f._fbq) f._fbq = n;
-            n.push = n;
-            n.loaded = !0;
-            n.version = '2.0';
-            n.queue = [];
-            t = b.createElement(e);
-            t.async = !0;
-            t.src = v;
-            s = b.getElementsByTagName(e)[0];
-            s.parentNode.insertBefore(t, s);
-        };
-
-        fbScript();
-        (window as any).fbq('set', 'autoConfig', false, pixelId);
-        (window as any).fbq('init', pixelId);
-        (window as any).fbq('track', 'PageView');
+        // GTM's "FB-BaseCode-Tag" is now responsible for initializing fbevents.js
+        // and firing the initial PageView on all pages. 
+        // We removed the native initialization and track('PageView') to stop duplicate PageViews.
 
         // MONKEY PATCH fbq to enforce strict single-fire for e-commerce events
         // Use Object.defineProperty to prevent fbevents.js from completely overwriting our patch
@@ -64,6 +39,16 @@ const FacebookPixel = ({ pixelId: customPixelId }: PixelProps) => {
                         return;
                     }
                     (window as any).__blocked_duplicate_fb_purchase = true;
+                }
+
+                // Debounce PageView to prevent GTM templates and native code from firing 3-4 times at once
+                if ((command === 'track' || command === 'trackSingle') && eventName === 'PageView') {
+                    const now = Date.now();
+                    if ((window as any).__last_fb_pageview && (now - (window as any).__last_fb_pageview) < 1500) {
+                        console.log('Blocked simultaneous duplicate PageView from GTM/Native overlap');
+                        return;
+                    }
+                    (window as any).__last_fb_pageview = now;
                 }
                 
                 if (original.callMethod) {
