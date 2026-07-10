@@ -417,7 +417,7 @@ const Navbar = () => {
                               value={phone}
                               onChange={(e) => setPhone(formatPhoneNumber(e.target.value))}
                               className="w-full px-4 py-3 bg-white border border-neutral-200 rounded-xl text-sm focus:ring-2 focus:ring-brand/20 focus:border-brand outline-none transition-all"
-                              placeholder="e.g. 01700000000"
+                              placeholder="Your Phone Number"
                             />
                           </div>
                         ) : (
@@ -432,7 +432,7 @@ const Navbar = () => {
                               onChange={(e) => setPassword(e.target.value)}
                               autoFocus
                               className="w-full px-4 py-3 bg-white border border-neutral-200 rounded-xl text-sm focus:ring-2 focus:ring-brand/20 focus:border-brand outline-none transition-all"
-                              placeholder="••••••••"
+                              placeholder="Your Password"
                             />
                           </div>
                         )}

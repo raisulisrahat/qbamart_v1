@@ -6,7 +6,7 @@ const GoogleTagManager = () => {
     const gtmId = settings?.google_tag_manager_id;
 
     useEffect(() => {
-        if (!gtmId) return;
+        if (!gtmId || settings?.enable_google_tag_manager === false) return;
 
         // Ensure dataLayer is initialized
         (window as any).dataLayer = (window as any).dataLayer || [];

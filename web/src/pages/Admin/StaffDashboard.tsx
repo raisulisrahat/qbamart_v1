@@ -10,6 +10,10 @@ import {
     Facebook
 } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend, AreaChart, Area, Cell } from 'recharts';
+import { gsap } from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+
+gsap.registerPlugin(ScrollTrigger);
 import ProductManager from '../../components/Admin/ProductManager';
 import BannerManager from '../../components/Admin/BannerManager';
 import OrderManager from '../../components/Admin/OrderManager';
@@ -325,7 +329,7 @@ const StaffDashboard = ({ role }) => {
 
             {/* Main Content */}
             <main className="flex-1 overflow-y-auto overflow-x-hidden bg-white flex flex-col">
-                <header className="h-16 sticky top-0 z-40 px-4 md:px-8 flex items-center justify-between bg-white/70 backdrop-blur-xl border-b border-zinc-100">
+                <header className="h-16 sticky top-0 z-40 p-4 md:px-8 flex items-center justify-between bg-white/70 backdrop-blur-xl border-b border-zinc-100">
                     <div className="flex items-center gap-4">
                         <button
                             onClick={() => setIsSidebarOpen(true)}
@@ -451,7 +455,7 @@ const StaffDashboard = ({ role }) => {
                                         </div>
                                         {notifications.length > 0 && (
                                             <div className="px-4 py-2 bg-zinc-50/50 border-t border-zinc-100 text-center">
-                                                <button className="text-[10px] font-bold text-zinc-500 hover:text-zinc-900 uppercase tracking-widest transition-colors">View Activity Log</button>
+                                                <button onClick={() => { handleNavigate('security'); setShowNotifications(false); }} className="text-[10px] font-bold text-zinc-500 hover:text-zinc-900 uppercase tracking-widest transition-colors">View Activity Log</button>
                                             </div>
                                         )}
                                     </div>
@@ -487,8 +491,73 @@ const DashboardStats = ({
     dateRange, setDateRange,
     customStart, setCustomStart,
     customEnd, setCustomEnd, activeTab
-}) => (
-    <div className="animate-in fade-in duration-500">
+}) => {
+    useEffect(() => {
+        if (!stats) return;
+
+        const ctx = gsap.context(() => {
+            // Animating stat cards
+            gsap.fromTo(".gsap-stat-card", 
+                { opacity: 0, y: 30, scale: 0.95 },
+                { opacity: 1, y: 0, scale: 1, duration: 0.6, stagger: 0.08, ease: "power3.out" }
+            );
+
+            // Animating charts
+            gsap.fromTo(".gsap-chart-panel",
+                { opacity: 0, y: 40 },
+                {
+                    scrollTrigger: {
+                        trigger: ".gsap-chart-panel",
+                        start: "top 90%",
+                        toggleActions: "play none none none"
+                    },
+                    opacity: 1,
+                    y: 0,
+                    duration: 0.8,
+                    stagger: 0.15,
+                    ease: "power2.out"
+                }
+            );
+
+            // Animating transactions panel
+            gsap.fromTo(".gsap-transactions-panel",
+                { opacity: 0, y: 40 },
+                {
+                    scrollTrigger: {
+                        trigger: ".gsap-transactions-panel",
+                        start: "top 90%",
+                        toggleActions: "play none none none"
+                    },
+                    opacity: 1,
+                    y: 0,
+                    duration: 0.8,
+                    ease: "power2.out"
+                }
+            );
+
+            // Animating transaction rows inside table
+            gsap.fromTo(".gsap-transaction-row",
+                { opacity: 0, x: -15 },
+                {
+                    scrollTrigger: {
+                        trigger: ".gsap-transactions-panel",
+                        start: "top 90%",
+                        toggleActions: "play none none none"
+                    },
+                    opacity: 1,
+                    x: 0,
+                    duration: 0.5,
+                    stagger: 0.06,
+                    ease: "power2.out"
+                }
+            );
+        });
+
+        return () => ctx.revert();
+    }, [stats]);
+
+    return (
+        <div className="animate-in fade-in duration-500">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 mb-8">
             <div>
                 <h2 className="text-2xl font-bold tracking-tight text-zinc-900">Overview</h2>
@@ -563,7 +632,7 @@ const DashboardStats = ({
         </div>
 
         <div className="grid lg:grid-cols-3 gap-4 mb-8">
-            <div className="lg:col-span-2 next-panel p-6">
+            <div className="lg:col-span-2 next-panel p-6 gsap-chart-panel">
                 <div className="flex justify-between items-center mb-6">
                     <h3 className="text-sm font-bold text-zinc-900 uppercase tracking-wider">Revenue Analytics</h3>
                     <div className="flex items-center gap-2">
@@ -607,7 +676,7 @@ const DashboardStats = ({
                 </div>
             </div>
 
-            <div className="next-panel p-6">
+            <div className="next-panel p-6 gsap-chart-panel">
                 <h3 className="text-sm font-bold text-zinc-900 uppercase tracking-wider mb-6">
                     {dateRange === 'all' ? 'Orders by Month' : 'Order Distribution'}
                 </h3>
@@ -634,7 +703,7 @@ const DashboardStats = ({
             </div>
         </div>
 
-        <div className="next-panel overflow-hidden">
+        <div className="next-panel overflow-hidden gsap-transactions-panel">
             <div className="px-6 py-4 border-b border-zinc-100 flex justify-between items-center bg-zinc-50/50">
                 <h3 className="text-sm font-bold text-zinc-900 uppercase tracking-wider">Recent Transactions</h3>
                 <button onClick={() => navigate('orders')} className="text-xs font-bold text-zinc-500 hover:text-zinc-900 transition-colors uppercase tracking-widest">View All</button>
@@ -654,7 +723,7 @@ const DashboardStats = ({
                             <tr
                                 key={order.id}
                                 onClick={() => handleNavigate('orders')}
-                                className="hover:bg-zinc-50 transition-colors cursor-pointer group"
+                                className="hover:bg-zinc-50 transition-colors cursor-pointer group gsap-transaction-row"
                             >
                                 <td className="px-6 py-4 text-[13px] font-medium text-zinc-400 font-mono">
                                     #{order.id.toString().padStart(6, '0')}
@@ -691,7 +760,8 @@ const DashboardStats = ({
             </div>
         </div>
     </div>
-);
+    );
+};
 
 const PlaceholderModule = ({ title, icon }) => (
     <div className="flex flex-col items-center justify-center h-[50vh] bg-white rounded-xl border border-gray-200 border-dashed text-center">
@@ -716,7 +786,7 @@ const PlaceholderModule = ({ title, icon }) => (
 const StatCard = ({ title, value, icon, trend, onClick = undefined }) => (
     <div
         onClick={onClick}
-        className={`next-panel p-5 transition-all duration-300 ${onClick ? 'cursor-pointer hover:border-brand/30 hover:shadow-premium hover:-translate-y-1' : ''}`}
+        className={`next-panel gsap-stat-card p-5 transition-all duration-300 ${onClick ? 'cursor-pointer hover:border-brand/30 hover:shadow-premium hover:-translate-y-1' : ''}`}
     >
         <div className="flex justify-between items-start mb-4">
             <span className="text-[11px] font-semibold text-zinc-500 uppercase tracking-wider">{title}</span>

@@ -17,7 +17,7 @@ const Footer = () => {
               <img src={footerLogo} alt={siteTitle || 'Qbamart'} width="120" height="32" className="h-8 md:h-10 w-auto" />
             </Link>
             <p className="text-[13px] leading-relaxed max-w-xs font-medium text-neutral-700">
-              {siteTitle || 'Qbamart'} is Bangladesh's most reliable and trusted e-commerce destination.
+              {settings?.footer_description || `${siteTitle || 'Qbamart'} is Bangladesh's most reliable and trusted e-commerce destination.`}
             </p>
             <div className="space-y-3">
               <h4 className="text-neutral-900 font-bold text-base">Subscribe us</h4>
@@ -62,7 +62,7 @@ const Footer = () => {
               <li className="flex items-start space-x-3 group">
                 <div className="w-5 h-5 flex items-center justify-center text-brand"><Phone className="w-4 h-4" /></div>
                 <div>
-                  <span className="block font-bold text-neutral-900">Hotline: {settings?.support_phone || '01618-320869'}</span>
+                  <span className="block font-bold text-neutral-900">Hotline: {settings?.support_phone}</span>
                 </div>
               </li>
               <li className="flex items-start space-x-3 group">
@@ -75,9 +75,8 @@ const Footer = () => {
                 <div className="w-5 h-5 flex items-center justify-center text-brand"><MapPin className="w-4 h-4" /></div>
                 <div>
                   <span className="block font-bold text-neutral-900 mb-1">Address:</span>
-                  <p className="leading-relaxed">
-                    {siteTitle || 'Qbamart'}<br />
-                    229/A Lalmohon Shah Street, Wari, Dhaka.
+                  <p className="leading-relaxed whitespace-pre-line">
+                    {settings?.footer_address || `${siteTitle}\nGirls School Street, Rajbari Sadar, Rajbari.`}
                   </p>
                 </div>
               </li>
@@ -86,7 +85,7 @@ const Footer = () => {
         </div>
 
         <div className="border-t border-neutral-300 pt-8 flex flex-col md:flex-row justify-between items-center text-xs space-y-4 md:space-y-0 text-neutral-700 font-medium">
-          <p>© 2026 {siteTitle || 'Qbamart'}. Powered by <a href="https://ctsolutionbd.com" target="_blank" rel="noopener noreferrer" className="hover:text-brand transition-colors">Cyber and Tech Solution</a>.</p>
+          <p>© 2026 {siteTitle}. Powered by <a href="https://ctsolutionbd.com" target="_blank" rel="noopener noreferrer" className="hover:text-brand transition-colors">Cyber and Tech Solution</a>.</p>
           <div className="flex space-x-6 uppercase tracking-widest">
             <Link to="/privacy-policy" className="hover:text-brand">Privacy Policy</Link>
             <Link to="/terms-conditions" className="hover:text-brand">Terms & Conditions</Link>

@@ -62,7 +62,7 @@ const NoticeDisplay = () => {
         <>
             {/* Ticker Section */}
             {tickerNotices.length > 0 && (
-                <div className="bg-brand text-white py-2 overflow-hidden relative z-50">
+                <div className="bg-[#deff00] text-black py-4 overflow-hidden relative z-50">
                     <div className="flex whitespace-nowrap animate-marquee">
                         <div className="flex items-center gap-10 px-4">
                             {tickerNotices.map((notice, idx) => (

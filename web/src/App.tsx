@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { CartProvider } from './context/CartContext';
 import { SettingsProvider } from './context/SettingsContext';
@@ -13,6 +13,13 @@ import ScrollToTop from './components/ScrollToTop';
 import FacebookPixel from './components/FacebookPixel';
 import GoogleTag from './components/GoogleTag';
 import GoogleTagManager from './components/GoogleTagManager';
+import TikTokPixel from './components/TikTokPixel';
+import GoogleAdsTag from './components/GoogleAdsTag';
+import PinterestTag from './components/PinterestTag';
+import BingUETTag from './components/BingUETTag';
+import MicrosoftClarity from './components/MicrosoftClarity';
+import RedditTag from './components/RedditTag';
+import CustomScripts from './components/CustomScripts';
 import React, { lazy, Suspense, useEffect } from 'react';
 import Home from './pages/Home'; // Let's keep the home page synchronously loaded to minimize First Contentful Paint delay on homepage
 const ProductDetail = lazy(() => import('./pages/ProductDetail'));
@@ -55,9 +62,15 @@ import Lenis from 'lenis';
 
 const queryClient = new QueryClient();
 
-function App() {
+const LenisScroll = () => {
+  const location = useLocation();
+
   useEffect(() => {
-    // Initialize Lenis Smooth Scroll
+    // Disable smooth scroll on staff/admin pages as they have custom layout containers
+    if (location.pathname.startsWith('/staff')) {
+      return;
+    }
+
     const lenis = new Lenis({
       duration: 1.2,
       easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), 
@@ -68,22 +81,30 @@ function App() {
       touchMultiplier: 2,
     });
 
+    let rafId: number;
     function raf(time: number) {
       lenis.raf(time);
-      requestAnimationFrame(raf);
+      rafId = requestAnimationFrame(raf);
     }
 
-    requestAnimationFrame(raf);
+    rafId = requestAnimationFrame(raf);
 
+    return () => {
+      lenis.destroy();
+      cancelAnimationFrame(rafId);
+    };
+  }, [location.pathname]);
+
+  return null;
+};
+
+function App() {
+  useEffect(() => {
     // Meta Ads Tracking
     const searchParams = new URLSearchParams(window.location.search);
     if (searchParams.has('fbclid') || searchParams.has('utm_source') || searchParams.has('utm_campaign')) {
       sessionStorage.setItem('meta_ad_link', window.location.href);
     }
-
-    return () => {
-      lenis.destroy();
-    };
   }, []);
 
   return (
@@ -95,9 +116,17 @@ function App() {
               <CartProvider>
                 <Router>
                 <ScrollToTop />
+                <LenisScroll />
                 <FacebookPixel />
                 <GoogleTag />
                 <GoogleTagManager />
+                <TikTokPixel />
+                <GoogleAdsTag />
+                <PinterestTag />
+                <BingUETTag />
+                <MicrosoftClarity />
+                <RedditTag />
+                <CustomScripts />
                 <div className="flex flex-col min-h-screen bg-neutral-50 font-sans selection:bg-indigo-100 selection:text-indigo-900">
                   <Suspense fallback={
                     <div className="flex h-screen w-screen items-center justify-center bg-neutral-50">

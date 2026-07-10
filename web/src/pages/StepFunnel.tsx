@@ -442,6 +442,7 @@ const StepFunnel = () => {
 
     if (isSuccess) return (
         <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center bg-slate-50">
+            <FacebookPixel />
             <motion.div 
                 initial={{ scale: 0 }} 
                 animate={{ scale: 1 }} 
@@ -473,6 +474,7 @@ const StepFunnel = () => {
                 keywords={product.seo_keywords}
                 image={product.image} 
             />
+            <FacebookPixel />
             
             {/* Promo Top Bar */}
             <div className="bg-brand text-white py-2.5 text-center font-bold text-xs md:text-sm uppercase tracking-widest px-4">
