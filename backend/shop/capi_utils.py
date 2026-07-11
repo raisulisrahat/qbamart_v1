@@ -115,6 +115,38 @@ def send_fb_capi_purchase(order):
         site_title = settings.site_title if settings else "spaceghor"
         site_title_clean = ''.join(c for c in site_title if c.isalnum()) or "spaceghor"
 
+        # Prepare Custom Data
+        content_ids = []
+        contents = []
+        num_items = 0
+        
+        for item in order.items.all():
+            if item.product:
+                prod_id = str(item.product.id)
+                content_ids.append(prod_id)
+                
+                qty = int(item.quantity or 1)
+                num_items += qty
+                
+                price = float(item.price or 0)
+                contents.append({
+                    'id': prod_id,
+                    'quantity': qty,
+                    'item_price': price
+                })
+
+        custom_data = {
+            'currency': 'BDT',
+            'value': float(order.total_amount),
+            'content_type': 'product'
+        }
+        if content_ids:
+            custom_data['content_ids'] = content_ids
+        if contents:
+            custom_data['contents'] = contents
+        if num_items > 0:
+            custom_data['num_items'] = num_items
+
         event_data = {
             'event_name': 'Purchase',
             'event_time': event_time,
@@ -122,10 +154,7 @@ def send_fb_capi_purchase(order):
             'event_source_url': f"https://{site_title_clean.lower()}.com/checkout", # standard fallback url
             'action_source': 'website',
             'user_data': user_data,
-            'custom_data': {
-                'currency': 'BDT',
-                'value': float(order.total_amount)
-            }
+            'custom_data': custom_data
         }
 
         # Build payload

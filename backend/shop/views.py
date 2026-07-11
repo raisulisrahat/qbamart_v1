@@ -690,6 +690,14 @@ class OrderViewSet(viewsets.ModelViewSet):
         
         self.order = order
         
+        # Send Meta Conversions API (CAPI) Purchase Event
+        try:
+            from .capi_utils import send_fb_capi_purchase
+            send_fb_capi_purchase(order)
+        except Exception as capi_err:
+            import logging
+            logging.getLogger(__name__).error(f"Failed to dispatch Meta CAPI Purchase event: {capi_err}")
+        
         # 3. Send Order Confirmation SMS
         settings = SiteSettings.objects.first()
         if settings and settings.enable_order_confirmation_sms and order.phone_number:

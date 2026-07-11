@@ -366,23 +366,6 @@ const ProductDetail = () => {
 
     const handleAddToCart = (isOrderNow: boolean = false) => {
         addToCart(product, quantity, selectedColor, selectedSize, isOrderNow);
-        // Push the event to GTM
-        pushToDataLayer({
-            event: 'add_to_cart',
-            ecommerce: {
-                currency: 'BDT',
-                value: product.sale_price * quantity,
-                items: [
-                    {
-                        item_id: product.id,
-                        item_name: product.name,
-                        price: product.sale_price,
-                        quantity: quantity,
-                        item_variant: selectedColor?.name || selectedSize?.name || undefined
-                    }
-                ]
-            }
-        });
     };
 
     return (

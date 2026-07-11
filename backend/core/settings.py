@@ -30,7 +30,7 @@ SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-a7l$f%@l6f&$ryv!!6q@$gu6cm
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = [ '127.0.0.1', 'qbamart.com','api.qbamart.com']
+ALLOWED_HOSTS = [ '127.0.0.1', 'localhost', 'qbamart.com','api.qbamart.com']
 
 # Application definition
 

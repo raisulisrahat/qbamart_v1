@@ -44,9 +44,7 @@ const FacebookPixel = ({ pixelId: customPixelId }: PixelProps) => {
     useEffect(() => {
         if (!pixelId || settings?.enable_facebook_pixel === false) return;
 
-        const isGlobalPixel = !customPixelId || customPixelId === settings?.facebook_pixel_id;
-        const isGtmActive = settings?.enable_google_tag_manager === true;
-        const shouldInitializeNatively = !isGlobalPixel || !isGtmActive;
+        const shouldInitializeNatively = true;
 
         // 1. Stub/Queue Initialization
         // Define the fbq stub on window if it doesn't exist yet
@@ -64,6 +62,75 @@ const FacebookPixel = ({ pixelId: customPixelId }: PixelProps) => {
             currentFbq.version = '2.0';
             currentFbq.queue = [];
             (window as any).fbq = currentFbq;
+        }
+
+        // Helper to check and register event debounce
+        const checkAndRegisterDebounce = (eventName: string, args: any[], optionsIdx: number): boolean => {
+            const now = Date.now();
+            if (eventName === 'PageView') {
+                const currentUrl = window.location.href;
+                const debounceKey = `__last_fb_pv_${currentUrl}`;
+                if ((window as any)[debounceKey] && (now - (window as any)[debounceKey]) < 2500) {
+                    console.log('Blocked duplicate PageView within 2.5s');
+                    return true; // should block
+                }
+                (window as any)[debounceKey] = now;
+            }
+            else if (eventName === 'InitiateCheckout' || eventName === 'Purchase' || eventName === 'AddToCart' || eventName === 'ViewContent') {
+                const customData = args[optionsIdx] || {};
+                const contentIds = Array.isArray(customData.content_ids) 
+                    ? customData.content_ids.join('_') 
+                    : (customData.content_ids || '');
+                const val = customData.value || '0';
+                const debounceKey = `__last_fb_${eventName.toLowerCase()}_${contentIds}_${val}`;
+                
+                if ((window as any)[debounceKey] && (now - (window as any)[debounceKey]) < 2500) {
+                    console.log(`Blocked duplicate ${eventName} within 2.5s`);
+                    return true; // should block
+                }
+                (window as any)[debounceKey] = now;
+            }
+            return false;
+        };
+
+        // Pre-process existing queue to register timestamps and filter duplicates
+        if (currentFbq && currentFbq.queue) {
+            const filteredQueue: any[] = [];
+            currentFbq.queue.forEach((args: any[]) => {
+                const command = args[0];
+                const eventName = args[0] === 'trackSingle' ? args[2] : args[1];
+                const optionsIdx = args[0] === 'trackSingle' ? 3 : 2;
+                
+                if (command === 'track' || command === 'trackSingle') {
+                    const shouldBlock = checkAndRegisterDebounce(eventName, args, optionsIdx);
+                    if (shouldBlock) {
+                        return; // skip duplicate
+                    }
+                }
+                filteredQueue.push(args);
+            });
+            currentFbq.queue = filteredQueue;
+        }
+
+        // Patch currentFbq.queue.push to filter incoming pushes while fbevents.js loads
+        if (currentFbq && currentFbq.queue && !currentFbq.queue.push_patched) {
+            const originalPush = currentFbq.queue.push;
+            currentFbq.queue.push = function(...pushArgs: any[]) {
+                const eventArgs = pushArgs[0];
+                if (Array.isArray(eventArgs)) {
+                    const command = eventArgs[0];
+                    const eventName = eventArgs[0] === 'trackSingle' ? eventArgs[2] : eventArgs[1];
+                    const optionsIdx = eventArgs[0] === 'trackSingle' ? 3 : 2;
+                    if (command === 'track' || command === 'trackSingle') {
+                        const shouldBlock = checkAndRegisterDebounce(eventName, eventArgs, optionsIdx);
+                        if (shouldBlock) {
+                            return 0; // block push
+                        }
+                    }
+                }
+                return originalPush.apply(this, pushArgs);
+            };
+            (currentFbq.queue as any).push_patched = true;
         }
 
         // 2. Patched fbq to filter out duplicate commands and sanitize event properties
@@ -86,34 +153,11 @@ const FacebookPixel = ({ pixelId: customPixelId }: PixelProps) => {
                         }
                         sanitizeEventOptions(args[optionsIdx], eventName);
                     }
-                }
-                
-                if ((command === 'track' || command === 'trackSingle') && eventName === 'InitiateCheckout') {
-                    const now = Date.now();
-                    if ((window as any).__last_fb_initiate_checkout && (now - (window as any).__last_fb_initiate_checkout) < 2000) {
-                        console.log('Blocked duplicate InitiateCheckout within 2s');
-                        return;
-                    }
-                    (window as any).__last_fb_initiate_checkout = now;
-                }
-                
-                if ((command === 'track' || command === 'trackSingle') && eventName === 'Purchase') {
-                    const now = Date.now();
-                    if ((window as any).__last_fb_purchase && (now - (window as any).__last_fb_purchase) < 2000) {
-                        console.log('Blocked duplicate Purchase within 2s');
-                        return;
-                    }
-                    (window as any).__last_fb_purchase = now;
-                }
 
-                // Debounce PageView to prevent GTM templates and native code from firing 3-4 times at once
-                if ((command === 'track' || command === 'trackSingle') && eventName === 'PageView') {
-                    const now = Date.now();
-                    if ((window as any).__last_fb_pageview && (now - (window as any).__last_fb_pageview) < 1500) {
-                        console.log('Blocked simultaneous duplicate PageView from GTM/Native overlap');
+                    const shouldBlock = checkAndRegisterDebounce(eventName, args, optionsIdx);
+                    if (shouldBlock) {
                         return;
                     }
-                    (window as any).__last_fb_pageview = now;
                 }
                 
                 if (original.callMethod) {

@@ -22,7 +22,13 @@ export const pushToDataLayer = (data: any) => {
     lastEventTime = now;
 
     // Generate unified event ID for deduplication across platforms (PixelYourSite style)
-    const eventId = generateEventId();
+    let eventId = generateEventId();
+    if (data.event === 'purchase') {
+        const orderId = data.order_id || (data.ecommerce && data.ecommerce.transaction_id);
+        if (orderId) {
+            eventId = `order_${orderId}`;
+        }
+    }
     data.event_id = eventId;
 
     // 1. Push to GTM DataLayer

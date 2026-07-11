@@ -327,7 +327,7 @@ const OfferPage = () => {
                 const finalName = createdOrder.customer_name || formData.customer_name;
                 const nameData = splitName(finalName);
 
-                (window as any).dataLayer.push({
+                pushToDataLayer({
                     event: 'purchase',
                     customer_name: finalName,
                     first_name: nameData.first_name,
