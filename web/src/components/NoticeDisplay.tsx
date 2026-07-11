@@ -68,7 +68,7 @@ const NoticeDisplay = () => {
                             {tickerNotices.map((notice, idx) => (
                                 <div key={`notice-1-${idx}`} className="flex items-center gap-2">
                                     <Bell size={14} className="fill-white/20" />
-                                    <span className="text-xs font-bold uppercase tracking-widest">{notice.text}</span>
+                                    <span className="text-xs font-bold uppercase tracking-widest font-mono">{notice.text}</span>
                                 </div>
                             ))}
                         </div>
@@ -77,7 +77,7 @@ const NoticeDisplay = () => {
                             {tickerNotices.map((notice, idx) => (
                                 <div key={`notice-2-${idx}`} className="flex items-center gap-2">
                                     <Bell size={14} className="fill-white/20" />
-                                    <span className="text-xs font-bold uppercase tracking-widest">{notice.text}</span>
+                                    <span className="text-xs font-bold uppercase tracking-widest font-mono">{notice.text}</span>
                                 </div>
                             ))}
                         </div>
@@ -90,19 +90,19 @@ const NoticeDisplay = () => {
                 {showPopup && activePopup && (
                     <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6">
                         <motion.div
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            onClick={closePopup}
-                            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+                             initial={{ opacity: 0 }}
+                             animate={{ opacity: 1 }}
+                             exit={{ opacity: 0 }}
+                             onClick={closePopup}
+                             className="absolute inset-0 bg-black/60 backdrop-blur-sm"
                         />
                         
                         <motion.div
-                            initial={{ scale: 0.9, opacity: 0, y: 20 }}
-                            animate={{ scale: 1, opacity: 1, y: 0 }}
-                            exit={{ scale: 0.9, opacity: 0, y: 20 }}
-                            transition={{ type: "spring", damping: 25, stiffness: 300 }}
-                            className="relative w-full max-w-lg bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col sm:flex-row"
+                             initial={{ scale: 0.9, opacity: 0, y: 20 }}
+                             animate={{ scale: 1, opacity: 1, y: 0 }}
+                             exit={{ scale: 0.9, opacity: 0, y: 20 }}
+                             transition={{ type: "spring", damping: 25, stiffness: 300 }}
+                             className="relative w-full max-w-lg bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col sm:flex-row"
                         >
                             {/* Close Button */}
                             <button 
@@ -128,17 +128,17 @@ const NoticeDisplay = () => {
                             <div className={`flex-1 p-8 flex flex-col justify-center ${!activePopup.image ? 'items-center text-center' : ''}`}>
                                 <div className="inline-flex items-center gap-2 px-3 py-1 bg-brand/10 text-brand rounded-full mb-4">
                                     <Zap size={14} className="fill-brand" />
-                                    <span className="text-[10px] font-black uppercase tracking-widest">Special Announcement</span>
+                                    <span className="text-[10px] font-black uppercase tracking-widest font-mono">Special Announcement</span>
                                 </div>
                                 
                                 {activePopup.title && (
-                                    <h2 className="text-2xl font-black text-zinc-900 tracking-tight leading-tight mb-3">
+                                    <h2 className="text-2xl font-black text-zinc-900 tracking-tight leading-tight mb-3 font-mono">
                                         {activePopup.title}
                                     </h2>
                                 )}
                                 
                                 {activePopup.description && (
-                                    <p className="text-sm text-zinc-500 font-medium leading-relaxed mb-8">
+                                    <p className="text-sm text-zinc-500 font-medium leading-relaxed mb-8 font-mono">
                                         {activePopup.description}
                                     </p>
                                 )}
