@@ -13,105 +13,27 @@ const cleanAndParseFloat = (val: any): number => {
     return isNaN(parsed) ? 0 : parsed;
 };
 
-const getFallbackDataFromDataLayer = (eventName: string) => {
-    const dataLayer = (window as any).dataLayer;
-    if (!Array.isArray(dataLayer)) return null;
-    
-    let targetEvent = '';
-    if (eventName === 'Purchase') targetEvent = 'purchase';
-    else if (eventName === 'InitiateCheckout') targetEvent = 'begin_checkout';
-    else if (eventName === 'AddToCart') targetEvent = 'add_to_cart';
-    else if (eventName === 'ViewContent') targetEvent = 'view_item';
-    
-    if (!targetEvent) return null;
-    
-    for (let i = dataLayer.length - 1; i >= 0; i--) {
-        const item = dataLayer[i];
-        if (item && item.event === targetEvent) {
-            return item;
-        }
-    }
-    return null;
-};
-
 const sanitizeEventOptions = (options: any, eventName: string) => {
     if (!options || typeof options !== 'object') return;
     
-    let value = options.value;
-    let currency = options.currency;
-    let contentIds = options.content_ids;
-    let numItems = options.num_items;
-    
-    // If value/currency is missing or equals 1, try to enrich from dataLayer
-    if (value === undefined || value === null || cleanAndParseFloat(value) <= 1 || !currency) {
-        const fallback = getFallbackDataFromDataLayer(eventName);
-        if (fallback) {
-            if (eventName === 'Purchase' || eventName === 'InitiateCheckout' || eventName === 'AddToCart') {
-                const items = fallback.ecommerce?.items || [];
-                
-                if (value === undefined || value === null || cleanAndParseFloat(value) <= 1) {
-                    const rawValue = fallback.ecommerce?.value ?? fallback.total_amount ?? fallback.value;
-                    let valNum = cleanAndParseFloat(rawValue);
-                    if (valNum <= 0 && items.length > 0) {
-                        valNum = items.reduce((sum: number, item: any) => {
-                            const price = cleanAndParseFloat(item.price);
-                            const qty = parseInt(item.quantity) || 1;
-                            return sum + (price * qty);
-                        }, 0);
-                    }
-                    if (valNum > 0) {
-                        value = valNum;
-                    }
-                }
-                
-                if (!currency) {
-                    currency = fallback.ecommerce?.currency ?? fallback.currency ?? 'BDT';
-                }
-                
-                if (!contentIds || (Array.isArray(contentIds) && contentIds.length === 0)) {
-                    contentIds = items.map((item: any) => String(item.item_id || item.id));
-                }
-                
-                if (numItems === undefined || numItems === null) {
-                    numItems = items.reduce((sum: number, item: any) => sum + (parseInt(item.quantity) || 1), 0);
-                }
-                
-                if (eventName === 'Purchase' && !options.transaction_id) {
-                    options.transaction_id = fallback.ecommerce?.transaction_id ?? fallback.order_id;
-                }
-            } else if (eventName === 'ViewContent') {
-                const item = fallback.ecommerce?.items?.[0];
-                if (item) {
-                    if (value === undefined || value === null || cleanAndParseFloat(value) <= 1) {
-                        value = cleanAndParseFloat(item.price);
-                    }
-                    if (!currency) {
-                        currency = fallback.ecommerce?.currency ?? fallback.currency ?? 'BDT';
-                    }
-                    if (!contentIds || (Array.isArray(contentIds) && contentIds.length === 0)) {
-                        contentIds = [String(item.item_id || item.id)];
-                    }
-                }
-            }
+    // Clean value
+    if ('value' in options) {
+        let valueNum = cleanAndParseFloat(options.value);
+        if (valueNum <= 0) {
+            valueNum = 1; // Default to 1 to prevent Meta Pixel errors
         }
+        options.value = valueNum;
+    } else if (eventName === 'Purchase') {
+        options.value = 1;
     }
     
-    // Write back sanitized values
-    let valueNum = cleanAndParseFloat(value);
-    if (valueNum <= 0) {
-        valueNum = 1;
-    }
-    options.value = valueNum;
-    
-    const rawCurrency = currency || 'BDT';
-    options.currency = String(rawCurrency).replace(/[^A-Za-z]/g, '').toUpperCase().slice(0, 3) || 'BDT';
-    
-    if (contentIds) {
-        options.content_ids = Array.isArray(contentIds) ? contentIds : [String(contentIds)];
-    }
-    
-    if (numItems !== undefined && numItems !== null) {
-        options.num_items = parseInt(numItems) || 1;
+    // Clean currency
+    if ('currency' in options) {
+        const rawCurrency = options.currency;
+        const currencyClean = String(rawCurrency).replace(/[^A-Za-z]/g, '').toUpperCase().slice(0, 3) || 'BDT';
+        options.currency = currencyClean;
+    } else if (eventName === 'Purchase') {
+        options.currency = 'BDT';
     }
 };
 
