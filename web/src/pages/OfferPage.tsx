@@ -260,16 +260,19 @@ const OfferPage = () => {
     const hasSentPageViewRef = useRef(false);
 
     useEffect(() => {
-        if (funnelData && !hasSentPageViewRef.current) {
-            pushToDataLayer({
-                event: 'page_view',
-                page_title: funnelData.title || 'Special Offer',
-                event_url: window.location.href,
-                post_type: 'funnel',
-                post_id: String(funnelData.id),
-                user_role: user ? user.role : 'guest'
-            });
-            hasSentPageViewRef.current = true;
+        if (funnelData) {
+            const currentUrl = window.location.href;
+            if ((window as any).__last_tracked_pv_url !== currentUrl) {
+                (window as any).__last_tracked_pv_url = currentUrl;
+                pushToDataLayer({
+                    event: 'page_view',
+                    page_title: funnelData.title || 'Special Offer',
+                    event_url: currentUrl,
+                    post_type: 'funnel',
+                    post_id: String(funnelData.id),
+                    user_role: user ? user.role : 'guest'
+                });
+            }
         }
     }, [funnelData, user]);
 

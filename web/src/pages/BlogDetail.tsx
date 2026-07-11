@@ -26,16 +26,19 @@ const BlogDetail = () => {
   }, [slug]);
 
   useEffect(() => {
-    if (post && !hasTrackedPageViewRef.current) {
-      pushToDataLayer({
-        event: 'page_view',
-        page_title: post.title,
-        event_url: window.location.href,
-        post_type: 'post',
-        post_id: String(post.id),
-        user_role: 'guest'
-      });
-      hasTrackedPageViewRef.current = true;
+    if (post) {
+      const currentUrl = window.location.href;
+      if ((window as any).__last_tracked_pv_url !== currentUrl) {
+        (window as any).__last_tracked_pv_url = currentUrl;
+        pushToDataLayer({
+          event: 'page_view',
+          page_title: post.title,
+          event_url: currentUrl,
+          post_type: 'post',
+          post_id: String(post.id),
+          user_role: 'guest'
+        });
+      }
     }
   }, [post]);
 

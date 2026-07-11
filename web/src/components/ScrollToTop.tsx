@@ -18,10 +18,14 @@ const ScrollToTop = () => {
 
       if (isProduct || isFunnel || isBlog) return;
 
+      const currentUrl = window.location.href;
+      if ((window as any).__last_tracked_pv_url === currentUrl) return;
+      (window as any).__last_tracked_pv_url = currentUrl;
+
       pushToDataLayer({
         event: 'page_view',
         page_title: document.title || 'Qbamart',
-        event_url: window.location.href,
+        event_url: currentUrl,
         post_type: 'page',
         post_id: '0',
         user_role: user ? user.role : 'guest'

@@ -103,16 +103,19 @@ const StepFunnel = () => {
     const hasSentPageViewRef = useRef(false);
 
     useEffect(() => {
-        if (product && !hasSentPageViewRef.current) {
-            pushToDataLayer({
-                event: 'page_view',
-                page_title: product.name || 'Step Funnel',
-                event_url: window.location.href,
-                post_type: 'funnel',
-                post_id: String(product.id),
-                user_role: user ? user.role : 'guest'
-            });
-            hasSentPageViewRef.current = true;
+        if (product) {
+            const currentUrl = window.location.href;
+            if ((window as any).__last_tracked_pv_url !== currentUrl) {
+                (window as any).__last_tracked_pv_url = currentUrl;
+                pushToDataLayer({
+                    event: 'page_view',
+                    page_title: product.name || 'Step Funnel',
+                    event_url: currentUrl,
+                    post_type: 'funnel',
+                    post_id: String(product.id),
+                    user_role: user ? user.role : 'guest'
+                });
+            }
         }
     }, [product, user]);
 

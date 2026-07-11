@@ -5,6 +5,38 @@ interface PixelProps {
     pixelId?: string;
 }
 
+const cleanAndParseFloat = (val: any): number => {
+    if (val === null || val === undefined) return 0;
+    if (typeof val === 'number') return val;
+    const cleaned = String(val).replace(/[^0-9.]/g, '');
+    const parsed = parseFloat(cleaned);
+    return isNaN(parsed) ? 0 : parsed;
+};
+
+const sanitizeEventOptions = (options: any, eventName: string) => {
+    if (!options || typeof options !== 'object') return;
+    
+    // Clean value
+    if ('value' in options) {
+        let valueNum = cleanAndParseFloat(options.value);
+        if (valueNum <= 0) {
+            valueNum = 1; // Default to 1 to prevent Meta Pixel errors
+        }
+        options.value = valueNum;
+    } else if (eventName === 'Purchase') {
+        options.value = 1;
+    }
+    
+    // Clean currency
+    if ('currency' in options) {
+        const rawCurrency = options.currency;
+        const currencyClean = String(rawCurrency).replace(/[^A-Za-z]/g, '').toUpperCase().slice(0, 3) || 'BDT';
+        options.currency = currencyClean;
+    } else if (eventName === 'Purchase') {
+        options.currency = 'BDT';
+    }
+};
+
 const FacebookPixel = ({ pixelId: customPixelId }: PixelProps) => {
     const { settings } = useSettings();
     const pixelId = customPixelId || settings?.facebook_pixel_id;
@@ -34,26 +66,44 @@ const FacebookPixel = ({ pixelId: customPixelId }: PixelProps) => {
             (window as any).fbq = currentFbq;
         }
 
-        // 2. Patched fbq to filter out duplicate commands
+        // 2. Patched fbq to filter out duplicate commands and sanitize event properties
         const createPatchedFbq = (original: any) => {
             const patched = function(...args: any[]) {
                 const command = args[0];
                 const eventName = args[0] === 'trackSingle' ? args[2] : args[1];
+                const optionsIdx = args[0] === 'trackSingle' ? 3 : 2;
                 
-                if ((command === 'track' || command === 'trackSingle') && eventName === 'InitiateCheckout') {
-                    if ((window as any).__blocked_duplicate_fb_initiate_checkout) {
-                        console.log('Blocked duplicate InitiateCheckout from external source');
+                if (command === 'track' || command === 'trackSingle') {
+                    const allowedEvents = ['PageView', 'ViewContent', 'AddToCart', 'InitiateCheckout', 'Purchase'];
+                    if (!allowedEvents.includes(eventName)) {
+                        console.log(`Blocked non-allowed event: ${eventName}`);
                         return;
                     }
-                    (window as any).__blocked_duplicate_fb_initiate_checkout = true;
+
+                    if (eventName === 'Purchase' || eventName === 'InitiateCheckout' || eventName === 'ViewContent') {
+                        if (!args[optionsIdx] || typeof args[optionsIdx] !== 'object') {
+                            args[optionsIdx] = {};
+                        }
+                        sanitizeEventOptions(args[optionsIdx], eventName);
+                    }
+                }
+                
+                if ((command === 'track' || command === 'trackSingle') && eventName === 'InitiateCheckout') {
+                    const now = Date.now();
+                    if ((window as any).__last_fb_initiate_checkout && (now - (window as any).__last_fb_initiate_checkout) < 2000) {
+                        console.log('Blocked duplicate InitiateCheckout within 2s');
+                        return;
+                    }
+                    (window as any).__last_fb_initiate_checkout = now;
                 }
                 
                 if ((command === 'track' || command === 'trackSingle') && eventName === 'Purchase') {
-                    if ((window as any).__blocked_duplicate_fb_purchase) {
-                        console.log('Blocked duplicate Purchase from external source');
+                    const now = Date.now();
+                    if ((window as any).__last_fb_purchase && (now - (window as any).__last_fb_purchase) < 2000) {
+                        console.log('Blocked duplicate Purchase within 2s');
                         return;
                     }
-                    (window as any).__blocked_duplicate_fb_purchase = true;
+                    (window as any).__last_fb_purchase = now;
                 }
 
                 // Debounce PageView to prevent GTM templates and native code from firing 3-4 times at once
@@ -126,13 +176,47 @@ const FacebookPixel = ({ pixelId: customPixelId }: PixelProps) => {
             // ViewContent
             if (event === 'view_item' && data.ecommerce?.items?.[0]) {
                 const item = data.ecommerce.items[0];
+                const itemPrice = cleanAndParseFloat(item.price);
+                const rawCurrency = data.ecommerce.currency ?? data.currency ?? 'BDT';
+                const currencyClean = String(rawCurrency).replace(/[^A-Za-z]/g, '').toUpperCase().slice(0, 3) || 'BDT';
                 (window as any).fbq('trackSingle', targetPixelId, 'ViewContent', {
                     content_name: item.item_name,
                     content_category: item.item_category,
                     content_ids: [String(item.item_id || item.id)],
                     content_type: 'product',
-                    value: parseFloat(item.price) || 0,
-                    currency: data.ecommerce.currency || 'BDT'
+                    value: itemPrice,
+                    currency: currencyClean
+                });
+            }
+
+            // AddToCart
+            if ((event === 'add_to_cart' || event === 'order_now') && data.ecommerce) {
+                const items = data.ecommerce.items || [];
+                const contentIds = items.map((item: any) => String(item.item_id || item.id));
+                const rawValue = data.ecommerce.value ?? data.value;
+                let valueNum = cleanAndParseFloat(rawValue);
+                if (valueNum <= 0) {
+                    const itemsSum = items.reduce((sum: number, item: any) => {
+                        const itemPrice = cleanAndParseFloat(item.price);
+                        const itemQty = parseInt(item.quantity) || 1;
+                        return sum + (itemPrice * itemQty);
+                    }, 0);
+                    if (itemsSum > 0) {
+                        valueNum = itemsSum;
+                    }
+                }
+                if (valueNum <= 0) {
+                    valueNum = 1;
+                }
+
+                const rawCurrency = data.ecommerce.currency ?? data.currency ?? 'BDT';
+                const currencyClean = String(rawCurrency).replace(/[^A-Za-z]/g, '').toUpperCase().slice(0, 3) || 'BDT';
+
+                (window as any).fbq('trackSingle', targetPixelId, 'AddToCart', {
+                    content_ids: contentIds,
+                    content_type: 'product',
+                    value: valueNum,
+                    currency: currencyClean
                 });
             }
 
@@ -141,11 +225,31 @@ const FacebookPixel = ({ pixelId: customPixelId }: PixelProps) => {
                 const items = data.ecommerce.items || [];
                 const contentIds = items.map((item: any) => String(item.item_id || item.id));
                 const numItems = items.reduce((sum: number, item: any) => sum + (parseInt(item.quantity) || 1), 0);
+                
+                const rawValue = data.ecommerce.value ?? data.total_amount ?? data.value;
+                let valueNum = cleanAndParseFloat(rawValue);
+                if (valueNum <= 0) {
+                    const itemsSum = items.reduce((sum: number, item: any) => {
+                        const itemPrice = cleanAndParseFloat(item.price);
+                        const itemQty = parseInt(item.quantity) || 1;
+                        return sum + (itemPrice * itemQty);
+                    }, 0);
+                    if (itemsSum > 0) {
+                        valueNum = itemsSum;
+                    }
+                }
+                if (valueNum <= 0) {
+                    valueNum = 1;
+                }
+
+                const rawCurrency = data.ecommerce.currency ?? data.currency ?? 'BDT';
+                const currencyClean = String(rawCurrency).replace(/[^A-Za-z]/g, '').toUpperCase().slice(0, 3) || 'BDT';
+
                 (window as any).fbq('trackSingle', targetPixelId, 'InitiateCheckout', {
                     content_ids: contentIds,
                     content_type: 'product',
-                    value: parseFloat(data.ecommerce.value) || 0,
-                    currency: data.ecommerce.currency || 'BDT',
+                    value: valueNum,
+                    currency: currencyClean,
                     num_items: numItems
                 });
             }
@@ -161,11 +265,30 @@ const FacebookPixel = ({ pixelId: customPixelId }: PixelProps) => {
                     options.eventID = data.event_id;
                 }
                 
+                const rawValue = data.ecommerce.value ?? data.total_amount ?? data.value;
+                let valueNum = cleanAndParseFloat(rawValue);
+                if (valueNum <= 0) {
+                    const itemsSum = items.reduce((sum: number, item: any) => {
+                        const itemPrice = cleanAndParseFloat(item.price);
+                        const itemQty = parseInt(item.quantity) || 1;
+                        return sum + (itemPrice * itemQty);
+                    }, 0);
+                    if (itemsSum > 0) {
+                        valueNum = itemsSum;
+                    }
+                }
+                if (valueNum <= 0) {
+                    valueNum = 1;
+                }
+
+                const rawCurrency = data.ecommerce.currency ?? data.currency ?? 'BDT';
+                const currencyClean = String(rawCurrency).replace(/[^A-Za-z]/g, '').toUpperCase().slice(0, 3) || 'BDT';
+                
                 (window as any).fbq('trackSingle', targetPixelId, 'Purchase', {
                     content_ids: contentIds,
                     content_type: 'product',
-                    value: parseFloat(data.ecommerce.value) || 0,
-                    currency: data.ecommerce.currency || 'BDT',
+                    value: valueNum,
+                    currency: currencyClean,
                     num_items: numItems,
                     transaction_id: data.ecommerce.transaction_id || data.order_id
                 }, options);

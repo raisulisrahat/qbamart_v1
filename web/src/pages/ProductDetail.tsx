@@ -201,14 +201,14 @@ const ProductDetail = () => {
             }
         }
     }, [activeImage, gallery, availableColors, selectedColor]);
+
     useEffect(() => {
-        if (product && hasTrackedViewRef.current !== product.id) {
-            hasTrackedViewRef.current = product.id;
-            
+        if (product && (window as any).__last_tracked_view_item_id !== product.id) {
+            (window as any).__last_tracked_view_item_id = product.id;
             pushToDataLayer({
                 event: 'view_item',
                 ecommerce: {
-                    currency: 'BDT', // Replace with your store's currency
+                    currency: 'BDT',
                     value: product.sale_price,
                     items: [
                         {
@@ -222,17 +222,22 @@ const ProductDetail = () => {
                 }
             });
         }
+    }, [product]);
 
-        if (product && !hasTrackedPageViewRef.current) {
-            hasTrackedPageViewRef.current = true;
-            pushToDataLayer({
-                event: 'page_view',
-                page_title: product.name,
-                event_url: window.location.href,
-                post_type: 'product',
-                post_id: String(product.id),
-                user_role: user ? user.role : 'guest'
-            });
+    useEffect(() => {
+        if (product) {
+            const currentUrl = window.location.href;
+            if ((window as any).__last_tracked_pv_url !== currentUrl) {
+                (window as any).__last_tracked_pv_url = currentUrl;
+                pushToDataLayer({
+                    event: 'page_view',
+                    page_title: product.name,
+                    event_url: currentUrl,
+                    post_type: 'product',
+                    post_id: String(product.id),
+                    user_role: user ? user.role : 'guest'
+                });
+            }
         }
     }, [product, user]);
 
@@ -755,7 +760,7 @@ const ProductDetail = () => {
                                             <>
                                                 <button
                                                     onClick={() => {
-                                                        addToCart(product, quantity, selectedColor, selectedSize, false);
+                                                        handleAddToCart(false);
                                                         setIsCartOpen(true);
                                                     }}
                                                     className="flex-grow bg-brand hover:bg-brand-hover text-white font-black h-12 rounded-2xl shadow-xl shadow-brand/10 transition-all flex items-center justify-center space-x-3 active:scale-95"
@@ -766,7 +771,7 @@ const ProductDetail = () => {
 
                                                 <button
                                                     onClick={() => {
-                                                        addToCart(product, quantity, selectedColor, selectedSize, true);
+                                                        handleAddToCart(true);
                                                         navigate('/checkout');
                                                     }}
                                                     className="flex-grow border-2 border-brand text-brand hover:bg-brand/5 font-black h-12 rounded-2xl transition-all flex items-center justify-center space-x-3 active:scale-95 animate-glow"
