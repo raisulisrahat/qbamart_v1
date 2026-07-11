@@ -63,6 +63,9 @@ const FacebookPixel = ({ pixelId: customPixelId }: PixelProps) => {
             currentFbq.queue = [];
             (window as any).fbq = currentFbq;
         }
+        
+        // Disable automatic history-change PageView tracking in fbevents.js
+        (window as any).fbq.disablePushState = true;
 
         // Helper to check and register event debounce
         const checkAndRegisterDebounce = (eventName: string, args: any[], optionsIdx: number): boolean => {
