@@ -53,14 +53,20 @@ const SEO = ({ title, description, image, url, type = 'website', keywords, schem
     : '';
 
   // JSON-LD structured data
+  let siteUrl = (settings as any)?.site_url 
+    || (typeof window !== 'undefined' ? window.location.origin : 'https://qbamart.com');
+  if (siteUrl && !/^https?:\/\//i.test(siteUrl)) {
+    siteUrl = `https://${siteUrl}`;
+  }
+
   const finalSchema = schema || {
     '@context': 'https://schema.org',
     '@type': 'WebSite',
     name: baseTitle,
-    url: typeof window !== 'undefined' ? window.location.origin : 'https://qbamart.com',
+    url: siteUrl,
     potentialAction: {
       '@type': 'SearchAction',
-      target: `${typeof window !== 'undefined' ? window.location.origin : 'https://qbamart.com'}/products?search={search_term_string}`,
+      target: `${siteUrl.replace(/\/$/, '')}/products?search={search_term_string}`,
       'query-input': 'required name=search_term_string',
     },
   };

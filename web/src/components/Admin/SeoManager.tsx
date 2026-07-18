@@ -75,6 +75,7 @@ const SeoEditor = ({
 }) => {
     const { settings: siteSettings } = useSettings();
     const siteDomain = (siteSettings as any)?.site_url || 'qbamart.com';
+    const cleanDomain = siteDomain.replace(/^(https?:\/\/)?(www\.)?/, '').replace(/\/$/, '');
     const displayName = entity.name || entity.title || '';
     const [form, setForm] = useState({
         seo_title: entity.seo_title || '',
@@ -172,7 +173,7 @@ const SeoEditor = ({
                     {form.seo_title || displayName}
                 </p>
                 <p className="text-[11px] text-green-700 font-medium">
-                    {`qbamart.com/${entityType === 'product' ? 'product/' : entityType === 'blog' ? 'blog/' : entityType === 'category' ? 'products?category=' : 'products?brand='}${entity.slug || ''}`}
+                    {`${cleanDomain}/${entityType === 'product' ? 'product/' : entityType === 'blog' ? 'blog/' : entityType === 'category' ? 'products?category=' : 'products?brand='}${entity.slug || ''}`}
                 </p>
                 <p className="text-[11px] text-zinc-500 leading-relaxed line-clamp-2">
                     {form.seo_description || 'No meta description set. Search engines will use page content instead.'}
@@ -526,6 +527,7 @@ const PageSeoEditor = ({ page, onSave, onClose }: {
 }) => {
     const { settings: siteSettings } = useSettings();
     const siteDomain = (siteSettings as any)?.site_url || 'qbamart.com';
+    const cleanDomain = siteDomain.replace(/^(https?:\/\/)?(www\.)?/, '').replace(/\/$/, '');
     const [form, setForm] = useState({
         seo_title: page.seo_title || '',
         seo_description: page.seo_description || '',
@@ -601,7 +603,9 @@ const PageSeoEditor = ({ page, onSave, onClose }: {
             <div className="next-panel p-5 space-y-1.5 bg-white">
                 <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-3">Google Preview</p>
                 <p className="text-[13px] text-blue-600 font-medium truncate">{form.seo_title || page.page_label}</p>
-                <p className="text-[11px] text-green-700 font-medium">{siteDomain}{page.page_path}</p>
+                <p className="text-[11px] text-green-700 font-medium">
+                    {cleanDomain}{page.page_path.startsWith('/') ? page.page_path : '/' + page.page_path}
+                </p>
                 <p className="text-[11px] text-zinc-500 leading-relaxed line-clamp-2">
                     {form.seo_description || 'No meta description set.'}
                 </p>

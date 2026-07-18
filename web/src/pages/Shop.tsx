@@ -161,16 +161,28 @@ const Shop = () => {
         return pages;
     };
 
+    const activeCategoryObj = categories?.find((c: any) => c.slug === selectedCategory);
+    const activeBrandObj = brands?.find((b: any) => b.slug === selectedBrand);
+
     return (
         <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-12">
             <SEO
                 title={
                     searchQuery ? `Search results for "${searchQuery}"` :
-                        selectedCategory ? selectedCategory.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) :
-                            selectedBrand ? brands?.find((b: any) => b.slug === selectedBrand)?.name || 'Brand' :
+                        activeCategoryObj ? activeCategoryObj.seo_title || activeCategoryObj.name :
+                            activeBrandObj ? activeBrandObj.seo_title || activeBrandObj.name :
                                 'Premium Collection'
                 }
-                description={`Explore our exclusive collection of ${selectedCategory || 'premium products'}. Fast delivery across Bangladesh.`}
+                description={
+                    activeCategoryObj ? activeCategoryObj.seo_description || `Explore our exclusive collection of ${activeCategoryObj.name}. Fast delivery across Bangladesh.` :
+                        activeBrandObj ? activeBrandObj.seo_description || `Explore our exclusive collection of ${activeBrandObj.name}. Fast delivery across Bangladesh.` :
+                            `Explore our exclusive collection of premium products. Fast delivery across Bangladesh.`
+                }
+                keywords={
+                    activeCategoryObj ? activeCategoryObj.seo_keywords :
+                        activeBrandObj ? activeBrandObj.seo_keywords :
+                            undefined
+                }
             />
             <div className="flex flex-col md:flex-row gap-10">
 

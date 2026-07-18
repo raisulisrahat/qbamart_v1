@@ -376,7 +376,11 @@ const ProductForm = ({ product, onSave, onCancel }) => {
 
                 brand: (product.brand && typeof product.brand === 'object') ? product.brand.id : (product.brand || ''),
 
-                colors: product.colors?.map(c => typeof c === 'object' ? c.id : c) || [],
+                colors: (() => {
+                    const imgColors = product.images?.map(img => img.color).filter(Boolean) || [];
+                    const prodColors = product.colors?.map(c => typeof c === 'object' ? c.id : c) || [];
+                    return Array.from(new Set([...prodColors, ...imgColors]));
+                })(),
 
                 sizes: product.sizes?.map(s => typeof s === 'object' ? s.id : s) || [],
 
@@ -2473,7 +2477,11 @@ const ProductForm = ({ product, onSave, onCancel }) => {
                                                             value={item.color || ''}
                                                             onChange={(e) => {
                                                                 const val = e.target.value;
-                                                                setGalleryItems(prev => prev.map((img, i) => i === index ? { ...img, color: val ? parseInt(val) : null } : img));
+                                                                const colorId = val ? parseInt(val) : null;
+                                                                setGalleryItems(prev => prev.map((img, i) => i === index ? { ...img, color: colorId } : img));
+                                                                if (colorId && !formData.colors.includes(colorId)) {
+                                                                    setFormData(prev => ({ ...prev, colors: [...prev.colors, colorId] }));
+                                                                }
                                                             }}
                                                             className="w-full px-1.5 py-0.5 text-xs border border-zinc-200 rounded bg-zinc-50 font-semibold text-zinc-800 outline-none focus:ring-1 focus:ring-brand"
                                                         >

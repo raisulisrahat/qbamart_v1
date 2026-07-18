@@ -24,6 +24,11 @@ class Category(models.Model):
     sizes = models.ManyToManyField('Size', blank=True, related_name='categories')
     tags = models.ManyToManyField('Tag', blank=True, related_name='categories')
 
+    # SEO Fields
+    seo_title = models.CharField(max_length=255, blank=True, null=True, help_text="Custom SEO title (overrides category name in meta tags)")
+    seo_description = models.TextField(blank=True, null=True, help_text="Custom SEO meta description for this category")
+    seo_keywords = models.CharField(max_length=500, blank=True, null=True, help_text="Comma-separated SEO keywords for this category")
+
     class Meta:
         verbose_name_plural = "Categories"
 
@@ -62,6 +67,11 @@ class Brand(models.Model):
     name = models.CharField(max_length=100)
     slug = models.SlugField(unique=True, blank=True, null=True)
     logo = models.ImageField(upload_to='brands/', blank=True, null=True)
+
+    # SEO Fields
+    seo_title = models.CharField(max_length=255, blank=True, null=True, help_text="Custom SEO title (overrides brand name in meta tags)")
+    seo_description = models.TextField(blank=True, null=True, help_text="Custom SEO meta description for this brand")
+    seo_keywords = models.CharField(max_length=500, blank=True, null=True, help_text="Comma-separated SEO keywords for this brand")
 
     def save(self, *args, **kwargs):
         if not self.slug:
