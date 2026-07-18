@@ -74,7 +74,7 @@ const SeoEditor = ({
     onClose: () => void;
 }) => {
     const { settings: siteSettings } = useSettings();
-    const siteDomain = (siteSettings as any)?.site_url || 'qbamart.com';
+    const siteDomain = (siteSettings as any)?.site_url || (typeof window !== 'undefined' ? window.location.hostname : 'qbamart.com');
     const cleanDomain = siteDomain.replace(/^(https?:\/\/)?(www\.)?/, '').replace(/\/$/, '');
     const displayName = entity.name || entity.title || '';
     const [form, setForm] = useState({
@@ -526,7 +526,7 @@ const PageSeoEditor = ({ page, onSave, onClose }: {
     onClose: () => void;
 }) => {
     const { settings: siteSettings } = useSettings();
-    const siteDomain = (siteSettings as any)?.site_url || 'qbamart.com';
+    const siteDomain = (siteSettings as any)?.site_url || (typeof window !== 'undefined' ? window.location.hostname : 'qbamart.com');
     const cleanDomain = siteDomain.replace(/^(https?:\/\/)?(www\.)?/, '').replace(/\/$/, '');
     const [form, setForm] = useState({
         seo_title: page.seo_title || '',

@@ -54,7 +54,7 @@ const SEO = ({ title, description, image, url, type = 'website', keywords, schem
 
   // JSON-LD structured data
   let siteUrl = (settings as any)?.site_url 
-    || (typeof window !== 'undefined' ? window.location.origin : 'https://qbamart.com');
+    || (typeof window !== 'undefined' ? window.location.origin : '');
   if (siteUrl && !/^https?:\/\//i.test(siteUrl)) {
     siteUrl = `https://${siteUrl}`;
   }

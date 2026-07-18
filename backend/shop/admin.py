@@ -6,7 +6,8 @@ from .models import (
     Category, Brand, Tag, Color, Size, Wishlist, PaymentMethod, ShippingZone,
     Product, ProductImage, ProductFunnelSection, Order, OrderItem, OrderNote, Banner, District,
     Upazila, Profile, Review, ReviewImage, Notice, FlashSale, FlashSaleItem,
-    BlogCategory, BlogPost, SiteSettings, Funnel, UserActivityLog, Notification
+    BlogCategory, BlogPost, SiteSettings, Funnel, UserActivityLog, Notification,
+    PageSeo
 )
 from django.contrib.auth.models import User
 
@@ -141,3 +142,9 @@ admin.site.register(BlogCategory, ModelAdmin)
 admin.site.register(Funnel, ModelAdmin)
 admin.site.register(UserActivityLog, ModelAdmin)
 admin.site.register(Notification, ModelAdmin)
+
+@admin.register(PageSeo)
+class PageSeoAdmin(ModelAdmin):
+    list_display = ('page_label', 'page_key', 'page_path', 'seo_title', 'updated_at')
+    search_fields = ('page_label', 'page_key', 'page_path')
+
