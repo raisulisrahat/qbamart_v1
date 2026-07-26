@@ -1,16 +1,3 @@
-import appdynamics from 'appdynamics'
-
-appdynamics.profile({
-  controllerHostName: 'monroe202607241142452.saas.appdynamics.com',
-  controllerPort: 443,
-  controllerSslEnabled: true,
-  accountName: 'monroe202607241142452',
-  accountAccessKey: 'maud4p3xttqn',
-  applicationName: 'qbamart frontweb',
-  tierName: 'v1',
-  nodeName: 'process',
-})
-
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { HelmetProvider } from 'react-helmet-async'
