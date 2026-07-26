@@ -1,6 +1,6 @@
 import hashlib
 import json
-import urllib.request
+import requests
 import threading
 import logging
 from django.utils import timezone
@@ -36,16 +36,8 @@ def _async_send_capi_event(url, payload, headers):
     Asynchronous executor running in a background thread to make the HTTP POST request.
     """
     try:
-        data = json.dumps(payload).encode('utf-8')
-        req = urllib.request.Request(
-            url,
-            data=data,
-            headers=headers,
-            method='POST'
-        )
-        with urllib.request.urlopen(req, timeout=8) as response:
-            res_body = response.read().decode('utf-8')
-            logger.info(f"Meta CAPI conversion request successfully processed: {res_body}")
+        response = requests.post(url, json=payload, headers=headers, timeout=8)
+        logger.info(f"Meta CAPI conversion request successfully processed: {response.text}")
     except Exception as e:
         logger.error(f"Error executing Meta CAPI server call: {e}")
 
