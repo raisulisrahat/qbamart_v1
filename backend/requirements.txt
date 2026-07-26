@@ -13,3 +13,4 @@ pyotp
 qrcode
 imageio-ffmpeg
 whitenoise
+appdynamics
