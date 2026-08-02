@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { ShieldCheck, Truck, Star, CheckCircle, ArrowRight, Clock, Phone, MapPin, Zap, Award, ShoppingCart, Lock } from 'lucide-react';
+import { ShieldCheck, Truck, Star, CheckCircle, ArrowRight, Clock, Phone, MapPin, Zap, Award, ShoppingCart, Lock, AlertTriangle, Check } from 'lucide-react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
@@ -724,7 +724,7 @@ const GardenFunnelLayout = ({
                                 {dynamicWhyBuyList.map((reason, idx) => (
                                     <div key={idx} className="flex items-center gap-3 p-3 bg-white border border-slate-100 rounded-xl shadow-sm">
                                         <span className="w-6 h-6 rounded-full bg-[#8B5CF6] text-white flex items-center justify-center shrink-0">
-                                            <span className="text-[10px] font-bold">✔</span>
+                                            <Check className="w-3.5 h-3.5" />
                                         </span>
                                         <span className="font-bold text-slate-800 text-sm leading-snug">{reason}</span>
                                     </div>

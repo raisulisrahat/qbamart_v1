@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 
 import api, { getMediaUrl, BASE_URL } from '../../utils/api';
 
-import { X, Upload, Save, ArrowLeft, Image as ImageIcon, Trash2, Plus, CheckCircle, GripVertical, Video, Globe, Layout, ChevronDown, RefreshCw } from 'lucide-react';
+import { X, Upload, Save, ArrowLeft, Image as ImageIcon, Trash2, Plus, CheckCircle, GripVertical, Video, Globe, Layout, ChevronDown, RefreshCw, Sparkles } from 'lucide-react';
 
 import MediaManager from './MediaManager';
 
@@ -3053,7 +3053,7 @@ const ProductForm = ({ product, onSave, onCancel }) => {
 
                                                     >
 
-                                                        ✨ Auto Detect
+                                                        <span className="flex items-center gap-1.5"><Sparkles className="w-4 h-4" /> Auto Detect</span>
 
                                                     </button>
 

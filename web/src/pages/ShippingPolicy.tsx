@@ -2,6 +2,7 @@ import React from 'react';
 import SEO from '../components/SEO';
 import { motion } from 'framer-motion';
 import { useSettings } from '../context/SettingsContext';
+import { CheckCircle2, PhoneCall, Package, Truck, Banknote, Clock, AlertCircle } from 'lucide-react';
 
 const ShippingPolicy = () => {
   const { siteTitle } = useSettings();
@@ -46,35 +47,50 @@ const ShippingPolicy = () => {
         </section>
 
         <section className="mb-12">
-          <h2 className="text-2xl font-black text-neutral-900 mb-6 uppercase tracking-tight">✅ অর্ডার প্রসেসিং</h2>
+          <h2 className="text-2xl font-black text-neutral-900 mb-6 uppercase tracking-tight flex items-center gap-3">
+            <CheckCircle2 className="w-7 h-7 text-emerald-600 shrink-0" />
+            <span>অর্ডার প্রসেসিং</span>
+          </h2>
           <p className="text-neutral-600 leading-relaxed mb-4">
             প্রতিটি পণ্য ডেলিভারির আগে আমাদের টিম দ্বারা ভালোভাবে পরীক্ষা করা হয়। ফাইনাল কোয়ালিটি চেকের পর, পণ্যগুলো নিরাপদ প্যাকেজিংয়ের মাধ্যমে ডেলিভারি পার্টনারের হাতে হস্তান্তর করা হয়।
           </p>
         </section>
 
         <section className="mb-12">
-          <h2 className="text-2xl font-black text-neutral-900 mb-6 uppercase tracking-tight">📞 অর্ডার কনফার্মেশন</h2>
+          <h2 className="text-2xl font-black text-neutral-900 mb-6 uppercase tracking-tight flex items-center gap-3">
+            <PhoneCall className="w-7 h-7 text-brand shrink-0" />
+            <span>অর্ডার কনফার্মেশন</span>
+          </h2>
           <p className="text-neutral-600 leading-relaxed">
             প্রতিটি অর্ডার ফোন কলে কনফার্ম করে পাঠানো হয়। অর্ডার কনফার্মেশনের জন্য সর্বোচ্চ ৩ দিন পর্যন্ত হোল্ড করে রাখা হয়।
           </p>
         </section>
 
         <section className="mb-12">
-          <h2 className="text-2xl font-black text-neutral-900 mb-6 uppercase tracking-tight">📦 প্যাকেজিং প্রক্রিয়া</h2>
+          <h2 className="text-2xl font-black text-neutral-900 mb-6 uppercase tracking-tight flex items-center gap-3">
+            <Package className="w-7 h-7 text-amber-600 shrink-0" />
+            <span>প্যাকেজিং প্রক্রিয়া</span>
+          </h2>
           <p className="text-neutral-600 leading-relaxed mb-4">
             প্রতিটি পণ্য ইনভয়েসসহ শক্ত কার্ডবোর্ড বক্সে প্যাক করা হয়। ভাঙার সম্ভাবনা থাকলে বাবল র‍্যাপ দিয়ে বিশেষভাবে সুরক্ষিত করা হয়। প্রতিটি প্যাকেজের আলাদা ছবি তোলা হয় এবং প্যাকিং প্রক্রিয়া CCTV ক্যামেরার মাধ্যমে মনিটর করা হয়।
           </p>
         </section>
 
         <section className="mb-12">
-          <h2 className="text-2xl font-black text-neutral-900 mb-6 uppercase tracking-tight">🚚 ডেলিভারি পার্টনার</h2>
+          <h2 className="text-2xl font-black text-neutral-900 mb-6 uppercase tracking-tight flex items-center gap-3">
+            <Truck className="w-7 h-7 text-blue-600 shrink-0" />
+            <span>ডেলিভারি পার্টনার</span>
+          </h2>
           <p className="text-neutral-600 leading-relaxed mb-4">
             আমরা নির্ভরযোগ্য কুরিয়ার সার্ভিসের সঙ্গে কাজ করি: Pathao, Steadfast, Sundarban Courier.
           </p>
         </section>
 
         <section className="mb-12">
-          <h2 className="text-2xl font-black text-neutral-900 mb-6 uppercase tracking-tight">💰 ডেলিভারি চার্জ</h2>
+          <h2 className="text-2xl font-black text-neutral-900 mb-6 uppercase tracking-tight flex items-center gap-3">
+            <Banknote className="w-7 h-7 text-emerald-600 shrink-0" />
+            <span>ডেলিভারি চার্জ</span>
+          </h2>
           <ul className="space-y-4">
             <li className="flex items-start">
               <div className="w-2 h-2 bg-brand rounded-full mr-3 mt-2 shrink-0"></div>
@@ -88,7 +104,10 @@ const ShippingPolicy = () => {
         </section>
 
         <section className="mb-12">
-          <h2 className="text-2xl font-black text-neutral-900 mb-6 uppercase tracking-tight">⏱️ ডেলিভারি সময়</h2>
+          <h2 className="text-2xl font-black text-neutral-900 mb-6 uppercase tracking-tight flex items-center gap-3">
+            <Clock className="w-7 h-7 text-purple-600 shrink-0" />
+            <span>ডেলিভারি সময়</span>
+          </h2>
           <ul className="space-y-4">
             <li className="flex items-start">
               <div className="w-2 h-2 bg-brand rounded-full mr-3 mt-2 shrink-0"></div>
@@ -102,7 +121,10 @@ const ShippingPolicy = () => {
         </section>
 
         <section className="bg-brand/5 p-8 rounded-3xl border border-brand/10">
-          <h2 className="text-xl font-black text-neutral-900 mb-4 uppercase tracking-tight">❗ গুরুত্বপূর্ণ তথ্য</h2>
+          <h2 className="text-xl font-black text-neutral-900 mb-4 uppercase tracking-tight flex items-center gap-3">
+            <AlertCircle className="w-6 h-6 text-amber-500 shrink-0" />
+            <span>গুরুত্বপূর্ণ তথ্য</span>
+          </h2>
           <p className="text-neutral-600 text-sm leading-relaxed mb-4">
             পণ্য হাতে পেলে ডেলিভারি ম্যানের সামনে প্যাকেট খুলে পরীক্ষা করুন। যদি সামনে খোলা সম্ভব না হয়, তাহলে আনবক্সিং ভিডিও রেকর্ড করুন যাতে সমস্যা স্পষ্টভাবে দেখা যায়। প্রমাণ ছাড়া কোনো ড্যামেজ ক্লেইম গ্রহণযোগ্য নয়।
           </p>

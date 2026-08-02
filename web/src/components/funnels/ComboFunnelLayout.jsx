@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { ShieldCheck, Truck, Star, CheckCircle, ArrowRight, Clock, Phone, MapPin, Zap, Award, ShoppingCart, Lock } from 'lucide-react';
+import { ShieldCheck, Truck, Star, CheckCircle, ArrowRight, Clock, Phone, MapPin, Zap, Award, ShoppingCart, Lock, AlertTriangle, Check } from 'lucide-react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
@@ -721,7 +721,7 @@ const ComboFunnelLayout = ({
                         {dynamicWhyBuyList.map((reason, idx) => (
                             <div key={idx} className="feature-card flex items-start gap-3 p-4 bg-[#FAF6ED] rounded-2xl border border-[#3D1625]/10">
                                 <span className="w-6 h-6 rounded-full bg-[#1B5E20] text-white flex items-center justify-center shrink-0 mt-0.5 shadow-sm">
-                                    <span className="text-[10px] font-black">✓</span>
+                                    <Check className="w-3.5 h-3.5" />
                                 </span>
                                 <span className="font-bold text-slate-800 text-sm leading-snug">{reason}</span>
                             </div>

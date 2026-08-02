@@ -2,6 +2,7 @@ import React from 'react';
 import SEO from '../components/SEO';
 import { motion } from 'framer-motion';
 import { useSettings } from '../context/SettingsContext';
+import { Truck, Banknote, ShieldCheck, RefreshCw, Tag, Lock, Sparkles, Check } from 'lucide-react';
 
 const AboutUs = () => {
   const { siteTitle } = useSettings();
@@ -28,28 +29,32 @@ const AboutUs = () => {
       <div className="max-w-[800px] mx-auto px-6 py-20 prose prose-neutral prose-brand">
         <section className="mb-12">
           <p className="text-neutral-600 leading-relaxed mb-6 font-medium text-lg">
-            {siteTitle}-এ আপনাকে স্বাগতম – বাংলাদেশের অন্যতম বিশ্বস্ত অনলাইন শপিং প্ল্যাটফর্ম! 🇧🇩 আমরা একটি শীর্ষস্থানীয় ই-কমার্স গন্তব্য হতে পেরে গর্বিত, যা দেশজুড়ে গ্রাহকদের একটি মসৃণ, নিরাপদ এবং নির্ভরযোগ্য কেনাকাটার অভিজ্ঞতা প্রদান করে।
+            {siteTitle}-এ আপনাকে স্বাগতম – বাংলাদেশের অন্যতম বিশ্বস্ত অনলাইন শপিং প্ল্যাটফর্ম! আমরা একটি শীর্ষস্থানীয় ই-কমার্স গন্তব্য হতে পেরে গর্বিত, যা দেশজুড়ে গ্রাহকদের একটি মসৃণ, নিরাপদ এবং নির্ভরযোগ্য কেনাকাটার অভিজ্ঞতা প্রদান করে।
           </p>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
             {[
-              { icon: "🚚", title: "সারা দেশে ডেলিভারি", desc: "বাংলাদেশের প্রতিটি কোণায় দ্রুত এবং নির্ভরযোগ্য ডেলিভারি সেবা।" },
-              { icon: "💵", title: "ক্যাশ অন ডেলিভারি", desc: "পণ্য পৌঁছানোর পর পেমেন্ট করুন—কোনো অগ্রিম পেমেন্টের প্রয়োজন নেই!" },
-              { icon: "✅", title: "১০০% আসল পণ্য", desc: "আপনি যা দেখছেন ঠিক তাই পাবেন—সর্বদা খাঁটি এবং আসল পণ্য।" },
-              { icon: "🔄", title: "সহজ রিটার্ন পলিসি", desc: "আপনার সন্তুষ্টি নিশ্চিত করতে ঝামেলা-মুক্ত রিটার্ন এবং রিপ্লেসমেন্ট সুবিধা।" },
-              { icon: "💰", title: "সেরা অফার ও ডিল", desc: "প্রতিদিন দারুণ অফার এবং সাশ্রয়ী মূল্যে কেনাকাটা উপভোগ করুন।" },
-              { icon: "🔐", title: "নিরাপদ কেনাকাটা", desc: "আমাদের নিরাপদ এবং বিশ্বস্ত পেমেন্ট পদ্ধতির মাধ্যমে আত্মবিশ্বাসের সাথে কেনাকাটা করুন।" }
-            ].map((item, i) => (
-              <div key={i} className="bg-neutral-50 p-6 rounded-2xl border border-neutral-100">
-                <span className="text-2xl mb-3 block">{item.icon}</span>
-                <h3 className="text-neutral-900 font-bold mb-2">{item.title}</h3>
-                <p className="text-neutral-500 text-sm leading-relaxed">{item.desc}</p>
-              </div>
-            ))}
+              { icon: Truck, iconColor: "text-blue-600", title: "সারা দেশে ডেলিভারি", desc: "বাংলাদেশের প্রতিটি কোণায় দ্রুত এবং নির্ভরযোগ্য ডেলিভারি সেবা।" },
+              { icon: Banknote, iconColor: "text-emerald-600", title: "ক্যাশ অন ডেলিভারি", desc: "পণ্য পৌঁছানোর পর পেমেন্ট করুন—কোনো অগ্রিম পেমেন্টের প্রয়োজন নেই!" },
+              { icon: ShieldCheck, iconColor: "text-brand", title: "১০০% আসল পণ্য", desc: "আপনি যা দেখছেন ঠিক তাই পাবেন—সর্বদা খাঁটি এবং আসল পণ্য।" },
+              { icon: RefreshCw, iconColor: "text-purple-600", title: "সহজ রিটার্ন পলিসি", desc: "আপনার সন্তুষ্টি নিশ্চিত করতে ঝামেলা-মুক্ত রিটার্ন এবং রিপ্লেসমেন্ট সুবিধা।" },
+              { icon: Tag, iconColor: "text-amber-600", title: "সেরা অফার ও ডিল", desc: "প্রতিদিন দারুণ অফার এবং সাশ্রয়ী মূল্যে কেনাকাটা উপভোগ করুন।" },
+              { icon: Lock, iconColor: "text-indigo-600", title: "নিরাপদ কেনাকাটা", desc: "আমাদের নিরাপদ এবং বিশ্বস্ত পেমেন্ট পদ্ধতির মাধ্যমে আত্মবিশ্বাসের সাথে কেনাকাটা করুন।" }
+            ].map((item, i) => {
+              const IconComp = item.icon;
+              return (
+                <div key={i} className="bg-neutral-50 p-6 rounded-2xl border border-neutral-100">
+                  <IconComp className={`w-8 h-8 mb-3 ${item.iconColor}`} />
+                  <h3 className="text-neutral-900 font-bold mb-2">{item.title}</h3>
+                  <p className="text-neutral-500 text-sm leading-relaxed">{item.desc}</p>
+                </div>
+              );
+            })}
           </div>
 
-          <p className="text-neutral-600 leading-relaxed mb-12">
-            {siteTitle}-এ, আমরা আপনার অনলাইন কেনাকাটার যাত্রাকে সহজ, সাশ্রয়ী এবং আনন্দদায়ক করতে এখানে আছি। আমাদের বেছে নেওয়ার জন্য আপনাকে ধন্যবাদ—আপনাকে সেবা করতে পেরে আমরা সম্মানিত। 🌟
+          <p className="text-neutral-600 leading-relaxed mb-12 flex items-center gap-2">
+            <span>{siteTitle}-এ, আমরা আপনার অনলাইন কেনাকাটার যাত্রাকে সহজ, সাশ্রয়ী এবং আনন্দদায়ক করতে এখানে আছি। আমাদের বেছে নেওয়ার জন্য আপনাকে ধন্যবাদ—আপনাকে সেবা করতে পেরে আমরা সম্মানিত।</span>
+            <Sparkles className="w-5 h-5 text-amber-500 shrink-0 inline" />
           </p>
         </section>
 
@@ -66,9 +71,18 @@ const AboutUs = () => {
             বাংলাদেশে সবার জন্য অনলাইন কেনাকাটাকে সহজলভ্য, নির্ভরযোগ্য এবং আনন্দদায়ক করে তোলা, যার জন্য আমরা নিশ্চিত করি:
           </p>
           <ul className="space-y-2 mt-4">
-            <li className="flex items-center text-neutral-600">✔️ উচ্চ মানের পণ্য</li>
-            <li className="flex items-center text-neutral-600">✔️ মসৃণ এবং দ্রুত ডেলিভারি</li>
-            <li className="flex items-center text-neutral-600">✔️ বন্ধুসুলভ এবং আন্তরিক কাস্টমার সাপোর্ট</li>
+            <li className="flex items-center gap-2 text-neutral-600">
+              <Check className="w-4 h-4 text-emerald-600 shrink-0" />
+              <span>উচ্চ মানের পণ্য</span>
+            </li>
+            <li className="flex items-center gap-2 text-neutral-600">
+              <Check className="w-4 h-4 text-emerald-600 shrink-0" />
+              <span>মসৃণ এবং দ্রুত ডেলিভারি</span>
+            </li>
+            <li className="flex items-center gap-2 text-neutral-600">
+              <Check className="w-4 h-4 text-emerald-600 shrink-0" />
+              <span>বন্ধুসুলভ এবং আন্তরিক কাস্টমার সাপোর্ট</span>
+            </li>
           </ul>
         </section>
 
@@ -78,8 +92,11 @@ const AboutUs = () => {
             {siteTitle}-এ, মান আমাদের প্রথম অগ্রাধিকার। নিত্যপ্রয়োজনীয় জিনিস থেকে শুরু করে আধুনিক গ্যাজেট পর্যন্ত, প্রতিটি পণ্য অত্যন্ত যত্ন সহকারে বাছাই করা হয়, যা নিশ্চিত করে:
           </p>
           <div className="flex flex-wrap gap-4 mt-4">
-            {["✨ টেকসই গুণমান", "✨ কার্যকারিতা", "✨ স্টাইল ও ডিজাইন"].map((tag, i) => (
-              <span key={i} className="bg-brand/5 text-brand px-4 py-2 rounded-full text-sm font-bold">{tag}</span>
+            {["টেকসই গুণমান", "কার্যকারিতা", "স্টাইল ও ডিজাইন"].map((tag, i) => (
+              <span key={i} className="bg-brand/5 text-brand px-4 py-2 rounded-full text-sm font-bold flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-brand" />
+                <span>{tag}</span>
+              </span>
             ))}
           </div>
           <p className="text-neutral-600 mt-6">

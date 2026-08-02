@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { ShieldCheck, Truck, Star, CheckCircle, ArrowRight, Clock, Phone, MapPin, Zap, Award, ShoppingCart } from 'lucide-react';
+import { ShieldCheck, Truck, Star, CheckCircle, ArrowRight, Clock, Phone, MapPin, Zap, Award, ShoppingCart, AlertTriangle } from 'lucide-react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
@@ -866,7 +866,7 @@ const ClassicFunnelLayout = ({
                                     </div>
                                     {shippingError && (
                                         <p className="text-red-400 text-sm font-bold mt-2 animate-pulse flex items-center gap-1.5 ml-2">
-                                            <span>⚠️</span> {shippingError}
+                                            <AlertTriangle className="w-4 h-4 text-red-400 shrink-0" /> {shippingError}
                                         </p>
                                     )}
                                 </div>

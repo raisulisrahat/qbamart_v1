@@ -28,7 +28,8 @@ import {
     ChevronRight,
     Check,
     RefreshCcw,
-    CheckCircle2
+    CheckCircle2,
+    Flame
 } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
@@ -480,8 +481,9 @@ const StepFunnel = () => {
             <FacebookPixel />
             
             {/* Promo Top Bar */}
-            <div className="bg-brand text-white py-2.5 text-center font-bold text-xs md:text-sm uppercase tracking-widest px-4">
-                🔥 আজই অর্ডার করলে পাচ্ছেন বিশেষ ছাড় এবং দ্রুত ডেলিভারি!
+            <div className="bg-brand text-white py-2.5 text-center font-bold text-xs md:text-sm uppercase tracking-widest px-4 flex items-center justify-center gap-2">
+                <Flame className="w-4 h-4 text-amber-300 shrink-0" />
+                <span>আজই অর্ডার করলে পাচ্ছেন বিশেষ ছাড় এবং দ্রুত ডেলিভারি!</span>
             </div>
 
             {/* Main Header */}

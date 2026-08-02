@@ -2,6 +2,7 @@ import React from 'react';
 import SEO from '../components/SEO';
 import { motion } from 'framer-motion';
 import { useSettings } from '../context/SettingsContext';
+import { CheckCircle2, Ban, Banknote, Clock, Package, Phone } from 'lucide-react';
 
 const ReturnPolicy = () => {
   const { siteTitle } = useSettings();
@@ -32,35 +33,50 @@ const ReturnPolicy = () => {
         </section>
 
         <section className="mb-12">
-          <h2 className="text-2xl font-black text-neutral-900 mb-6 uppercase tracking-tight">✅ ডেলিভারির সময় চেক করুন</h2>
+          <h2 className="text-2xl font-black text-neutral-900 mb-6 uppercase tracking-tight flex items-center gap-3">
+            <CheckCircle2 className="w-7 h-7 text-emerald-600 shrink-0" />
+            <span>ডেলিভারির সময় চেক করুন</span>
+          </h2>
           <p className="text-neutral-600 leading-relaxed mb-4">
             ডেলিভারি বয়ের সামনে পার্সেল খুলে পণ্যটি ভালোভাবে পরীক্ষা করুন। যদি ভুল, ত্রুটিপূর্ণ বা ক্ষতিগ্রস্ত পণ্য পান, সঙ্গে সঙ্গেই পণ্যটি ফেরত দিন।
           </p>
         </section>
 
         <section className="mb-12">
-          <h2 className="text-2xl font-black text-neutral-900 mb-6 uppercase tracking-tight">🚫 ডেলিভারির পর রিটার্ন</h2>
+          <h2 className="text-2xl font-black text-neutral-900 mb-6 uppercase tracking-tight flex items-center gap-3">
+            <Ban className="w-7 h-7 text-rose-600 shrink-0" />
+            <span>ডেলিভারির পর রিটার্ন</span>
+          </h2>
           <p className="text-neutral-600 leading-relaxed mb-4">
             সাধারণভাবে, ডেলিভারির পরে রিটার্ন সম্ভব নয়। তবে বিশেষ ক্ষেত্রে, আপনি স্টেড-ফাস্ট, পাঠাও এবং সুন্দরবন কুরিয়ার এর মাধ্যমে জিরো কস্টে আমাদের ঠিকানায় পণ্যটি পাঠিয়ে রিটার্ন করতে পারবেন।
           </p>
         </section>
 
         <section className="mb-12">
-          <h2 className="text-2xl font-black text-neutral-900 mb-6 uppercase tracking-tight">💸 রিফান্ড পদ্ধতি</h2>
+          <h2 className="text-2xl font-black text-neutral-900 mb-6 uppercase tracking-tight flex items-center gap-3">
+            <Banknote className="w-7 h-7 text-emerald-600 shrink-0" />
+            <span>রিফান্ড পদ্ধতি</span>
+          </h2>
           <p className="text-neutral-600 leading-relaxed">
             রিটার্ন প্রক্রিয়া সফলভাবে সম্পন্ন হলে আপনার পেমেন্ট ফেরত দেওয়া হবে।
           </p>
         </section>
 
         <section className="mb-12">
-          <h2 className="text-2xl font-black text-neutral-900 mb-6 uppercase tracking-tight">⏳ সময়সীমা</h2>
+          <h2 className="text-2xl font-black text-neutral-900 mb-6 uppercase tracking-tight flex items-center gap-3">
+            <Clock className="w-7 h-7 text-amber-600 shrink-0" />
+            <span>সময়সীমা</span>
+          </h2>
           <p className="text-neutral-600 leading-relaxed">
             পণ্যের ধরন অনুযায়ী ৩ / ৫ / ৭ দিনের মধ্যে রিপ্লেসমেন্টের জন্য আবেদন করতে হবে।
           </p>
         </section>
 
         <section className="mb-12">
-          <h2 className="text-2xl font-black text-neutral-900 mb-6 uppercase tracking-tight">📦 শর্তাবলী</h2>
+          <h2 className="text-2xl font-black text-neutral-900 mb-6 uppercase tracking-tight flex items-center gap-3">
+            <Package className="w-7 h-7 text-blue-600 shrink-0" />
+            <span>শর্তাবলী</span>
+          </h2>
           <ul className="space-y-4">
             <li className="flex items-start">
               <div className="w-2 h-2 bg-brand rounded-full mr-3 mt-2 shrink-0"></div>
@@ -80,7 +96,10 @@ const ReturnPolicy = () => {
               <div className="w-12 h-12 bg-brand text-white rounded-2xl flex items-center justify-center font-black shrink-0">1</div>
               <div>
                 <h3 className="text-lg font-bold text-neutral-900 mb-2">যোগাযোগ করুন</h3>
-                <p className="text-neutral-500 text-sm">📱 WhatsApp: 01618-320869</p>
+                <p className="text-neutral-500 text-sm flex items-center gap-2">
+                  <Phone className="w-4 h-4 text-brand" />
+                  <span>WhatsApp: 01618-320869</span>
+                </p>
               </div>
             </div>
             <div className="flex items-start space-x-6">

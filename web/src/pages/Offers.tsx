@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { getFunnels, BASE_URL } from '../services/api';
 import { motion } from 'framer-motion';
-import { Tag, Sparkles, ChevronRight, ShoppingBag, Loader2, Percent, ArrowLeft } from 'lucide-react';
+import { Tag, Sparkles, ChevronRight, ShoppingBag, Loader2, Percent, ArrowLeft, Flame } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import SEO from '../components/SEO';
 import { useSettings } from '../context/SettingsContext';
@@ -175,8 +175,9 @@ const Offers = () => {
                                                     <span>{language === 'bn' ? `${discount}% ছাড়` : `${discount}% OFF`}</span>
                                                 </span>
                                             )}
-                                            <span className="inline-flex items-center bg-neutral-900 text-white text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full">
-                                                {language === 'bn' ? '🔥 হট ডিল' : '🔥 Hot Deal'}
+                                            <span className="inline-flex items-center gap-1 bg-neutral-900 text-white text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full">
+                                                <Flame className="w-3 h-3 text-amber-400 shrink-0" />
+                                                <span>{language === 'bn' ? 'হট ডিল' : 'Hot Deal'}</span>
                                             </span>
                                         </div>
 

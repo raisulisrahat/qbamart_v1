@@ -2,6 +2,7 @@ import React from 'react';
 import SEO from '../components/SEO';
 import { motion } from 'framer-motion';
 import { useSettings } from '../context/SettingsContext';
+import { Mail, User, Phone, MapPin, Check } from 'lucide-react';
 
 const PrivacyPolicy = () => {
   const { siteTitle } = useSettings();
@@ -45,10 +46,22 @@ const PrivacyPolicy = () => {
           <div className="bg-neutral-50 p-6 rounded-2xl border border-neutral-100">
             <h3 className="text-lg font-bold text-neutral-900 mb-4">Information We Collect:</h3>
             <ul className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-neutral-600">
-              <li className="flex items-center space-x-2"><span>📧</span> <span>Email address</span></li>
-              <li className="flex items-center space-x-2"><span>👤</span> <span>Full Name</span></li>
-              <li className="flex items-center space-x-2"><span>📞</span> <span>Phone number</span></li>
-              <li className="flex items-center space-x-2"><span>📍</span> <span>Address & City</span></li>
+              <li className="flex items-center space-x-2">
+                <Mail className="w-4 h-4 text-brand shrink-0" />
+                <span>Email address</span>
+              </li>
+              <li className="flex items-center space-x-2">
+                <User className="w-4 h-4 text-brand shrink-0" />
+                <span>Full Name</span>
+              </li>
+              <li className="flex items-center space-x-2">
+                <Phone className="w-4 h-4 text-brand shrink-0" />
+                <span>Phone number</span>
+              </li>
+              <li className="flex items-center space-x-2">
+                <MapPin className="w-4 h-4 text-brand shrink-0" />
+                <span>Address & City</span>
+              </li>
             </ul>
           </div>
         </section>
@@ -64,7 +77,7 @@ const PrivacyPolicy = () => {
               "To provide news, special offers and general information"
             ].map((text, i) => (
               <li key={i} className="flex items-start space-x-3 text-neutral-600">
-                <span className="text-brand">✔</span>
+                <Check className="w-4 h-4 text-brand mt-1 shrink-0" />
                 <span>{text}</span>
               </li>
             ))}
@@ -83,11 +96,11 @@ const PrivacyPolicy = () => {
           <p className="text-neutral-400 text-sm mb-6">If you have any questions about this Privacy Policy, You can contact us:</p>
           <div className="space-y-4">
             <div className="flex items-center space-x-3 text-sm">
-              <span className="text-brand">📧</span>
+              <Mail className="w-4 h-4 text-brand shrink-0" />
               <span>support@{siteTitle.toLowerCase().replace(/\s+/g, '')}.com</span>
             </div>
             <div className="flex items-center space-x-3 text-sm">
-              <span className="text-brand">📞</span>
+              <Phone className="w-4 h-4 text-brand shrink-0" />
               <span>01618-320869</span>
             </div>
           </div>

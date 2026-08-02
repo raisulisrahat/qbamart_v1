@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { ShieldCheck, Truck, Star, CheckCircle, ArrowRight, Clock, Phone, MapPin, Zap, Award, ShoppingCart, MessageCircle, Facebook } from 'lucide-react';
+import { ShieldCheck, Truck, Star, CheckCircle, ArrowRight, Clock, Phone, MapPin, Zap, Award, ShoppingCart, MessageCircle, Facebook, AlertTriangle } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation, Pagination, Autoplay, EffectFade } from 'swiper/modules';
@@ -203,11 +203,11 @@ const EzyFunnelLayout = ({
 
     // Dynamic features
     const defaultWhyBuy = [
-        "100% জেনুইন ব্রান্ড প্রিমিয়াম কোয়ালিটি পণ্য ✅",
-        "ডাবল প্রটেকশন বিশিষ্ট ইন্টেক্ট পলি প্যাকেজিং ✅",
-        "TR 90 ফ্লেক্সিবল ও প্রিমিয়াম বিল্ড কোয়ালিটি ✅",
-        "সারা বাংলাদেশে ফাস্ট ক্যাশ অন হোম ডেলিভারি ✅",
-        "৭ দিনের ইজি রিটার্ন ও রিফান্ড গ্যারান্টি ✅"
+        "100% জেনুইন ব্রান্ড প্রিমিয়াম কোয়ালিটি পণ্য",
+        "ডাবল প্রটেকশন বিশিষ্ট ইন্টেক্ট পলি প্যাকেজিং",
+        "TR 90 ফ্লেক্সিবল ও প্রিমিয়াম বিল্ড কোয়ালিটি",
+        "সারা বাংলাদেশে ফাস্ট ক্যাশ অন হোম ডেলিভারি",
+        "৭ দিনের ইজি রিটার্ন ও রিফান্ড গ্যারান্টি"
     ];
 
     const dynamicWhyBuyList = funnel?.features_list

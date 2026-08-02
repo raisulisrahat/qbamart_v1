@@ -1,7 +1,7 @@
 import React from 'react';
 import SEO from '../components/SEO';
 import { motion } from 'framer-motion';
-import { Phone, Mail, MapPin, Clock, Facebook } from 'lucide-react';
+import { Phone, Mail, MapPin, Clock, Facebook, MessageSquare, User, PhoneCall } from 'lucide-react';
 import { useSettings } from '../context/SettingsContext';
 
 const ContactUs = () => {
@@ -69,7 +69,7 @@ const ContactUs = () => {
               <h2 className="text-xl font-black text-neutral-900 mb-6 uppercase tracking-tight">Our Brand</h2>
               <div className="space-y-4">
                 {[
-                  { name: siteTitle, desc: "One of the most trusted online shopping platforms in Bangladesh! 🇧🇩", link: facebookLink },
+                  { name: siteTitle, desc: "One of the most trusted online shopping platforms in Bangladesh!", link: facebookLink },
                 ].map((brand, i) => (
                   <div key={i} className="bg-neutral-50 p-5 rounded-xl border border-neutral-100 relative group overflow-hidden">
                     <div className="absolute left-0 top-0 bottom-0 w-1 bg-brand opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -102,22 +102,30 @@ const ContactUs = () => {
             </div>
 
             <div>
-              <h2 className="text-xl font-black text-neutral-900 mb-6 uppercase tracking-tight">📞 যোগাযোগ করুন</h2>
+              <h2 className="text-xl font-black text-neutral-900 mb-6 uppercase tracking-tight flex items-center gap-3">
+                <PhoneCall className="w-6 h-6 text-brand" />
+                <span>যোগাযোগ করুন</span>
+              </h2>
               <p className="text-[13px] text-neutral-500 mb-6 font-medium leading-relaxed opacity-80">যেকোনো তথ্য বা সহযোগিতার জন্য যোগাযোগ করুন আমাদের কাস্টমার সাপোর্ট টিমের সঙ্গে। আমরা সবসময় প্রস্তুত আপনাকে সহায়তা করতে।</p>
               
               <div className="grid grid-cols-2 gap-3">
                 {[
-                  { label: "Phone", value: contactPhone, icon: "📞" },
-                  { label: "WhatsApp", value: whatsappNumber, icon: "💬" },
-                  { label: "Messenger", value: siteTitle, icon: "👤" },
-                  { label: "Email", value: siteEmail, icon: "📧" }
-                ].map((item, i) => (
-                  <div key={i} className="border border-neutral-100 p-3.5 rounded-xl hover:border-brand transition-colors cursor-pointer group bg-white shadow-sm">
-                    <div className='flex items-center gap-2 mb-2'><span className="text-sm mb-1.5 block">{item.icon}</span>
-                    <p className="text-sm font-black uppercase tracking-widest text-neutral-400">{item.label}</p></div>
-                    <p className="text-neutral-900 font-bold text-xs truncate group-hover:text-brand">{item.value}</p>
-                  </div>
-                ))}
+                  { label: "Phone", value: contactPhone, icon: Phone },
+                  { label: "WhatsApp", value: whatsappNumber, icon: MessageSquare },
+                  { label: "Messenger", value: siteTitle, icon: User },
+                  { label: "Email", value: siteEmail, icon: Mail }
+                ].map((item, i) => {
+                  const ItemIcon = item.icon;
+                  return (
+                    <div key={i} className="border border-neutral-100 p-3.5 rounded-xl hover:border-brand transition-colors cursor-pointer group bg-white shadow-sm">
+                      <div className='flex items-center gap-2 mb-2'>
+                        <ItemIcon className="w-4 h-4 text-brand shrink-0" />
+                        <p className="text-sm font-black uppercase tracking-widest text-neutral-400">{item.label}</p>
+                      </div>
+                      <p className="text-neutral-900 font-bold text-xs truncate group-hover:text-brand">{item.value}</p>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           </div>

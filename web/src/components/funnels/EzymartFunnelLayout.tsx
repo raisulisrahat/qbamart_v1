@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { ShieldCheck, Truck, Star, CheckCircle, ArrowRight, Clock, Phone, MapPin, Zap, Award, ShoppingCart, MessageCircle, Facebook } from 'lucide-react';
+import { ShieldCheck, Truck, Star, CheckCircle, ArrowRight, Clock, Phone, MapPin, Zap, Award, ShoppingCart, MessageCircle, Facebook, AlertTriangle } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation, Pagination, Autoplay, EffectFade } from 'swiper/modules';
@@ -203,11 +203,11 @@ const EzymartFunnelLayout = ({
 
     // Dynamic features
     const defaultWhyBuy = [
-        "100% জেনুইন ব্রান্ড প্রিমিয়াম কোয়ালিটি পণ্য ✅",
-        "ডাবল প্রটেকশন বিশিষ্ট ইন্টেক্ট পলি প্যাকেজিং ✅",
-        "TR 90 ফ্লেক্সিবল ও প্রিমিয়াম বিল্ড কোয়ালিটি ✅",
-        "সারা বাংলাদেশে ফাস্ট ক্যাশ অন হোম ডেলিভারি ✅",
-        "৭ দিনের ইজি রিটার্ন ও রিফান্ড গ্যারান্টি ✅"
+        "100% জেনুইন ব্রান্ড প্রিমিয়াম কোয়ালিটি পণ্য",
+        "ডাবল প্রটেকশন বিশিষ্ট ইন্টেক্ট পলি প্যাকেজিং",
+        "TR 90 ফ্লেক্সিবল ও প্রিমিয়াম বিল্ড কোয়ালিটি",
+        "সারা বাংলাদেশে ফাস্ট ক্যাশ অন হোম ডেলিভারি",
+        "৭ দিনের ইজি রিটার্ন ও রিফান্ড গ্যারান্টি"
     ];
 
     const dynamicWhyBuyList = funnel?.features_list
@@ -529,8 +529,9 @@ const EzymartFunnelLayout = ({
                         {/* Heading directing to the checkout form */}
                         <div className="pt-6 border-t border-white/10">
                         <div className='p-6 bg-brand rounded-full'>
-                        <h4 className="text-lg sm:text-2xl font-black text-white leading-relaxed">
-                                ⏳ সীমিত সময়ের অফার⏳ ঘড়িতে {funnel?.discount_percentage} ছাড় – আজই উপভোগ করুন!
+                        <h4 className="text-lg sm:text-2xl font-black text-white leading-relaxed flex items-center justify-center gap-2">
+                                <Clock className="w-6 h-6 text-yellow-300 shrink-0" />
+                                <span>সীমিত সময়ের অফার - ঘড়িতে {funnel?.discount_percentage} ছাড় – আজই উপভোগ করুন!</span>
                             </h4>
                             </div>
                         </div>

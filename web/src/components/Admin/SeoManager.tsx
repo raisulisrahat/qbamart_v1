@@ -367,12 +367,12 @@ const EntitySeoList = ({
                                     <p className="text-[10px] text-zinc-400 font-medium mt-0.5 truncate">/{item.slug}</p>
                                 )}
                                 {isOptimized ? (
-                                    <p className="text-[9px] font-bold text-emerald-600 mt-1 uppercase tracking-wider">
-                                        ✓ SEO Configured
+                                    <p className="text-[9px] font-bold text-emerald-600 mt-1 uppercase tracking-wider flex items-center gap-1">
+                                        <CheckCircle className="w-3 h-3" /> SEO Configured
                                     </p>
                                 ) : (
-                                    <p className="text-[9px] font-bold text-amber-500 mt-1 uppercase tracking-wider">
-                                        ⚠ Needs SEO Setup
+                                    <p className="text-[9px] font-bold text-amber-500 mt-1 uppercase tracking-wider flex items-center gap-1">
+                                        <AlertCircle className="w-3 h-3" /> Needs SEO Setup
                                     </p>
                                 )}
                             </div>
@@ -754,8 +754,8 @@ const PagesSeoList = ({ onSelect }: { onSelect: (p: PageSeoRecord) => void }) =>
                                     <p className="text-[13px] font-semibold text-zinc-900 leading-tight">{page.page_label}</p>
                                     <p className="text-[10px] text-zinc-400 font-medium mt-0.5">{page.page_path}</p>
                                     {isOpt
-                                        ? <p className="text-[9px] font-bold text-emerald-600 mt-1 uppercase tracking-wider">✓ SEO Configured</p>
-                                        : <p className="text-[9px] font-bold text-amber-500 mt-1 uppercase tracking-wider">⚠ Needs SEO Setup</p>
+                                        ? <p className="text-[9px] font-bold text-emerald-600 mt-1 uppercase tracking-wider flex items-center gap-1"><CheckCircle className="w-3 h-3" /> SEO Configured</p>
+                                        : <p className="text-[9px] font-bold text-amber-500 mt-1 uppercase tracking-wider flex items-center gap-1"><AlertCircle className="w-3 h-3" /> Needs SEO Setup</p>
                                     }
                                 </div>
                                 <div className="flex-shrink-0">
